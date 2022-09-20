@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MonacoTestApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MonacoTestApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

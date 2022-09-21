@@ -5,6 +5,16 @@
 		<RootNamespace>Monaco</RootNamespace>
 		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 		<UseWinUI>true</UseWinUI>
+		<PackageId>winui.monaco-editor</PackageId>
+		<Authors>lk-code</Authors>
+		<Product>winui.monaco-editor</Product>
+		<Description>the monaco editor (from visual studio code) as a winui control.</Description>
+		<Copyright>MIT</Copyright>
+		<PackageProjectUrl>https://github.com/lk-code/winui.monaco-editor</PackageProjectUrl>
+		<PackageIcon>icon_128.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/lk-code/winui.monaco-editor</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="MonacoEditor.xaml" />
@@ -25,5 +35,16 @@
 		<Content Include="MonacoEditorSource\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\icon_128.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>

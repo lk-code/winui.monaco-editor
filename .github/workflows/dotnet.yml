@@ -8,26 +8,35 @@ on:
 
 jobs:
   build:
+  
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [x64, x86, arm64]
 
     runs-on: windows-latest
-
-    steps:
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.11
     
+    env:
+      Solution_Name: Monaco.sln
+      
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-          
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.1
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+      env:
+        Configuration: ${{ matrix.configuration }}
       
     - name: Version Visual Studio SDK projects
       uses: roryprimrose/set-vs-sdk-project-version@v1.0.3
@@ -42,7 +51,17 @@ jobs:
         fileVersion: 1.0.${{ github.run_number }}
         # Maps to the InformationalVersion element
         informationalVersion: 1.0.${{ github.run_number }}
-
+        
+    # Create the app package by building and packaging the project
+    - name: Create the app package
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      env:
+        Appx_Bundle: Never
+        Appx_Package_Build_Mode: SideloadOnly
+        Appx_Package_Dir: Packages\
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
+        
     - name: Build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any

@@ -70,4 +70,4 @@ jobs:
         dotnet build --configuration Release --no-restore -p:PackageVersion=1.0.${{ github.run_number }}
       
     - name: Publish
-      run: dotnet nuget push **/*htmlc*.nupkg --no-symbols --skip-duplicate --api-key ${{secrets.NUGET_API_KEY}} --source "nuget.org"
+      run: dotnet nuget push **/*winui.monaco-editor*.nupkg --no-symbols --skip-duplicate --api-key ${{secrets.NUGET_API_KEY}} --source "nuget.org"

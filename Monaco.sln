@@ -5,8 +5,6 @@ VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monaco", "Monaco\Monaco.csproj", "{AB88D2DE-FDBB-4BB2-AF71-B1774BB602E1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonacoTestApp", "MonacoTestApp\MonacoTestApp.csproj", "{D0E17B9C-55FC-485F-B075-75EE01C60EE5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,30 +33,6 @@ Global
 		{AB88D2DE-FDBB-4BB2-AF71-B1774BB602E1}.Release|x64.Build.0 = Release|Any CPU
 		{AB88D2DE-FDBB-4BB2-AF71-B1774BB602E1}.Release|x86.ActiveCfg = Release|Any CPU
 		{AB88D2DE-FDBB-4BB2-AF71-B1774BB602E1}.Release|x86.Build.0 = Release|Any CPU
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|Any CPU.Build.0 = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|Any CPU.Deploy.0 = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|arm64.ActiveCfg = Debug|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|arm64.Build.0 = Debug|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|arm64.Deploy.0 = Debug|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x64.ActiveCfg = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x64.Build.0 = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x64.Deploy.0 = Debug|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x86.ActiveCfg = Debug|x86
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x86.Build.0 = Debug|x86
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Debug|x86.Deploy.0 = Debug|x86
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|Any CPU.ActiveCfg = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|Any CPU.Build.0 = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|Any CPU.Deploy.0 = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|arm64.ActiveCfg = Release|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|arm64.Build.0 = Release|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|arm64.Deploy.0 = Release|arm64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x64.ActiveCfg = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x64.Build.0 = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x64.Deploy.0 = Release|x64
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x86.ActiveCfg = Release|x86
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x86.Build.0 = Release|x86
-		{D0E17B9C-55FC-485F-B075-75EE01C60EE5}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

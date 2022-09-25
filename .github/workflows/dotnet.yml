@@ -54,10 +54,8 @@ jobs:
         
     # Create the app package by building and packaging the project
     - name: Create the app package
-      run: msbuild $env:Solution_Name /p:PackageVersion=1.0.${{ github.run_number }} /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      run: msbuild -t:pack $env:Solution_Name /p:PackageVersion=1.0.${{ github.run_number }} /p:Configuration=$env:Configuration /p:Platform=$env:Platform  /p:AppxPackageDir="$env:Appx_Package_Dir"
       env:
-        Appx_Bundle: Never
-        Appx_Package_Build_Mode: SideloadOnly
         Appx_Package_Dir: Packages\
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}

@@ -31,7 +31,7 @@ namespace MonacoTestApp
 
         private void SetContentButton_Click(object sender, RoutedEventArgs e)
         {
-            _ = this.MonacoEditor.LoadContentAsync(this.EditorContentTextBox.Text);
+            _ = this.MonacoEditor.EditorContent = this.EditorContentTextBox.Text;
         }
 
         private void EditorLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

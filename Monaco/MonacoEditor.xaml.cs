@@ -6,12 +6,12 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
-using Windows.Globalization;
 
 namespace Monaco
 {
     public sealed partial class MonacoEditor : UserControl
     {
+        public bool LoadCompleted { get; set; } = false;
         private string _content = "";
 
         #region PropertyChanged Event
@@ -24,15 +24,20 @@ namespace Monaco
 
         #endregion
 
+        
+
         #region Route Property
 
         public static readonly DependencyProperty EditorContentProperty = DependencyProperty.Register("EditorContent",
               typeof(string),
               typeof(MonacoEditor),
               new PropertyMetadata(null));
+
+        /// <summary>
+        /// Get the content of the editor.
+        /// </summary>
         public string EditorContent
         {
-            get { return (string)GetValue(EditorContentProperty); }
             set
             {
                 SetValue(EditorContentProperty, value);
@@ -67,8 +72,13 @@ namespace Monaco
         public MonacoEditor()
         {
             this.InitializeComponent();
-
             this.Loaded += MonacoEditor_Loaded;
+            MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+        }
+
+        private void WebView_NavigationCompleted(object sender, object e)
+        {
+            LoadCompleted = true;
         }
 
         private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
@@ -111,6 +121,7 @@ namespace Monaco
             return content;
         }
 
+
         /// <summary>
         /// sets the requested theme to the monaco editor view
         /// </summary>
@@ -136,8 +147,7 @@ namespace Monaco
 
             string command = $"editor._themeService.setTheme('{themeValue}');";
 
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
+            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
         }
 
         /// <summary>
@@ -161,8 +171,7 @@ namespace Monaco
         {
             string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
 
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
+            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
         }
     }
 }

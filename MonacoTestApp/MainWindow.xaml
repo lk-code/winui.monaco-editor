@@ -74,7 +74,9 @@
         </StackPanel>
 
         <monaco:MonacoEditor Grid.Column="1"
-                             x:Name="MonacoEditor" />
+                             x:Name="MonacoEditor" 
+                             EditorTheme="VisualStudioDark"
+                             EditorLanguage="python"/>
 
     </Grid>
 

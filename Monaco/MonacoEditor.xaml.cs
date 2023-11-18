@@ -12,6 +12,7 @@ namespace Monaco
     public sealed partial class MonacoEditor : UserControl
     {
         public bool LoadCompleted { get; set; } = false;
+
         private string _content = "";
 
         #region PropertyChanged Event
@@ -24,7 +25,25 @@ namespace Monaco
 
         #endregion
 
-        
+        #region EditorLanguage Property
+        public static readonly DependencyProperty EditorLanguageProperty = DependencyProperty.Register("EditorLanguage",
+              typeof(string),
+              typeof(MonacoEditor),
+              new PropertyMetadata(null));
+
+        public string EditorLanguage
+        {
+            get {
+                return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
+            }
+            set { 
+                SetValue(EditorLanguageProperty, value);
+                OnPropertyChanged();
+
+                _ = this.SetLanguageAsync(value);
+            }
+        }
+        #endregion
 
         #region Route Property
 
@@ -57,7 +76,16 @@ namespace Monaco
               new PropertyMetadata(null));
         public EditorThemes EditorTheme
         {
-            get { return (EditorThemes)GetValue(EditorThemeProperty); }
+            get { 
+                if(GetValue(EditorThemeProperty) != null)
+                {
+                    return (EditorThemes)GetValue(EditorThemeProperty); 
+                }
+                else
+                {
+                    return EditorThemes.VisualStudioLight;
+                }
+            }
             set
             {
                 SetValue(EditorThemeProperty, value);
@@ -79,6 +107,8 @@ namespace Monaco
         private void WebView_NavigationCompleted(object sender, object e)
         {
             LoadCompleted = true;
+            this.SetThemeAsync(this.EditorTheme);
+            this.SetLanguageAsync(this.EditorLanguage);
         }
 
         private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)

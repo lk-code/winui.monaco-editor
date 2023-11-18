@@ -44,5 +44,10 @@ namespace MonacoTestApp
         {
             _ = this.MonacoEditor.SelectAllAsync();
         }
+
+        private async void GetContentButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine(await MonacoEditor.GetEditorContentAsync());
+        }
     }
 }

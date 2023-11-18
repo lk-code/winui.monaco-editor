@@ -96,6 +96,22 @@ namespace Monaco
         }
 
         /// <summary>
+        /// Gets the content form the monaco editor view
+        /// </summary>
+        /// <returns>The content of the editor</returns>
+        public async Task<string> GetEditorContentAsync()
+        {
+            string command = $"editor.getValue();";
+
+            string contentAsJsRepresentation = await this.MonacoEditorWebView
+                .ExecuteScriptAsync(command);
+            string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+            string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+
+            return content;
+        }
+
+        /// <summary>
         /// sets the requested theme to the monaco editor view
         /// </summary>
         /// <param name="theme">the requested theme</param>

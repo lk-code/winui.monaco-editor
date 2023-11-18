@@ -62,6 +62,10 @@
                     Content="Set Content"
                     Click="SetContentButton_Click" />
 
+            <Button Style="{ThemeResource ModeButtonStyle}"
+        Content="Get Content"
+        Click="GetContentButton_Click" />
+
             <ComboBox x:Name="EditorLanguageComboBox"
                       SelectionChanged="EditorLanguageComboBox_SelectionChanged"
                       HorizontalAlignment="Stretch">

@@ -89,7 +89,7 @@ namespace Monaco
 
             this._content = ensuredContent;
 
-            string command = $"editor.setValue(('{ensuredContent}');";
+            string command = $"editor.setValue('{ensuredContent}');";
 
             await this.MonacoEditorWebView
                 .ExecuteScriptAsync(command);

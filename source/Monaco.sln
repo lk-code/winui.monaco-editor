@@ -7,11 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monaco", "Monaco\Monaco.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{BC1EF635-5BF3-4E20-BED5-3F7B5E74C509}"
 	ProjectSection(SolutionItems) = preProject
-		.gitignore = .gitignore
-		icon_128.png = icon_128.png
-		LICENSE = LICENSE
-		README.md = README.md
-		.github\FUNDING.yml = .github\FUNDING.yml
+		Monaco.sln = Monaco.sln
+		..\.gitignore = ..\.gitignore
+		..\icon_128.png = ..\icon_128.png
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+		..\.github\FUNDING.yml = ..\.github\FUNDING.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3148528A-2A20-41F6-9AF2-40071E58E4EA}"
@@ -20,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonacoTestApp", "MonacoTest
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{4F8B24EA-DE35-461E-AF93-64442E5EB9BF}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		.github\workflows\dotnet.yml = ..\.github\workflows\dotnet.yml
+		..\.github\workflows\dotnet.yml = ..\.github\workflows\dotnet.yml
+		..\.github\workflows\pull-request.yml = ..\.github\workflows\pull-request.yml
 	EndProjectSection
 EndProject
 Global

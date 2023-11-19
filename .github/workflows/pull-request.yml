@@ -15,8 +15,8 @@ jobs:
     runs-on: windows-latest
     
     env:
-      SOLUTION: Monaco.sln
-      PROJECT_FILE: "**/Monaco.csproj"
+      SOLUTION: source/Monaco.sln
+      PROJECT_FILE: source/Monaco/Monaco.csproj
       VERSION: 1.0.${{ github.run_number }}
     
     steps:

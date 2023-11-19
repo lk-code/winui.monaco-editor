@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:monaco="using:Monaco"
+                    xmlns:local="using:MonacoTestApp.Styles">
+
+    <Style x:Key="MonacoTheme"
+           TargetType="monaco:MonacoEditor">
+        <Setter Property="EditorTheme"
+                Value="VisualStudioDark" />
+    </Style>
+
+</ResourceDictionary>

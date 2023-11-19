@@ -1,12 +1,12 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using System;
+﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
-using Windows.Globalization;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace Monaco
 {
@@ -32,7 +32,10 @@ namespace Monaco
               new PropertyMetadata(null));
         public string EditorContent
         {
-            get { return (string)GetValue(EditorContentProperty); }
+            get
+            {
+                return (string)GetValue(EditorContentProperty);
+            }
             set
             {
                 SetValue(EditorContentProperty, value);
@@ -44,7 +47,7 @@ namespace Monaco
 
         #endregion
 
-        #region Theme Property
+        #region EditorTheme Property
 
         public static readonly DependencyProperty EditorThemeProperty = DependencyProperty.Register("EditorTheme",
               typeof(EditorThemes),
@@ -52,13 +55,15 @@ namespace Monaco
               new PropertyMetadata(null));
         public EditorThemes EditorTheme
         {
-            get { return (EditorThemes)GetValue(EditorThemeProperty); }
+            get
+            {
+                return (EditorThemes)GetValue(EditorThemeProperty);
+            }
             set
             {
+                Debug.WriteLine($"EditorTheme changed");
                 SetValue(EditorThemeProperty, value);
                 OnPropertyChanged();
-
-                _ = this.SetThemeAsync(value);
             }
         }
 

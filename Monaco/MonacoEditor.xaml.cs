@@ -6,12 +6,13 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
-using Windows.Globalization;
 
 namespace Monaco
 {
     public sealed partial class MonacoEditor : UserControl
     {
+        public bool LoadCompleted { get; set; } = false;
+
         private string _content = "";
 
         #region PropertyChanged Event
@@ -24,15 +25,38 @@ namespace Monaco
 
         #endregion
 
+        #region EditorLanguage Property
+        public static readonly DependencyProperty EditorLanguageProperty = DependencyProperty.Register("EditorLanguage",
+              typeof(string),
+              typeof(MonacoEditor),
+              new PropertyMetadata(null));
+
+        public string EditorLanguage
+        {
+            get {
+                return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
+            }
+            set { 
+                SetValue(EditorLanguageProperty, value);
+                OnPropertyChanged();
+
+                _ = this.SetLanguageAsync(value);
+            }
+        }
+        #endregion
+
         #region Route Property
 
         public static readonly DependencyProperty EditorContentProperty = DependencyProperty.Register("EditorContent",
               typeof(string),
               typeof(MonacoEditor),
               new PropertyMetadata(null));
+
+        /// <summary>
+        /// Get the content of the editor.
+        /// </summary>
         public string EditorContent
         {
-            get { return (string)GetValue(EditorContentProperty); }
             set
             {
                 SetValue(EditorContentProperty, value);
@@ -52,7 +76,16 @@ namespace Monaco
               new PropertyMetadata(null));
         public EditorThemes EditorTheme
         {
-            get { return (EditorThemes)GetValue(EditorThemeProperty); }
+            get { 
+                if(GetValue(EditorThemeProperty) != null)
+                {
+                    return (EditorThemes)GetValue(EditorThemeProperty); 
+                }
+                else
+                {
+                    return EditorThemes.VisualStudioLight;
+                }
+            }
             set
             {
                 SetValue(EditorThemeProperty, value);
@@ -67,8 +100,15 @@ namespace Monaco
         public MonacoEditor()
         {
             this.InitializeComponent();
-
             this.Loaded += MonacoEditor_Loaded;
+            MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+        }
+
+        private void WebView_NavigationCompleted(object sender, object e)
+        {
+            LoadCompleted = true;
+            this.SetThemeAsync(this.EditorTheme);
+            this.SetLanguageAsync(this.EditorLanguage);
         }
 
         private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
@@ -89,11 +129,28 @@ namespace Monaco
 
             this._content = ensuredContent;
 
-            string command = $"editor.setValue(('{ensuredContent}');";
+            string command = $"editor.setValue('{ensuredContent}');";
 
             await this.MonacoEditorWebView
                 .ExecuteScriptAsync(command);
         }
+
+        /// <summary>
+        /// Gets the content form the monaco editor view
+        /// </summary>
+        /// <returns>The content of the editor</returns>
+        public async Task<string> GetEditorContentAsync()
+        {
+            string command = $"editor.getValue();";
+
+            string contentAsJsRepresentation = await this.MonacoEditorWebView
+                .ExecuteScriptAsync(command);
+            string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+            string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+
+            return content;
+        }
+
 
         /// <summary>
         /// sets the requested theme to the monaco editor view
@@ -120,8 +177,7 @@ namespace Monaco
 
             string command = $"editor._themeService.setTheme('{themeValue}');";
 
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
+            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
         }
 
         /// <summary>
@@ -145,8 +201,7 @@ namespace Monaco
         {
             string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
 
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
+            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
         }
     }
 }

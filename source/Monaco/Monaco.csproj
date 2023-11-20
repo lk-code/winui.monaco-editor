@@ -5,8 +5,8 @@
         <RootNamespace>Monaco</RootNamespace>
         <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
         <UseWinUI>true</UseWinUI>
-        <PackageId>winui.monaco-editor</PackageId>
-        <Product>winui.monaco-editor</Product>
+        <PackageId>WinUI.Monaco</PackageId>
+        <Product>WinUI.Monaco</Product>
         <AssemblyName>winui.monaco</AssemblyName>
         <Company>$(Authors)</Company>
         <Authors>lk-code</Authors>

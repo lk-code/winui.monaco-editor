@@ -1,4 +1,4 @@
-name: .NET Build
+name: Pull Request Check
 
 on:
   pull_request:
@@ -17,7 +17,6 @@ jobs:
     env:
       SOLUTION: source/Monaco.sln
       PROJECT_FILE: source/Monaco/Monaco.csproj
-      VERSION: 1.0.${{ github.run_number }}
     
     steps:
       - name: Git Checkout
@@ -38,11 +37,8 @@ jobs:
         env:
           Configuration: ${{ matrix.configuration }}
 
-      # Create the app package by building and packaging the project
-      - name: Create the app package
-        run: msbuild -t:pack ${{ env.SOLUTION }} /p:PackageVersion=${{ env.VERSION }} /p:Configuration=$env:Configuration /p:Platform=$env:Platform  /p:AppxPackageDir="$env:Appx_Package_Dir"
+      - name: Build
+        run: msbuild ${{ env.SOLUTION }} /p:Configuration=Release /p:Platform=$env:Platform
         env:
-          Appx_Package_Dir: Packages\
-          Configuration: ${{ matrix.configuration }}
           Platform: ${{ matrix.platform }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any

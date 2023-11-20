@@ -21,6 +21,16 @@ The Monaco Editor (Visual Studio Code) as UI Control for WinUI 3.0
 dotnet add package WinUI.Monaco
 ```
 
+### WinUI.Monaco Version
+
+The library version is composed as follows:
+
+* the current project version
+* the used Monaco Editor version
+* the GitHub RunNumber of the build
+
+`1.1.${{ env.MONACO_VERSION }}.${{ github.run_number }}` (example: `1.1.44.13`)
+
 ## Contributors
 
 [![Contributors](https://contrib.rocks/image?repo=lk-code/winui.monaco-editor)](https://github.com/lk-code/winui.monaco-editor/graphs/contributors)
@@ -31,7 +41,7 @@ dotnet add package WinUI.Monaco
 
 The monaco project is stored in the C#-Project Monaco under the folder `MonacoEditorSource`.
 
-To update the monaco version follo these steps:
+To update the monaco version follow these steps:
 
 1. download the latest version from [Microsoft Monaco Project](https://microsoft.github.io/monaco-editor/)
 2. extract the archive file

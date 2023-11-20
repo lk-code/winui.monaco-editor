@@ -20,6 +20,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonacoTestApp", "MonacoTestApp\MonacoTestApp.csproj", "{77E03CAE-7818-4A7C-A8E9-8B69573F89E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{4F8B24EA-DE35-461E-AF93-64442E5EB9BF}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\dotnet.yml = ..\.github\workflows\dotnet.yml
+		..\.github\workflows\pull-request.yml = ..\.github\workflows\pull-request.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

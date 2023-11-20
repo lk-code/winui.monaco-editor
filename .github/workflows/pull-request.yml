@@ -1,13 +1,11 @@
 name: .NET Build
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build-and-publish:
+  pull-request-check:
     
     strategy:
       matrix:
@@ -40,20 +38,6 @@ jobs:
         env:
           Configuration: ${{ matrix.configuration }}
 
-      - name: Version Visual Studio SDK projects
-        uses: roryprimrose/set-vs-sdk-project-version@v1.0.3
-        with:
-          # The wildcard filter that identifies projects to version
-          projectFilter: ${{ env.PROJECT_FILE }}
-          # Maps to the Version element
-          version: ${{ env.VERSION }}
-          # Maps to the AssemblyVersion element
-          assemblyVersion: ${{ env.VERSION }}
-          # Maps to the FileVersion element
-          fileVersion: ${{ env.VERSION }}
-          # Maps to the InformationalVersion element
-          informationalVersion: ${{ env.VERSION }}
-      
       # Create the app package by building and packaging the project
       - name: Create the app package
         run: msbuild -t:pack ${{ env.SOLUTION }} /p:PackageVersion=${{ env.VERSION }} /p:Configuration=$env:Configuration /p:Platform=$env:Platform  /p:AppxPackageDir="$env:Appx_Package_Dir"
@@ -62,11 +46,3 @@ jobs:
           Configuration: ${{ matrix.configuration }}
           Platform: ${{ matrix.platform }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-
-      - name: Set Version Git Tag
-        run: |
-          git tag ${{ env.VERSION }}
-          git push origin ${{ env.VERSION }}
-
-      - name: Publish
-        run: dotnet nuget push **/*winui.monaco-editor*.nupkg --no-symbols --skip-duplicate --api-key ${{secrets.NUGET_API_KEY}} --source "nuget.org"

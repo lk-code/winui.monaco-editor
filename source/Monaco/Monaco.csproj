@@ -2,17 +2,13 @@
     <PropertyGroup>
         <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
         <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <RootNamespace>Monaco</RootNamespace>
         <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
         <UseWinUI>true</UseWinUI>
         <PackageId>winui.monaco-editor</PackageId>
         <Product>winui.monaco-editor</Product>
-        <PackageOutputPath>./nupkg</PackageOutputPath>
         <AssemblyName>winui.monaco</AssemblyName>
         <Company>$(Authors)</Company>
-        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <Authors>lk-code</Authors>
         <Description>the monaco editor (from visual studio code) as a winui control.</Description>
         <Copyright>MIT</Copyright>
@@ -21,9 +17,6 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/lk-code/winui.monaco-editor</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-        <VersionPrefix>1.0.0</VersionPrefix>
     </PropertyGroup>
 
     <ItemGroup>

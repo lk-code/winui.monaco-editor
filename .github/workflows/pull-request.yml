@@ -17,6 +17,8 @@ jobs:
     env:
       SOLUTION: source/Monaco.sln
       PROJECT_FILE: source/Monaco/Monaco.csproj
+      MONACO_VERSION: 34
+      VERSION: 1.1.${{ env.MONACO_VERSION }}.${{ github.run_number }}
     
     steps:
       - name: Git Checkout

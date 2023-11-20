@@ -11,7 +11,7 @@
 
 ## Introduction
 
-The Monaco Editor (Visual Studio Code) as UI Control for WinUI 3.0
+The [Monaco Editor](https://github.com/microsoft/monaco-editor) (Visual Studio Code) as UI Control for WinUI 3.0
 
 **Notice:** As part of a project restructuring, the NuGet name of the library was changed from `winui.monaco-editor` to `WinUI.Monaco`.
 

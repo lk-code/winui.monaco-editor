@@ -3,6 +3,7 @@
     public enum EditorThemes
     {
         VisualStudioLight,
-        VisualStudioDark
+        VisualStudioDark,
+        HighContrastDark
     }
 }

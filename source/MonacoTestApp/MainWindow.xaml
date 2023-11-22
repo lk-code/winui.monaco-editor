@@ -1,7 +1,6 @@
 ﻿<Window x:Class="MonacoTestApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="using:MonacoTestApp"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:monaco="using:Monaco"
@@ -39,44 +38,49 @@
 
         <StackPanel Orientation="Vertical"
                     Grid.Column="0"
-                    Padding="4">
+                    Padding="8">
 
             <Button Style="{ThemeResource ModeButtonStyle}"
                     Content="Select All"
                     Click="SelectAllButton_Click" />
 
-            <Button Style="{ThemeResource ModeButtonStyle}"
-                    Content="Set Light Theme"
-                    Click="LightThemeButton_Click" />
+            <StackPanel Margin="0,16">
+                <TextBlock Text="Theme" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <ComboBox x:Name="ThemeSelectionComboBox"
+                      SelectionChanged="ThemeSelectionComboBox_OnSelectionChanged"
+                      HorizontalAlignment="Stretch" />
+            </StackPanel>
 
-            <Button Style="{ThemeResource ModeButtonStyle}"
-                    Content="Set Dark Theme"
-                    Click="DarkThemeButton_Click" />
+            <StackPanel Margin="0,4">
+                <TextBlock Text="Content" Style="{StaticResource SubtitleTextBlockStyle}" />
 
-            <TextBox Style="{ThemeResource InputTextBoxStyle}"
-                     PlaceholderText="Editor Text"
+                <TextBox Style="{ThemeResource InputTextBoxStyle}"
+                     PlaceholderText="Editor Content"
                      Height="120"
                      x:Name="EditorContentTextBox" />
 
-            <Button Style="{ThemeResource ModeButtonStyle}"
+                <Button Style="{ThemeResource ModeButtonStyle}"
                     Content="Set Content"
                     Click="SetContentButton_Click" />
 
-            <Button Style="{ThemeResource ModeButtonStyle}"
-        Content="Get Content"
-        Click="GetContentButton_Click" />
+                <Button Style="{ThemeResource ModeButtonStyle}"
+                    Content="Get Content"
+                    Click="GetContentButton_Click" />
+            </StackPanel>
 
-            <ComboBox x:Name="EditorLanguageComboBox"
+            <StackPanel Margin="0,16">
+                <TextBlock Text="Code Language" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <ComboBox x:Name="EditorLanguageComboBox"
                       SelectionChanged="EditorLanguageComboBox_SelectionChanged"
-                      HorizontalAlignment="Stretch">
-            </ComboBox>
+                      HorizontalAlignment="Stretch" />
+            </StackPanel>
 
         </StackPanel>
 
         <monaco:MonacoEditor Grid.Column="1"
-                             x:Name="MonacoEditor" 
+                             x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
-                             EditorLanguage="python"/>
+                             EditorLanguage="python" />
 
     </Grid>
 

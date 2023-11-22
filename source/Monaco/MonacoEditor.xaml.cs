@@ -7,201 +7,212 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Monaco
+namespace Monaco;
+
+public sealed partial class MonacoEditor : UserControl
 {
-    public sealed partial class MonacoEditor : UserControl
+    public bool LoadCompleted { get; set; } = false;
+
+    private string _content = "";
+
+    #region PropertyChanged Event
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
-        public bool LoadCompleted { get; set; } = false;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
-        private string _content = "";
+    #endregion
 
-        #region PropertyChanged Event
+    #region EditorLanguage Property
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    public static readonly DependencyProperty EditorLanguageProperty = DependencyProperty.Register("EditorLanguage",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public string EditorLanguage
+    {
+        get
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
         }
-
-        #endregion
-
-        #region EditorLanguage Property
-        public static readonly DependencyProperty EditorLanguageProperty = DependencyProperty.Register("EditorLanguage",
-              typeof(string),
-              typeof(MonacoEditor),
-              new PropertyMetadata(null));
-
-        public string EditorLanguage
+        set
         {
-            get {
-                return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
-            }
-            set { 
-                SetValue(EditorLanguageProperty, value);
-                OnPropertyChanged();
+            SetValue(EditorLanguageProperty, value);
+            OnPropertyChanged();
 
-                _ = this.SetLanguageAsync(value);
-            }
+            _ = this.SetLanguageAsync(value);
         }
-        #endregion
+    }
 
-        #region Route Property
+    #endregion
 
-        public static readonly DependencyProperty EditorContentProperty = DependencyProperty.Register("EditorContent",
-              typeof(string),
-              typeof(MonacoEditor),
-              new PropertyMetadata(null));
+    #region Route Property
 
-        /// <summary>
-        /// Get the content of the editor.
-        /// </summary>
-        public string EditorContent
+    public static readonly DependencyProperty EditorContentProperty = DependencyProperty.Register("EditorContent",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Get the content of the editor.
+    /// </summary>
+    public string EditorContent
+    {
+        set
         {
-            set
+            SetValue(EditorContentProperty, value);
+            OnPropertyChanged();
+
+            _ = this.LoadContentAsync(value);
+        }
+    }
+
+    #endregion
+
+    #region Theme Property
+
+    public static readonly DependencyProperty EditorThemeProperty = DependencyProperty.Register("EditorTheme",
+        typeof(EditorThemes),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public EditorThemes EditorTheme
+    {
+        get
+        {
+            if (GetValue(EditorThemeProperty) != null)
             {
-                SetValue(EditorContentProperty, value);
-                OnPropertyChanged();
-
-                _ = this.LoadContentAsync(value);
+                return (EditorThemes)GetValue(EditorThemeProperty);
             }
-        }
-
-        #endregion
-
-        #region Theme Property
-
-        public static readonly DependencyProperty EditorThemeProperty = DependencyProperty.Register("EditorTheme",
-              typeof(EditorThemes),
-              typeof(MonacoEditor),
-              new PropertyMetadata(null));
-        public EditorThemes EditorTheme
-        {
-            get { 
-                if(GetValue(EditorThemeProperty) != null)
-                {
-                    return (EditorThemes)GetValue(EditorThemeProperty); 
-                }
-                else
-                {
-                    return EditorThemes.VisualStudioLight;
-                }
-            }
-            set
+            else
             {
-                SetValue(EditorThemeProperty, value);
-                OnPropertyChanged();
-
-                _ = this.SetThemeAsync(value);
+                return EditorThemes.VisualStudioLight;
             }
         }
-
-        #endregion
-
-        public MonacoEditor()
+        set
         {
-            this.InitializeComponent();
-            this.Loaded += MonacoEditor_Loaded;
-            MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+            SetValue(EditorThemeProperty, value);
+            OnPropertyChanged();
+
+            _ = this.SetThemeAsync(value);
         }
+    }
 
-        private void WebView_NavigationCompleted(object sender, object e)
+    #endregion
+
+    public MonacoEditor()
+    {
+        this.InitializeComponent();
+        this.Loaded += MonacoEditor_Loaded;
+        MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+    }
+
+    private void WebView_NavigationCompleted(object sender, object e)
+    {
+        LoadCompleted = true;
+        this.SetThemeAsync(this.EditorTheme);
+        this.SetLanguageAsync(this.EditorLanguage);
+    }
+
+    private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
+    {
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory,
+            @"MonacoEditorSource\index.html");
+        this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
+    }
+
+    /// <summary>
+    /// loads the given content to the monaco editor view
+    /// </summary>
+    /// <param name="content">the new content</param>
+    /// <returns></returns>
+    public async Task LoadContentAsync(string content)
+    {
+        string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
+
+        this._content = ensuredContent;
+
+        string command = $"editor.setValue('{ensuredContent}');";
+
+        await this.MonacoEditorWebView
+            .ExecuteScriptAsync(command);
+    }
+
+    /// <summary>
+    /// Gets the content form the monaco editor view
+    /// </summary>
+    /// <returns>The content of the editor</returns>
+    public async Task<string> GetEditorContentAsync()
+    {
+        string command = $"editor.getValue();";
+
+        string contentAsJsRepresentation = await this.MonacoEditorWebView
+            .ExecuteScriptAsync(command);
+        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+
+        return content;
+    }
+
+
+    /// <summary>
+    /// sets the requested theme to the monaco editor view
+    /// </summary>
+    /// <param name="theme">the requested theme</param>
+    /// <returns></returns>
+    public async Task SetThemeAsync(EditorThemes theme)
+    {
+        string themeValue = "vs-dark";
+
+        switch (theme)
         {
-            LoadCompleted = true;
-            this.SetThemeAsync(this.EditorTheme);
-            this.SetLanguageAsync(this.EditorLanguage);
-        }
-
-        private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
-        {
-            string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory,
-                    @"MonacoEditorSource\index.html");
-            this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
-        }
-
-        /// <summary>
-        /// loads the given content to the monaco editor view
-        /// </summary>
-        /// <param name="content">the new content</param>
-        /// <returns></returns>
-        public async Task LoadContentAsync(string content)
-        {
-            string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
-
-            this._content = ensuredContent;
-
-            string command = $"editor.setValue('{ensuredContent}');";
-
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
-        }
-
-        /// <summary>
-        /// Gets the content form the monaco editor view
-        /// </summary>
-        /// <returns>The content of the editor</returns>
-        public async Task<string> GetEditorContentAsync()
-        {
-            string command = $"editor.getValue();";
-
-            string contentAsJsRepresentation = await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
-            string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
-            string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
-
-            return content;
-        }
-
-
-        /// <summary>
-        /// sets the requested theme to the monaco editor view
-        /// </summary>
-        /// <param name="theme">the requested theme</param>
-        /// <returns></returns>
-        public async Task SetThemeAsync(EditorThemes theme)
-        {
-            string themeValue = "vs-dark";
-
-            switch (theme)
+            case EditorThemes.VisualStudioLight:
             {
-                case EditorThemes.VisualStudioLight:
-                    {
-                        themeValue = "vs-light";
-                    }
-                    break;
-                case EditorThemes.VisualStudioDark:
-                    {
-                        themeValue = "vs-dark";
-                    }
-                    break;
+                themeValue = "vs-light";
             }
-
-            string command = $"editor._themeService.setTheme('{themeValue}');";
-
-            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+                break;
+            case EditorThemes.VisualStudioDark:
+            {
+                themeValue = "vs-dark";
+            }
+                break;
+            case EditorThemes.HighContrastDark:
+            {
+                themeValue = "hc-black";
+            }
+                break;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public async Task SetLanguageAsync(string language)
-        {
-            string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{language}'));";
+        string command = $"editor._themeService.setTheme('{themeValue}');";
 
-            await this.MonacoEditorWebView
-                .ExecuteScriptAsync(command);
-        }
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public async Task SelectAllAsync()
-        {
-            string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="language"></param>
+    /// <returns></returns>
+    public async Task SetLanguageAsync(string language)
+    {
+        string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{language}'));";
 
-            await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-        }
+        await this.MonacoEditorWebView
+            .ExecuteScriptAsync(command);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public async Task SelectAllAsync()
+    {
+        string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
+
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 }

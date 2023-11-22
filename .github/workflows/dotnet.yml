@@ -63,10 +63,22 @@ jobs:
           Platform: ${{ matrix.platform }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
 
-      - name: Set Version Git Tag
-        run: |
-          git tag ${{ env.VERSION }}
-          git push origin ${{ env.VERSION }}
-
       - name: Publish
         run: dotnet nuget push **/*WinUI.Monaco*.nupkg --no-symbols --skip-duplicate --api-key ${{secrets.NUGET_API_KEY}} --source "nuget.org"
+        
+  after-build-publish:
+
+    needs: build-and-publish
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set Version Git Tag
+        run: |
+          git tag ${{ needs.build-and-publish.outputs.VERSION }}
+          git push origin ${{ needs.build-and-publish.outputs.VERSION }}

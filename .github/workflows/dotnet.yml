@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    
+env:
+  SOLUTION: source/Monaco.sln
+  PROJECT_FILE: source/Monaco/Monaco.csproj
+  VERSION: 1.1.44.${{ github.run_number }}
 
 jobs:
   build-and-publish:
@@ -15,11 +20,6 @@ jobs:
         platform: [ x64, x86, arm64 ]
 
     runs-on: windows-latest
-    
-    env:
-      SOLUTION: source/Monaco.sln
-      PROJECT_FILE: source/Monaco/Monaco.csproj
-      VERSION: 1.1.44.${{ github.run_number }}
     
     steps:
       - name: Git Checkout

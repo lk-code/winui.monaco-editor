@@ -4,12 +4,13 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
 namespace Monaco;
 
-public sealed partial class MonacoEditor : UserControl
+public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 {
     public bool LoadCompleted { get; set; } = false;
 
@@ -50,7 +51,7 @@ public sealed partial class MonacoEditor : UserControl
 
     #endregion
 
-    #region Route Property
+    #region EditorContent Property
 
     public static readonly DependencyProperty EditorContentProperty = DependencyProperty.Register("EditorContent",
         typeof(string),
@@ -114,22 +115,17 @@ public sealed partial class MonacoEditor : UserControl
     private void WebView_NavigationCompleted(object sender, object e)
     {
         LoadCompleted = true;
-        this.SetThemeAsync(this.EditorTheme);
-        this.SetLanguageAsync(this.EditorLanguage);
+        _ = this.SetThemeAsync(this.EditorTheme);
+        _ = this.SetLanguageAsync(this.EditorLanguage);
     }
 
     private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
     {
-        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory,
-            @"MonacoEditorSource\index.html");
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"MonacoEditorSource\index.html");
         this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
     }
 
-    /// <summary>
-    /// loads the given content to the monaco editor view
-    /// </summary>
-    /// <param name="content">the new content</param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task LoadContentAsync(string content)
     {
         string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
@@ -142,28 +138,19 @@ public sealed partial class MonacoEditor : UserControl
             .ExecuteScriptAsync(command);
     }
 
-    /// <summary>
-    /// Gets the content form the monaco editor view
-    /// </summary>
-    /// <returns>The content of the editor</returns>
+    /// <inheritdoc />
     public async Task<string> GetEditorContentAsync()
     {
         string command = $"editor.getValue();";
 
-        string contentAsJsRepresentation = await this.MonacoEditorWebView
-            .ExecuteScriptAsync(command);
+        string contentAsJsRepresentation = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
         string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
         string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
 
         return content;
     }
 
-
-    /// <summary>
-    /// sets the requested theme to the monaco editor view
-    /// </summary>
-    /// <param name="theme">the requested theme</param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task SetThemeAsync(EditorThemes theme)
     {
         string themeValue = "vs-dark";
@@ -171,19 +158,19 @@ public sealed partial class MonacoEditor : UserControl
         switch (theme)
         {
             case EditorThemes.VisualStudioLight:
-            {
-                themeValue = "vs-light";
-            }
+                {
+                    themeValue = "vs-light";
+                }
                 break;
             case EditorThemes.VisualStudioDark:
-            {
-                themeValue = "vs-dark";
-            }
+                {
+                    themeValue = "vs-dark";
+                }
                 break;
             case EditorThemes.HighContrastDark:
-            {
-                themeValue = "hc-black";
-            }
+                {
+                    themeValue = "hc-black";
+                }
                 break;
         }
 
@@ -192,26 +179,30 @@ public sealed partial class MonacoEditor : UserControl
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="language"></param>
-    /// <returns></returns>
-    public async Task SetLanguageAsync(string language)
-    {
-        string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{language}'));";
-
-        await this.MonacoEditorWebView
-            .ExecuteScriptAsync(command);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task SelectAllAsync()
     {
         string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
+
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    /// <inheritdoc />
+    public async Task<CodeLanguage[]> GetLanguagesAsync()
+    {
+        string command = $"monaco.languages.getLanguages();";
+
+        string languagesJson = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+
+        CodeLanguage[] codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
+
+        return codeLanguages;
+    }
+
+    /// <inheritdoc />
+    public async Task SetLanguageAsync(string languageId)
+    {
+        string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{languageId}'));";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }

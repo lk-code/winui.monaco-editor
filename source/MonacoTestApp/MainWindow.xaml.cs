@@ -25,7 +25,7 @@ public sealed partial class MainWindow : Window
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         // set languages
-        this.EditorLanguageComboBox.ItemsSource = EditorLanguages.GetLanguages();
+        // this.EditorLanguageComboBox.ItemsSource = (await MonacoEditor.GetLanguagesAsync()).Select(x => x.Id).ToList();
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
@@ -56,6 +56,13 @@ public sealed partial class MainWindow : Window
     private async void GetContentButton_Click(object sender, RoutedEventArgs e)
     {
         this.EditorContentTextBox.Text = await MonacoEditor.GetEditorContentAsync();
+    }
+
+    private async void LoadLanguagesButton_Click(object sender, RoutedEventArgs e)
+    {
+        CodeLanguage[] languages = await MonacoEditor.GetLanguagesAsync();
+        List<string> selectionLanguages = languages.Select(x => x.Id).ToList();
+        this.EditorLanguageComboBox.ItemsSource = selectionLanguages;
     }
 
     private void EditorLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

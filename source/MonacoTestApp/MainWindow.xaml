@@ -70,6 +70,9 @@
 
             <StackPanel Margin="0,16">
                 <TextBlock Text="Code Language" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <Button Style="{ThemeResource ModeButtonStyle}"
+                    Content="Load Languages"
+                    Click="LoadLanguagesButton_Click" />
                 <ComboBox x:Name="EditorLanguageComboBox"
                       SelectionChanged="EditorLanguageComboBox_SelectionChanged"
                       HorizontalAlignment="Stretch" />

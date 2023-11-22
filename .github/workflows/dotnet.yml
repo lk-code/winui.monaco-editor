@@ -80,5 +80,5 @@ jobs:
 
       - name: Set Version Git Tag
         run: |
-          git tag ${{ needs.build-and-publish.outputs.VERSION }}
-          git push origin ${{ needs.build-and-publish.outputs.VERSION }}
+          git tag ${{ env.VERSION }}
+          git push origin ${{ env.VERSION }}

@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  SOLUTION: source/Monaco.sln
+  PROJECT_FILE: source/Monaco/Monaco.csproj
+      
 jobs:
   pull-request-check:
     
@@ -13,10 +17,6 @@ jobs:
         platform: [ x64, x86, arm64 ]
 
     runs-on: windows-latest
-    
-    env:
-      SOLUTION: source/Monaco.sln
-      PROJECT_FILE: source/Monaco/Monaco.csproj
     
     steps:
       - name: Git Checkout

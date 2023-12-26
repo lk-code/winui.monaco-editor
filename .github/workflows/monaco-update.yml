@@ -39,7 +39,7 @@ jobs:
         Move-Item -Path "monaco-editor-${LATEST_RELEASE}\*" -Destination .
     
     - name: Create Local Branch
-      if: steps.check_branch.outputs.branch_exists -ne 200
+      if: steps.check_branch.outputs.branch_exists != 200
       run: |
         $DEV_BRANCH="DEV_${LATEST_RELEASE}"
         git checkout -b $DEV_BRANCH

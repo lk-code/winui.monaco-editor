@@ -8,21 +8,41 @@ on:
   workflow_dispatch:
 
 jobs:
-
   update-monaco:
-  
     runs-on: windows-latest
-
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Zeige Informationen zum ausgelösten Event an
+    - name: Get Latest Release
+      id: get_release
       run: |
-        echo "Event Name: $GITHUB_EVENT_NAME"
-        echo "Repository: $GITHUB_REPOSITORY"
-        echo "Release Tag Name: $RELEASE_TAG_NAME"
-        echo "Release URL: $RELEASE_HTML_URL"
-      env:
-        RELEASE_TAG_NAME: ${{ github.event.client_payload.release.tag_name }}
-        RELEASE_HTML_URL: ${{ github.event.client_payload.release.html_url }}
+        LATEST_RELEASE=$(curl -s https://api.github.com/repos/microsoft/monaco-editor/releases/latest | jq -r '.tag_name')
+        echo "Latest Release: $LATEST_RELEASE"
+        echo "::set-output name=latest_release::$LATEST_RELEASE"
+
+    - name: Check if Branch Exists
+      id: check_branch
+      run: |
+        DEV_BRANCH="DEV_${LATEST_RELEASE}"
+        BRANCH_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/microsoft/monaco-editor/branches/$DEV_BRANCH)
+        echo "Branch Exists: $BRANCH_EXISTS"
+        echo "::set-output name=branch_exists::$BRANCH_EXISTS"
+
+    - name: Download and Extract Latest Release
+      run: |
+        LATEST_RELEASE=${{ steps.get_release.outputs.latest_release }}
+        DOWNLOAD_URL="https://github.com/microsoft/monaco-editor/archive/${LATEST_RELEASE}.zip"
+        Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile "${LATEST_RELEASE}.zip"
+        Expand-Archive -Path "${LATEST_RELEASE}.zip" -DestinationPath .
+        Move-Item -Path "monaco-editor-${LATEST_RELEASE}\*" -Destination .
+
+    - name: Create Local Branch
+      if: steps.check_branch.outputs.branch_exists != "200"
+      run: |
+        DEV_BRANCH="DEV_${LATEST_RELEASE}"
+        git checkout -b $DEV_BRANCH
+        git add .
+        git commit -m "Create DEV branch for Monaco version $LATEST_RELEASE"
+        git push origin $DEV_BRANCH

@@ -1,0 +1,28 @@
+name: Monaco Source Update
+
+on:
+  repository_dispatch:
+    types: [release]
+    repository:
+      - name: microsoft/monaco-editor
+  workflow_dispatch:
+
+jobs:
+
+  update-monaco:
+  
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Zeige Informationen zum ausgelösten Event an
+      run: |
+        echo "Event Name: $GITHUB_EVENT_NAME"
+        echo "Repository: $GITHUB_REPOSITORY"
+        echo "Release Tag Name: $RELEASE_TAG_NAME"
+        echo "Release URL: $RELEASE_HTML_URL"
+      env:
+        RELEASE_TAG_NAME: ${{ github.event.client_payload.release.tag_name }}
+        RELEASE_HTML_URL: ${{ github.event.client_payload.release.html_url }}

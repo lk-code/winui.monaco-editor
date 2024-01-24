@@ -51,7 +51,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
+            object editorLanguageProperty = GetValue(EditorLanguageProperty);
+            return editorLanguageProperty == null ? "javascript" : (string)editorLanguageProperty;
         }
         set
         {
@@ -102,14 +103,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            if (GetValue(EditorThemeProperty) != null)
-            {
-                return (EditorThemes)GetValue(EditorThemeProperty);
-            }
-            else
-            {
-                return EditorThemes.VisualStudioLight;
-            }
+            object editorThemeProperty = GetValue(EditorThemeProperty);
+            return editorThemeProperty == null ? EditorThemes.VisualStudioLight : (EditorThemes)GetValue(EditorThemeProperty);
         }
         set
         {

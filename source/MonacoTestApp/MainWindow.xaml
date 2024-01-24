@@ -83,7 +83,8 @@
         <monaco:MonacoEditor Grid.Column="1"
                              x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
-                             EditorLanguage="python" />
+                             EditorLanguage="python"
+                             EditorContentChanged="MonacoEditor_EditorContentChanged"/>
 
     </Grid>
 

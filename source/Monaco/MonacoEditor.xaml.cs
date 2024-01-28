@@ -135,7 +135,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
-                break;
         }
     }
 
@@ -168,7 +167,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\");  postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\");});";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
 
     }
@@ -261,7 +260,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
         // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\");  postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\");});";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
 }

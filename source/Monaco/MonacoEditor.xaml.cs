@@ -259,5 +259,9 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{languageId}'));";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+
+        // Reset the change content event
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\");  postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\");});";
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
 }

@@ -36,7 +36,10 @@ jobs:
         run: |
           version=$(jq -r '.version' node_modules/monaco-editor/package.json)
           newBranchName="MONACO-UPDATE-$version"
-          git commit -m "Update Monaco NPM Package to version $version"
-          git push origin $newBranchName
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          message: "Update Monaco NPM Package to version $version"
+          branch: $newBranchName
+          github_token: ${{ secrets.GITHUB_TOKEN }}

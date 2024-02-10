@@ -10,6 +10,33 @@ jobs:
     
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
+          
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 21.x
+
+      - name: Install latest Monaco NPM Package
+        run: |
+          npm install monaco-editor
+
+      - name: Copy Monaco Files to WinUI-Editor
+        run: |
+         cp -r node_modules/monaco-editor/ source/Monaco/MonacoEditorSource
+
+      - name: Read package.json and get version
+        id: get-version
+        run: |
+          echo "::set-output name=version::$(jq -r '.version' node_modules/monaco-editor/package.json)"
+
+      - name: Create new Branch
+        run: |
+          version=$(jq -r '.version' node_modules/monaco-editor/package.json)
+          secondDigit=$(echo "$version" | cut -d '.' -f 2)
+          sed -i "s/VERSION: 1\.1\.[0-9]\+\.\${{ github.run_number }}/VERSION: 1.${secondDigit}.\${{ github.run_number }}/g" .github/workflows/dotnet.yml
+          newBranchName="MONACO-UPDATE-$version"
+          git commit -m "Update Monaco NPM Package to version $version"
+          git push origin $newBranchName

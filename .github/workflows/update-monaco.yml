@@ -38,3 +38,5 @@ jobs:
           newBranchName="MONACO-UPDATE-$version"
           git commit -m "Update Monaco NPM Package to version $version"
           git push origin $newBranchName
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

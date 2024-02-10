@@ -22,7 +22,10 @@ import { QuickAccessController } from './quickAccess.js';
 import { defaultButtonStyles, defaultCountBadgeStyles, defaultInputBoxStyles, defaultKeybindingLabelStyles, defaultProgressBarStyles, defaultToggleStyles, getListStyles } from '../../theme/browser/defaultStyles.js';
 import { activeContrastBorder, asCssVariable, pickerGroupBorder, pickerGroupForeground, quickInputBackground, quickInputForeground, quickInputListFocusBackground, quickInputListFocusForeground, quickInputListFocusIconForeground, quickInputTitleBackground, widgetBorder, widgetShadow } from '../../theme/common/colorRegistry.js';
 import { IThemeService, Themable } from '../../theme/common/themeService.js';
+import { QuickInputHoverDelegate } from './quickInput.js';
 import { QuickInputController } from './quickInputController.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { IHoverService } from '../../hover/browser/hover.js';
 let QuickInputService = class QuickInputService extends Themable {
     get controller() {
         if (!this._controller) {
@@ -37,11 +40,13 @@ let QuickInputService = class QuickInputService extends Themable {
         }
         return this._quickAccess;
     }
-    constructor(instantiationService, contextKeyService, themeService, layoutService) {
+    constructor(instantiationService, contextKeyService, themeService, layoutService, configurationService, hoverService) {
         super(themeService);
         this.instantiationService = instantiationService;
         this.contextKeyService = contextKeyService;
         this.layoutService = layoutService;
+        this.configurationService = configurationService;
+        this.hoverService = hoverService;
         this._onShow = this._register(new Emitter());
         this._onHide = this._register(new Emitter());
         this.contexts = new Map();
@@ -49,7 +54,7 @@ let QuickInputService = class QuickInputService extends Themable {
     createController(host = this.layoutService, options) {
         const defaultOptions = {
             idPrefix: 'quickInput_',
-            container: host.container,
+            container: host.activeContainer,
             ignoreFocusOut: () => false,
             backKeybindingLabel: () => undefined,
             setContextKey: (id) => this.setContextKey(id),
@@ -62,12 +67,22 @@ let QuickInputService = class QuickInputService extends Themable {
             },
             returnFocus: () => host.focus(),
             createList: (user, container, delegate, renderers, options) => this.instantiationService.createInstance(WorkbenchList, user, container, delegate, renderers, options),
-            styles: this.computeStyles()
+            styles: this.computeStyles(),
+            hoverDelegate: new QuickInputHoverDelegate(this.configurationService, this.hoverService)
         };
-        const controller = this._register(new QuickInputController(Object.assign(Object.assign({}, defaultOptions), options), this.themeService));
-        controller.layout(host.dimension, host.offset.quickPickTop);
+        const controller = this._register(new QuickInputController({
+            ...defaultOptions,
+            ...options
+        }, this.themeService, this.layoutService));
+        controller.layout(host.activeContainerDimension, host.activeContainerOffset.quickPickTop);
         // Layout changes
-        this._register(host.onDidLayout(dimension => controller.layout(dimension, host.offset.quickPickTop)));
+        this._register(host.onDidLayoutActiveContainer(dimension => controller.layout(dimension, host.activeContainerOffset.quickPickTop)));
+        this._register(host.onDidChangeActiveContainer(() => {
+            if (controller.isVisible()) {
+                return;
+            }
+            controller.layout(host.activeContainerDimension, host.activeContainerOffset.quickPickTop);
+        }));
         // Context keys
         this._register(controller.onShow(() => {
             this.resetContextKeys();
@@ -153,6 +168,8 @@ QuickInputService = __decorate([
     __param(0, IInstantiationService),
     __param(1, IContextKeyService),
     __param(2, IThemeService),
-    __param(3, ILayoutService)
+    __param(3, ILayoutService),
+    __param(4, IConfigurationService),
+    __param(5, IHoverService)
 ], QuickInputService);
 export { QuickInputService };

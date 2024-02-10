@@ -101,16 +101,17 @@ export class ViewCursor {
                 // Outside viewport
                 return null;
             }
+            const window = dom.getWindow(this._domNode.domNode);
             let width;
             if (this._cursorStyle === TextEditorCursorStyle.Line) {
-                width = dom.computeScreenAwareSize(this._lineCursorWidth > 0 ? this._lineCursorWidth : 2);
+                width = dom.computeScreenAwareSize(window, this._lineCursorWidth > 0 ? this._lineCursorWidth : 2);
                 if (width > 2) {
                     textContent = nextGrapheme;
                     textContentClassName = this._getTokenClassName(position);
                 }
             }
             else {
-                width = dom.computeScreenAwareSize(1);
+                width = dom.computeScreenAwareSize(window, 1);
             }
             let left = visibleRange.left;
             let paddingLeft = 0;

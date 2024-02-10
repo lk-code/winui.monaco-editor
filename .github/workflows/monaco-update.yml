@@ -1,0 +1,49 @@
+name: Monaco Source Update
+
+on:
+  repository_dispatch:
+    types: [release]
+    repository:
+      - name: microsoft/monaco-editor
+  workflow_dispatch:
+
+jobs:
+  update-monaco:
+    runs-on: windows-latest
+    
+    env:
+      LATEST_RELEASE: ''
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Get Latest Release
+      id: get_release
+      run: |
+        $env:LATEST_RELEASE = (curl -s https://api.github.com/repos/microsoft/monaco-editor/releases/latest | jq -r '.tag_name')
+        echo "Latest Release: $env:LATEST_RELEASE"
+
+    - name: Check if Branch Exists
+      id: check_branch
+      run: |
+        $DEV_BRANCH="DEV_${env:LATEST_RELEASE}"
+        $BRANCH_EXISTS=(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/microsoft/monaco-editor/branches/$DEV_BRANCH)
+        echo "Branch Exists: $BRANCH_EXISTS"
+        echo "BRANCH_EXISTS=$BRANCH_EXISTS" >> $GITHUB_ENV
+    
+    - name: Download and Extract Latest Release
+      run: |
+        $DOWNLOAD_URL="https://github.com/microsoft/monaco-editor/archive/${env:LATEST_RELEASE}.zip"
+        Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile "${env:LATEST_RELEASE}.zip"
+        Expand-Archive -Path "${env:LATEST_RELEASE}.zip" -DestinationPath .
+        Move-Item -Path "monaco-editor-${env:LATEST_RELEASE}\*" -Destination .
+    
+    - name: Create Local Branch
+      if: env.BRANCH_EXISTS != 200
+      run: |
+        $DEV_BRANCH="DEV_${env:LATEST_RELEASE}"
+        git checkout -b $DEV_BRANCH
+        git add .
+        git commit -m "Create DEV branch for Monaco version $env:LATEST_RELEASE"
+        git push origin $DEV_BRANCH

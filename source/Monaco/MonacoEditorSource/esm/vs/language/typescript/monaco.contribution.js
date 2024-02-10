@@ -1,7 +1,7 @@
 import '../../editor/editor.api.js';
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
+ * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -73,18 +73,9 @@ var ModuleResolutionKind = /* @__PURE__ */ ((ModuleResolutionKind2) => {
   return ModuleResolutionKind2;
 })(ModuleResolutionKind || {});
 var LanguageServiceDefaultsImpl = class {
-  _onDidChange = new monaco_editor_core_exports.Emitter();
-  _onDidExtraLibsChange = new monaco_editor_core_exports.Emitter();
-  _extraLibs;
-  _removedExtraLibs;
-  _eagerModelSync;
-  _compilerOptions;
-  _diagnosticsOptions;
-  _workerOptions;
-  _onDidExtraLibsChangeTimeout;
-  _inlayHintsOptions;
-  _modeConfiguration;
   constructor(compilerOptions, diagnosticsOptions, workerOptions, inlayHintsOptions, modeConfiguration) {
+    this._onDidChange = new monaco_editor_core_exports.Emitter();
+    this._onDidExtraLibsChange = new monaco_editor_core_exports.Emitter();
     this._extraLibs = /* @__PURE__ */ Object.create(null);
     this._removedExtraLibs = /* @__PURE__ */ Object.create(null);
     this._eagerModelSync = false;
@@ -234,8 +225,20 @@ var modeConfigurationDefault = {
   codeActions: true,
   inlayHints: true
 };
-var typescriptDefaults = new LanguageServiceDefaultsImpl({ allowNonTsExtensions: true, target: 99 /* Latest */ }, { noSemanticValidation: false, noSyntaxValidation: false, onlyVisible: false }, {}, {}, modeConfigurationDefault);
-var javascriptDefaults = new LanguageServiceDefaultsImpl({ allowNonTsExtensions: true, allowJs: true, target: 99 /* Latest */ }, { noSemanticValidation: true, noSyntaxValidation: false, onlyVisible: false }, {}, {}, modeConfigurationDefault);
+var typescriptDefaults = new LanguageServiceDefaultsImpl(
+  { allowNonTsExtensions: true, target: 99 /* Latest */ },
+  { noSemanticValidation: false, noSyntaxValidation: false, onlyVisible: false },
+  {},
+  {},
+  modeConfigurationDefault
+);
+var javascriptDefaults = new LanguageServiceDefaultsImpl(
+  { allowNonTsExtensions: true, allowJs: true, target: 99 /* Latest */ },
+  { noSemanticValidation: true, noSyntaxValidation: false, onlyVisible: false },
+  {},
+  {},
+  modeConfigurationDefault
+);
 var getTypeScriptWorker = () => {
   return getMode().then((mode) => mode.getTypeScriptWorker());
 };

@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var FoldingController_1;
 import { createCancelablePromise, Delayer, RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
@@ -512,7 +503,7 @@ class UnfoldAction extends FoldingAction {
                 },
                 weight: 100 /* KeybindingWeight.EditorContrib */
             },
-            description: {
+            metadata: {
                 description: 'Unfold the content in the editor',
                 args: [
                     {
@@ -592,7 +583,7 @@ class FoldAction extends FoldingAction {
                 },
                 weight: 100 /* KeybindingWeight.EditorContrib */
             },
-            description: {
+            metadata: {
                 description: 'Fold the content in the editor',
                 args: [
                     {
@@ -1055,50 +1046,48 @@ for (let i = 1; i <= 7; i++) {
         }
     }));
 }
-CommandsRegistry.registerCommand('_executeFoldingRangeProvider', function (accessor, ...args) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const [resource] = args;
-        if (!(resource instanceof URI)) {
-            throw illegalArgument();
+CommandsRegistry.registerCommand('_executeFoldingRangeProvider', async function (accessor, ...args) {
+    const [resource] = args;
+    if (!(resource instanceof URI)) {
+        throw illegalArgument();
+    }
+    const languageFeaturesService = accessor.get(ILanguageFeaturesService);
+    const model = accessor.get(IModelService).getModel(resource);
+    if (!model) {
+        throw illegalArgument();
+    }
+    const configurationService = accessor.get(IConfigurationService);
+    if (!configurationService.getValue('editor.folding', { resource })) {
+        return [];
+    }
+    const languageConfigurationService = accessor.get(ILanguageConfigurationService);
+    const strategy = configurationService.getValue('editor.foldingStrategy', { resource });
+    const foldingLimitReporter = {
+        get limit() {
+            return configurationService.getValue('editor.foldingMaximumRegions', { resource });
+        },
+        update: (computed, limited) => { }
+    };
+    const indentRangeProvider = new IndentRangeProvider(model, languageConfigurationService, foldingLimitReporter);
+    let rangeProvider = indentRangeProvider;
+    if (strategy !== 'indentation') {
+        const providers = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
+        if (providers.length) {
+            rangeProvider = new SyntaxRangeProvider(model, providers, () => { }, foldingLimitReporter, indentRangeProvider);
         }
-        const languageFeaturesService = accessor.get(ILanguageFeaturesService);
-        const model = accessor.get(IModelService).getModel(resource);
-        if (!model) {
-            throw illegalArgument();
-        }
-        const configurationService = accessor.get(IConfigurationService);
-        if (!configurationService.getValue('editor.folding', { resource })) {
-            return [];
-        }
-        const languageConfigurationService = accessor.get(ILanguageConfigurationService);
-        const strategy = configurationService.getValue('editor.foldingStrategy', { resource });
-        const foldingLimitReporter = {
-            get limit() {
-                return configurationService.getValue('editor.foldingMaximumRegions', { resource });
-            },
-            update: (computed, limited) => { }
-        };
-        const indentRangeProvider = new IndentRangeProvider(model, languageConfigurationService, foldingLimitReporter);
-        let rangeProvider = indentRangeProvider;
-        if (strategy !== 'indentation') {
-            const providers = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
-            if (providers.length) {
-                rangeProvider = new SyntaxRangeProvider(model, providers, () => { }, foldingLimitReporter, indentRangeProvider);
+    }
+    const ranges = await rangeProvider.compute(CancellationToken.None);
+    const result = [];
+    try {
+        if (ranges) {
+            for (let i = 0; i < ranges.length; i++) {
+                const type = ranges.getType(i);
+                result.push({ start: ranges.getStartLineNumber(i), end: ranges.getEndLineNumber(i), kind: type ? FoldingRangeKind.fromValue(type) : undefined });
             }
         }
-        const ranges = yield rangeProvider.compute(CancellationToken.None);
-        const result = [];
-        try {
-            if (ranges) {
-                for (let i = 0; i < ranges.length; i++) {
-                    const type = ranges.getType(i);
-                    result.push({ start: ranges.getStartLineNumber(i), end: ranges.getEndLineNumber(i), kind: type ? FoldingRangeKind.fromValue(type) : undefined });
-                }
-            }
-            return result;
-        }
-        finally {
-            rangeProvider.dispose();
-        }
-    });
+        return result;
+    }
+    finally {
+        rangeProvider.dispose();
+    }
 });

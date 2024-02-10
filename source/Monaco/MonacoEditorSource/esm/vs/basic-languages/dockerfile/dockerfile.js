@@ -1,9 +1,10 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
+ * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
+
 
 // src/basic-languages/dockerfile/dockerfile.ts
 var conf = {
@@ -73,6 +74,7 @@ var language = {
         }
       ]
     ],
+    // Deal with white space, including comments
     whitespace: [
       [
         /\s+/,
@@ -85,9 +87,12 @@ var language = {
       ]
     ],
     comment: [[/(^#.*$)/, "comment", "@popall"]],
+    // Recognize strings, including those broken across lines with \ (but not without)
     strings: [
       [/\\'$/, "", "@popall"],
+      // \' leaves @arguments at eol
       [/\\'/, ""],
+      // \' is not a string
       [/'$/, "string", "@popall"],
       [/'/, "string", "@stringBody"],
       [/"$/, "string", "@popall"],

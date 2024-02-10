@@ -25,6 +25,11 @@ export function ok(value, message) {
 export function assertNever(value, message = 'Unreachable') {
     throw new Error(message);
 }
+export function softAssert(condition) {
+    if (!condition) {
+        onUnexpectedError(new BugIndicatingError('Assertion Failed'));
+    }
+}
 /**
  * condition must be side-effect free!
  */

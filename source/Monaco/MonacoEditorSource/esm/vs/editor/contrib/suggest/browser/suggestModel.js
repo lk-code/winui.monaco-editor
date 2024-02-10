@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var SuggestModel_1;
 import { TimeoutTimer } from '../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
@@ -358,7 +349,7 @@ let SuggestModel = SuggestModel_1 = class SuggestModel {
         assertType(this._triggerState !== undefined);
         const model = this._editor.getModel();
         const position = this._editor.getPosition();
-        const ctx = new LineContext(model, position, Object.assign(Object.assign({}, this._triggerState), { refilter: true }));
+        const ctx = new LineContext(model, position, { ...this._triggerState, refilter: true });
         this._onNewContext(ctx);
     }
     trigger(options) {
@@ -398,19 +389,19 @@ let SuggestModel = SuggestModel_1 = class SuggestModel {
                 snippetSortOrder = 2 /* SnippetSortOrder.Bottom */;
                 break;
         }
-        const { itemKind: itemKindFilter, showDeprecated } = SuggestModel_1._createSuggestFilter(this._editor);
+        const { itemKind: itemKindFilter, showDeprecated } = SuggestModel_1.createSuggestFilter(this._editor);
         const completionOptions = new CompletionOptions(snippetSortOrder, (_d = (_c = options.completionOptions) === null || _c === void 0 ? void 0 : _c.kindFilter) !== null && _d !== void 0 ? _d : itemKindFilter, (_e = options.completionOptions) === null || _e === void 0 ? void 0 : _e.providerFilter, (_f = options.completionOptions) === null || _f === void 0 ? void 0 : _f.providerItemsToReuse, showDeprecated);
         const wordDistance = WordDistance.create(this._editorWorkerService, this._editor);
         const completions = provideSuggestionItems(this._languageFeaturesService.completionProvider, model, this._editor.getPosition(), completionOptions, suggestCtx, this._requestToken.token);
-        Promise.all([completions, wordDistance]).then(([completions, wordDistance]) => __awaiter(this, void 0, void 0, function* () {
-            var _g;
-            (_g = this._requestToken) === null || _g === void 0 ? void 0 : _g.dispose();
+        Promise.all([completions, wordDistance]).then(async ([completions, wordDistance]) => {
+            var _a;
+            (_a = this._requestToken) === null || _a === void 0 ? void 0 : _a.dispose();
             if (!this._editor.hasModel()) {
                 return;
             }
             let clipboardText = options === null || options === void 0 ? void 0 : options.clipboardText;
             if (!clipboardText && completions.needsClipboard) {
-                clipboardText = yield this._clipboardService.readText();
+                clipboardText = await this._clipboardService.readText();
             }
             if (this._triggerState === undefined) {
                 return;
@@ -422,7 +413,10 @@ let SuggestModel = SuggestModel_1 = class SuggestModel {
             // 	items = items.concat(existing.items).sort(cmpFn);
             // }
             const ctx = new LineContext(model, this._editor.getPosition(), options);
-            const fuzzySearchOptions = Object.assign(Object.assign({}, FuzzyScoreOptions.default), { firstMatchCanBeWeak: !this._editor.getOption(117 /* EditorOption.suggest */).matchOnWordStartOnly });
+            const fuzzySearchOptions = {
+                ...FuzzyScoreOptions.default,
+                firstMatchCanBeWeak: !this._editor.getOption(117 /* EditorOption.suggest */).matchOnWordStartOnly
+            };
             this._completionModel = new CompletionModel(completions.items, this._context.column, {
                 leadingLineContent: ctx.leadingLineContent,
                 characterCountDelta: ctx.column - this._context.column
@@ -440,7 +434,7 @@ let SuggestModel = SuggestModel_1 = class SuggestModel {
                     }
                 }
             }
-        })).catch(onUnexpectedError);
+        }).catch(onUnexpectedError);
     }
     _reportDurationsTelemetry(durations) {
         if (this._telemetryGate++ % 230 !== 0) {
@@ -451,7 +445,7 @@ let SuggestModel = SuggestModel_1 = class SuggestModel {
             this._logService.debug('suggest.durations.json', durations);
         });
     }
-    static _createSuggestFilter(editor) {
+    static createSuggestFilter(editor) {
         // kind filter and snippet sort rules
         const result = new Set();
         // snippet setting

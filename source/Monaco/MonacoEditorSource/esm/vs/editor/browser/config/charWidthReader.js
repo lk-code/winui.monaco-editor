@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { $window } from '../../../base/browser/window.js';
 import { applyFontInfo } from './domFontInfo.js';
 export class CharWidthRequest {
     constructor(chr, type) {
@@ -24,11 +25,11 @@ class DomCharWidthReader {
         // Create a test container with all these test elements
         this._createDomElements();
         // Add the container to the DOM
-        document.body.appendChild(this._container);
+        $window.document.body.appendChild(this._container);
         // Read character widths
         this._readFromDomElements();
         // Remove the container from the DOM
-        document.body.removeChild(this._container);
+        $window.document.body.removeChild(this._container);
         this._container = null;
         this._testElements = null;
     }

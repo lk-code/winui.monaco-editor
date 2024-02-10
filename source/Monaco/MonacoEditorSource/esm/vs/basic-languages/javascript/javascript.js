@@ -1,14 +1,16 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
+ * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
+
 
 // src/basic-languages/javascript/javascript.ts
 import { conf as tsConf, language as tsLanguage } from "../typescript/typescript.js";
 var conf = tsConf;
 var language = {
+  // Set defaultToken to invalid to see what you do not tokenize yet
   defaultToken: "invalid",
   tokenPostfix: ".js",
   keywords: [

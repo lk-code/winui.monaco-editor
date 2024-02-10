@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var SuggestWidget_1;
 import * as dom from '../../../../base/browser/dom.js';
 import '../../../../base/browser/ui/codicons/codiconStyles.js'; // The codicon symbol styles are defined here and must be loaded
@@ -217,6 +208,9 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
                 applyStatusBarStyle();
                 applyIconStyle();
             }
+            if (this._completionModel && (e.hasChanged(50 /* EditorOption.fontInfo */) || e.hasChanged(118 /* EditorOption.suggestFontSize */) || e.hasChanged(119 /* EditorOption.suggestLineHeight */))) {
+                this._list.splice(0, this._list.length, this._completionModel.items);
+            }
         }));
         this._ctxSuggestWidgetVisible = SuggestContext.Visible.bindTo(_contextKeyService);
         this._ctxSuggestWidgetDetailsVisible = SuggestContext.DetailsVisible.bindTo(_contextKeyService);
@@ -308,7 +302,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
             this._currentSuggestionDetails = undefined;
             this._focusedItem = item;
             this._list.reveal(index);
-            this._currentSuggestionDetails = createCancelablePromise((token) => __awaiter(this, void 0, void 0, function* () {
+            this._currentSuggestionDetails = createCancelablePromise(async (token) => {
                 const loading = disposableTimeout(() => {
                     if (this._isDetailsVisible()) {
                         this.showDetails(true);
@@ -316,13 +310,13 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
                 }, 250);
                 const sub = token.onCancellationRequested(() => loading.dispose());
                 try {
-                    return yield item.resolve(token);
+                    return await item.resolve(token);
                 }
                 finally {
                     loading.dispose();
                     sub.dispose();
                 }
-            }));
+            });
             this._currentSuggestionDetails.then(() => {
                 if (index >= this._list.length || item !== this._list.element(index)) {
                     return;
@@ -463,7 +457,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
             this._onDidFocus.resume();
             this._onDidSelect.resume();
         }
-        this._pendingLayout.value = dom.runAtThisOrScheduleAtNextAnimationFrame(() => {
+        this._pendingLayout.value = dom.runAtThisOrScheduleAtNextAnimationFrame(dom.getWindow(this.element.domNode), () => {
             this._pendingLayout.clear();
             this._layout(this.element.size);
             // Reset focus border
@@ -594,7 +588,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
         }
     }
     showDetails(loading) {
-        this._pendingShowDetails.value = dom.runAtThisOrScheduleAtNextAnimationFrame(() => {
+        this._pendingShowDetails.value = dom.runAtThisOrScheduleAtNextAnimationFrame(dom.getWindow(this.element.domNode), () => {
             this._pendingShowDetails.clear();
             this._details.show();
             if (loading) {
@@ -603,9 +597,14 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
             else {
                 this._details.widget.renderItem(this._list.getFocusedElements()[0], this._explainMode);
             }
-            this._positionDetails();
+            if (!this._details.widget.isEmpty) {
+                this._positionDetails();
+                this.element.domNode.classList.add('shows-details');
+            }
+            else {
+                this._details.hide();
+            }
             this.editor.focus();
-            this.element.domNode.classList.add('shows-details');
         });
     }
     toggleExplainMode() {
@@ -652,7 +651,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
             // no special positioning when widget isn't showing list
             return;
         }
-        if (this._isDetailsVisible()) {
+        if (this._isDetailsVisible() && !this._details.widget.isEmpty) {
             this._details.show();
         }
         this._positionDetails();

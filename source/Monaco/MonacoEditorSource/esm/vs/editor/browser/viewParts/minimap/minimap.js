@@ -854,7 +854,7 @@ class InnerMinimap extends Disposable {
         this._buffers = null;
         this._selectionColor = this._theme.getColor(minimapSelection);
         this._domNode = createFastDomNode(document.createElement('div'));
-        PartFingerprints.write(this._domNode, 8 /* PartFingerprint.Minimap */);
+        PartFingerprints.write(this._domNode, 9 /* PartFingerprint.Minimap */);
         this._domNode.setClassName(this._getMinimapDomNodeClassName());
         this._domNode.setPosition('absolute');
         this._domNode.setAttribute('role', 'presentation');

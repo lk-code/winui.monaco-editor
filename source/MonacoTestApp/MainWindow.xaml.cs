@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
+using System.Diagnostics;
 
 namespace MonacoTestApp;
 
@@ -53,9 +54,9 @@ public sealed partial class MainWindow : Window
         this.MonacoEditor.EditorContent = this.EditorContentTextBox.Text;
     }
 
-    private async void GetContentButton_Click(object sender, RoutedEventArgs e)
+    private void GetContentButton_Click(object sender, RoutedEventArgs e)
     {
-        this.EditorContentTextBox.Text = await MonacoEditor.GetEditorContentAsync();
+        this.EditorContentTextBox.Text = MonacoEditor.EditorContent;
     }
 
     private async void LoadLanguagesButton_Click(object sender, RoutedEventArgs e)
@@ -74,5 +75,10 @@ public sealed partial class MainWindow : Window
     private void SelectAllButton_Click(object sender, RoutedEventArgs e)
     {
         _ = this.MonacoEditor.SelectAllAsync();
+    }
+
+    private void MonacoEditor_EditorContentChanged(object sender, System.EventArgs e)
+    {
+        Debug.WriteLine("Content in the editor has changed to: \n" + MonacoEditor.EditorContent);
     }
 }

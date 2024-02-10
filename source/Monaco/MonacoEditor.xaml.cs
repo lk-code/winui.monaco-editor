@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -18,11 +19,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #region PropertyChanged Event
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    #endregion
+
+    #region ContentChanged Event
+
+    public event EventHandler? EditorContentChanged;
+
+    private async void OnContentChanged()
+    {
+        _content = await GetEditorContentAsync();
+        EditorContentChanged?.Invoke(this, new EventArgs());
     }
 
     #endregion
@@ -38,7 +51,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            return GetValue(EditorLanguageProperty) == null ? "javascript" : (string)GetValue(EditorLanguageProperty);
+            object editorLanguageProperty = GetValue(EditorLanguageProperty);
+            return editorLanguageProperty == null ? "javascript" : (string)editorLanguageProperty;
         }
         set
         {
@@ -59,10 +73,14 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         new PropertyMetadata(null));
 
     /// <summary>
-    /// Get the content of the editor.
+    /// Get and set the content of the editor.
     /// </summary>
     public string EditorContent
     {
+        get
+        {
+            return _content;
+        }
         set
         {
             SetValue(EditorContentProperty, value);
@@ -85,14 +103,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            if (GetValue(EditorThemeProperty) != null)
-            {
-                return (EditorThemes)GetValue(EditorThemeProperty);
-            }
-            else
-            {
-                return EditorThemes.VisualStudioLight;
-            }
+            object editorThemeProperty = GetValue(EditorThemeProperty);
+            return editorThemeProperty == null ? EditorThemes.VisualStudioLight : (EditorThemes)GetValue(EditorThemeProperty);
         }
         set
         {
@@ -110,13 +122,54 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.InitializeComponent();
         this.Loaded += MonacoEditor_Loaded;
         MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+        MonacoEditorWebView.WebMessageReceived += WebMessageReceived;
     }
 
-    private void WebView_NavigationCompleted(object sender, object e)
+    private void WebMessageReceived(WebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
+
+        switch(args.WebMessageAsJson)
+        {
+            case "\"EVENT_EDITOR_CONTENT_CHANGED\"":
+                OnContentChanged();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private async void WebView_NavigationCompleted(object sender, object e)
+    {
+        string javaScriptMessageFunction =
+           "\n" +
+           "function postWebViewMessage(message){\n" +
+                "try{\n" +
+                    "if (window.hasOwnProperty(\"chrome\") && typeof chrome.webview !== undefined) {\n" +
+                        "// Windows\n" +
+                        "chrome.webview.postMessage(message);\n" +
+                    "} else if (window.hasOwnProperty(\"unoWebView\")) {\n" +
+                        "// Android\n" +
+                        "unoWebView.postMessage(JSON.stringify(message));\n" +
+                    "} else if (window.hasOwnProperty(\"webkit\") && typeof webkit.messageHandlers !== undefined) {\n" +
+                        "// iOS and macOS\n" +
+                        "webkit.messageHandlers.unoWebView.postMessage(JSON.stringify(message));\n" +
+                    "}\n" +
+                "}\n" +
+                "catch (ex){\n" +
+                    "alert(\"Error occurred: \" + ex);\n" +
+                "}\n" +
+            "}";
+
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptMessageFunction);
+        await Task.Delay(100);
+
         LoadCompleted = true;
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
+
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+
     }
 
     private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
@@ -205,5 +258,9 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{languageId}'));";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+
+        // Reset the change content event
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
 }

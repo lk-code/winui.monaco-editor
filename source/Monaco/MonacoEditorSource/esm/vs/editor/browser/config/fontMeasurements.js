@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as browser from '../../../base/browser/browser.js';
+import { mainWindow } from '../../../base/browser/window.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { CharWidthRequest, readCharWidths } from './charWidthReader.js';
@@ -18,7 +19,7 @@ export class FontMeasurementsImpl extends Disposable {
     }
     dispose() {
         if (this._evictUntrustedReadingsTimeout !== -1) {
-            window.clearTimeout(this._evictUntrustedReadingsTimeout);
+            clearTimeout(this._evictUntrustedReadingsTimeout);
             this._evictUntrustedReadingsTimeout = -1;
         }
         super.dispose();
@@ -34,7 +35,7 @@ export class FontMeasurementsImpl extends Disposable {
         this._cache.put(item, value);
         if (!value.isTrusted && this._evictUntrustedReadingsTimeout === -1) {
             // Try reading again after some time
-            this._evictUntrustedReadingsTimeout = window.setTimeout(() => {
+            this._evictUntrustedReadingsTimeout = mainWindow.setTimeout(() => {
                 this._evictUntrustedReadingsTimeout = -1;
                 this._evictUntrustedReadings();
             }, 5000);

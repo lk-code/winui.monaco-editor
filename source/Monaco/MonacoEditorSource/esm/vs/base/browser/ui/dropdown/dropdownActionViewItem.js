@@ -62,9 +62,12 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
         };
         if (this.options.anchorAlignmentProvider) {
             const that = this;
-            this.dropdownMenu.menuOptions = Object.assign(Object.assign({}, this.dropdownMenu.menuOptions), { get anchorAlignment() {
+            this.dropdownMenu.menuOptions = {
+                ...this.dropdownMenu.menuOptions,
+                get anchorAlignment() {
                     return that.options.anchorAlignmentProvider();
-                } });
+                }
+            };
         }
         this.updateTooltip();
         this.updateEnabled();

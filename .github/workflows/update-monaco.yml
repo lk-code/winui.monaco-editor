@@ -32,14 +32,9 @@ jobs:
         run: |
           echo "::set-output name=version::$(jq -r '.version' node_modules/monaco-editor/package.json)"
 
-      - name: Create new Branch
-        run: |
-          version=$(jq -r '.version' node_modules/monaco-editor/package.json)
-          newBranchName="MONACO-UPDATE-$version"
-
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
           message: "Update Monaco NPM Package to version $version"
-          branch: $newBranchName
+          branch: "MONACO-UPDATE-$version"
           github_token: ${{ secrets.GITHUB_TOKEN }}

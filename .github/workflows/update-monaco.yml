@@ -31,10 +31,10 @@ jobs:
         id: get-version
         run: |
           echo "::set-output name=version::$(jq -r '.version' node_modules/monaco-editor/package.json)"
-
+      
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
-          message: "Update Monaco NPM Package to version $version"
-          branch: "MONACO-UPDATE-$version"
+          message: "Update Monaco NPM Package to version ${{ steps.get-version.outputs.version }}"
+          branch: "MONACO-UPDATE-${{ steps.get-version.outputs.version }}"
           github_token: ${{ secrets.GITHUB_TOKEN }}

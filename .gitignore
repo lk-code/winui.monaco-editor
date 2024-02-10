@@ -354,3 +354,7 @@ MigrationBackup/
 
 # Jetbrains Settings
 .idea/
+
+# npm
+package-lock.json
+package.json

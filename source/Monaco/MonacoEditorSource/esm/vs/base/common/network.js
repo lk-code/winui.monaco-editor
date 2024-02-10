@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as errors from './errors.js';
 import * as platform from './platform.js';
+import { equalsIgnoreCase, startsWithIgnoreCase } from './strings.js';
 import { URI } from './uri.js';
 export var Schemas;
 (function (Schemas) {
@@ -78,6 +79,17 @@ export var Schemas;
      */
     Schemas.vscodeSourceControl = 'vscode-scm';
 })(Schemas || (Schemas = {}));
+export function matchesScheme(target, scheme) {
+    if (URI.isUri(target)) {
+        return equalsIgnoreCase(target.scheme, scheme);
+    }
+    else {
+        return startsWithIgnoreCase(target, scheme + ':');
+    }
+}
+export function matchesSomeScheme(target, ...schemes) {
+    return schemes.some(scheme => matchesScheme(target, scheme));
+}
 export const connectionTokenQueryName = 'tkn';
 class RemoteAuthoritiesImpl {
     constructor() {
@@ -121,6 +133,7 @@ class RemoteAuthoritiesImpl {
     }
 }
 export const RemoteAuthorities = new RemoteAuthoritiesImpl();
+export const VSCODE_AUTHORITY = 'vscode-app';
 class FileAccessImpl {
     /**
      * Returns a URI to use in contexts where the browser is responsible
@@ -141,7 +154,7 @@ class FileAccessImpl {
             // ...and we run in native environments
             platform.isNative ||
                 // ...or web worker extensions on desktop
-                (platform.isWebWorker && platform.globals.origin === `${Schemas.vscodeFileResource}://${FileAccessImpl.FALLBACK_AUTHORITY}`))) {
+                (platform.webWorkerOrigin === `${Schemas.vscodeFileResource}://${FileAccessImpl.FALLBACK_AUTHORITY}`))) {
             return uri.with({
                 scheme: Schemas.vscodeFileResource,
                 // We need to provide an authority here so that it can serve
@@ -156,7 +169,7 @@ class FileAccessImpl {
         return uri;
     }
 }
-FileAccessImpl.FALLBACK_AUTHORITY = 'vscode-app';
+FileAccessImpl.FALLBACK_AUTHORITY = VSCODE_AUTHORITY;
 export const FileAccess = new FileAccessImpl();
 export var COI;
 (function (COI) {

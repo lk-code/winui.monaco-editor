@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var _a, _b, _c, _d, _e, _f, _g, _h;
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { createCancelablePromise, raceCancellation } from '../../../../base/common/async.js';
@@ -71,7 +62,7 @@ export class SymbolNavigationAction extends EditorAction2 {
         return SymbolNavigationAction._allSymbolNavigationCommands.values();
     }
     static _patchConfig(opts) {
-        const result = Object.assign(Object.assign({}, opts), { f1: true });
+        const result = { ...opts, f1: true };
         // patch context menu when clause
         if (result.menu) {
             for (const item of Iterable.wrap(result.menu)) {
@@ -101,7 +92,7 @@ export class SymbolNavigationAction extends EditorAction2 {
         const position = editor.getPosition();
         const anchor = SymbolNavigationAnchor.is(arg) ? arg : new SymbolNavigationAnchor(model, position);
         const cts = new EditorStateCancellationTokenSource(editor, 1 /* CodeEditorStateFlag.Value */ | 4 /* CodeEditorStateFlag.Position */);
-        const promise = raceCancellation(this._getLocationModel(languageFeaturesService, anchor.model, anchor.position, cts.token), cts.token).then((references) => __awaiter(this, void 0, void 0, function* () {
+        const promise = raceCancellation(this._getLocationModel(languageFeaturesService, anchor.model, anchor.position, cts.token), cts.token).then(async (references) => {
             var _j;
             if (!references || cts.token.isCancellationRequested) {
                 return;
@@ -133,7 +124,7 @@ export class SymbolNavigationAction extends EditorAction2 {
                 // normal results handling
                 return this._onResult(editorService, symbolNavService, editor, references, range);
             }
-        }), (err) => {
+        }, (err) => {
             // report an error
             notificationService.error(err);
         }).finally(() => {
@@ -142,66 +133,62 @@ export class SymbolNavigationAction extends EditorAction2 {
         progressService.showWhile(promise, 250);
         return promise;
     }
-    _onResult(editorService, symbolNavService, editor, model, range) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const gotoLocation = this._getGoToPreference(editor);
-            if (!(editor instanceof EmbeddedCodeEditorWidget) && (this.configuration.openInPeek || (gotoLocation === 'peek' && model.references.length > 1))) {
-                this._openInPeek(editor, model, range);
+    async _onResult(editorService, symbolNavService, editor, model, range) {
+        const gotoLocation = this._getGoToPreference(editor);
+        if (!(editor instanceof EmbeddedCodeEditorWidget) && (this.configuration.openInPeek || (gotoLocation === 'peek' && model.references.length > 1))) {
+            this._openInPeek(editor, model, range);
+        }
+        else {
+            const next = model.firstReference();
+            const peek = model.references.length > 1 && gotoLocation === 'gotoAndPeek';
+            const targetEditor = await this._openReference(editor, editorService, next, this.configuration.openToSide, !peek);
+            if (peek && targetEditor) {
+                this._openInPeek(targetEditor, model, range);
             }
             else {
-                const next = model.firstReference();
-                const peek = model.references.length > 1 && gotoLocation === 'gotoAndPeek';
-                const targetEditor = yield this._openReference(editor, editorService, next, this.configuration.openToSide, !peek);
-                if (peek && targetEditor) {
-                    this._openInPeek(targetEditor, model, range);
-                }
-                else {
-                    model.dispose();
-                }
-                // keep remaining locations around when using
-                // 'goto'-mode
-                if (gotoLocation === 'goto') {
-                    symbolNavService.put(next);
-                }
+                model.dispose();
             }
-        });
+            // keep remaining locations around when using
+            // 'goto'-mode
+            if (gotoLocation === 'goto') {
+                symbolNavService.put(next);
+            }
+        }
     }
-    _openReference(editor, editorService, reference, sideBySide, highlight) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // range is the target-selection-range when we have one
-            // and the fallback is the 'full' range
-            let range = undefined;
-            if (isLocationLink(reference)) {
-                range = reference.targetSelectionRange;
+    async _openReference(editor, editorService, reference, sideBySide, highlight) {
+        // range is the target-selection-range when we have one
+        // and the fallback is the 'full' range
+        let range = undefined;
+        if (isLocationLink(reference)) {
+            range = reference.targetSelectionRange;
+        }
+        if (!range) {
+            range = reference.range;
+        }
+        if (!range) {
+            return undefined;
+        }
+        const targetEditor = await editorService.openCodeEditor({
+            resource: reference.uri,
+            options: {
+                selection: Range.collapseToStart(range),
+                selectionRevealType: 3 /* TextEditorSelectionRevealType.NearTopIfOutsideViewport */,
+                selectionSource: "code.jump" /* TextEditorSelectionSource.JUMP */
             }
-            if (!range) {
-                range = reference.range;
-            }
-            if (!range) {
-                return undefined;
-            }
-            const targetEditor = yield editorService.openCodeEditor({
-                resource: reference.uri,
-                options: {
-                    selection: Range.collapseToStart(range),
-                    selectionRevealType: 3 /* TextEditorSelectionRevealType.NearTopIfOutsideViewport */,
-                    selectionSource: "code.jump" /* TextEditorSelectionSource.JUMP */
+        }, editor, sideBySide);
+        if (!targetEditor) {
+            return undefined;
+        }
+        if (highlight) {
+            const modelNow = targetEditor.getModel();
+            const decorations = targetEditor.createDecorationsCollection([{ range, options: { description: 'symbol-navigate-action-highlight', className: 'symbolHighlight' } }]);
+            setTimeout(() => {
+                if (targetEditor.getModel() === modelNow) {
+                    decorations.clear();
                 }
-            }, editor, sideBySide);
-            if (!targetEditor) {
-                return undefined;
-            }
-            if (highlight) {
-                const modelNow = targetEditor.getModel();
-                const decorations = targetEditor.createDecorationsCollection([{ range, options: { description: 'symbol-navigate-action-highlight', className: 'symbolHighlight' } }]);
-                setTimeout(() => {
-                    if (targetEditor.getModel() === modelNow) {
-                        decorations.clear();
-                    }
-                }, 350);
-            }
-            return targetEditor;
-        });
+            }, 350);
+        }
+        return targetEditor;
     }
     _openInPeek(target, model, range) {
         const controller = ReferencesController.get(target);
@@ -217,10 +204,8 @@ SymbolNavigationAction._allSymbolNavigationCommands = new Map();
 SymbolNavigationAction._activeAlternativeCommands = new Set();
 //#region --- DEFINITION
 export class DefinitionAction extends SymbolNavigationAction {
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getDefinitionsAtPosition(languageFeaturesService.definitionProvider, model, position, token), nls.localize('def.title', 'Definitions'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getDefinitionsAtPosition(languageFeaturesService.definitionProvider, model, position, token), nls.localize('def.title', 'Definitions'));
     }
     _getNoResultFoundMessage(info) {
         return info && info.word
@@ -334,10 +319,8 @@ registerAction2((_c = class PeekDefinitionAction extends DefinitionAction {
 //#endregion
 //#region --- DECLARATION
 class DeclarationAction extends SymbolNavigationAction {
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getDeclarationsAtPosition(languageFeaturesService.declarationProvider, model, position, token), nls.localize('decl.title', 'Declarations'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getDeclarationsAtPosition(languageFeaturesService.declarationProvider, model, position, token), nls.localize('decl.title', 'Declarations'));
     }
     _getNoResultFoundMessage(info) {
         return info && info.word
@@ -409,10 +392,8 @@ registerAction2(class PeekDeclarationAction extends DeclarationAction {
 //#endregion
 //#region --- TYPE DEFINITION
 class TypeDefinitionAction extends SymbolNavigationAction {
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getTypeDefinitionsAtPosition(languageFeaturesService.typeDefinitionProvider, model, position, token), nls.localize('typedef.title', 'Type Definitions'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getTypeDefinitionsAtPosition(languageFeaturesService.typeDefinitionProvider, model, position, token), nls.localize('typedef.title', 'Type Definitions'));
     }
     _getNoResultFoundMessage(info) {
         return info && info.word
@@ -486,10 +467,8 @@ registerAction2((_f = class PeekTypeDefinitionAction extends TypeDefinitionActio
 //#endregion
 //#region --- IMPLEMENTATION
 class ImplementationAction extends SymbolNavigationAction {
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getImplementationsAtPosition(languageFeaturesService.implementationProvider, model, position, token), nls.localize('impl.title', 'Implementations'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getImplementationsAtPosition(languageFeaturesService.implementationProvider, model, position, token), nls.localize('impl.title', 'Implementations'));
     }
     _getNoResultFoundMessage(info) {
         return info && info.word
@@ -611,10 +590,8 @@ registerAction2(class GoToReferencesAction extends ReferencesAction {
                 }]
         });
     }
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getReferencesAtPosition(languageFeaturesService.referenceProvider, model, position, true, token), nls.localize('ref.title', 'References'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getReferencesAtPosition(languageFeaturesService.referenceProvider, model, position, true, token), nls.localize('ref.title', 'References'));
     }
 });
 registerAction2(class PeekReferencesAction extends ReferencesAction {
@@ -637,10 +614,8 @@ registerAction2(class PeekReferencesAction extends ReferencesAction {
             }
         });
     }
-    _getLocationModel(languageFeaturesService, model, position, token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(yield getReferencesAtPosition(languageFeaturesService.referenceProvider, model, position, false, token), nls.localize('ref.title', 'References'));
-        });
+    async _getLocationModel(languageFeaturesService, model, position, token) {
+        return new ReferencesModel(await getReferencesAtPosition(languageFeaturesService.referenceProvider, model, position, false, token), nls.localize('ref.title', 'References'));
     }
 });
 //#endregion
@@ -658,10 +633,8 @@ class GenericGoToLocationAction extends SymbolNavigationAction {
         this._references = _references;
         this._gotoMultipleBehaviour = _gotoMultipleBehaviour;
     }
-    _getLocationModel(languageFeaturesService, _model, _position, _token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new ReferencesModel(this._references, nls.localize('generic.title', 'Locations'));
-        });
+    async _getLocationModel(languageFeaturesService, _model, _position, _token) {
+        return new ReferencesModel(this._references, nls.localize('generic.title', 'Locations'));
     }
     _getNoResultFoundMessage(info) {
         return info && nls.localize('generic.noResult', "No results for '{0}'", info.word) || '';
@@ -674,24 +647,24 @@ class GenericGoToLocationAction extends SymbolNavigationAction {
 }
 CommandsRegistry.registerCommand({
     id: 'editor.action.goToLocations',
-    description: {
+    metadata: {
         description: 'Go to locations from a position in a file',
         args: [
             { name: 'uri', description: 'The text document in which to start', constraint: URI },
             { name: 'position', description: 'The position at which to start', constraint: corePosition.Position.isIPosition },
             { name: 'locations', description: 'An array of locations.', constraint: Array },
-            { name: 'multiple', description: 'Define what to do when having multiple results, either `peek`, `gotoAndPeek`, or `goto' },
+            { name: 'multiple', description: 'Define what to do when having multiple results, either `peek`, `gotoAndPeek`, or `goto`' },
             { name: 'noResultsMessage', description: 'Human readable message that shows when locations is empty.' },
         ]
     },
-    handler: (accessor, resource, position, references, multiple, noResultsMessage, openInPeek) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: async (accessor, resource, position, references, multiple, noResultsMessage, openInPeek) => {
         assertType(URI.isUri(resource));
         assertType(corePosition.Position.isIPosition(position));
         assertType(Array.isArray(references));
         assertType(typeof multiple === 'undefined' || typeof multiple === 'string');
         assertType(typeof openInPeek === 'undefined' || typeof openInPeek === 'boolean');
         const editorService = accessor.get(ICodeEditorService);
-        const editor = yield editorService.openCodeEditor({ resource }, editorService.getFocusedCodeEditor());
+        const editor = await editorService.openCodeEditor({ resource }, editorService.getFocusedCodeEditor());
         if (isCodeEditor(editor)) {
             editor.setPosition(position);
             editor.revealPositionInCenterIfOutsideViewport(position, 0 /* ScrollType.Smooth */);
@@ -708,22 +681,22 @@ CommandsRegistry.registerCommand({
                 accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor);
             });
         }
-    })
+    }
 });
 CommandsRegistry.registerCommand({
     id: 'editor.action.peekLocations',
-    description: {
+    metadata: {
         description: 'Peek locations from a position in a file',
         args: [
             { name: 'uri', description: 'The text document in which to start', constraint: URI },
             { name: 'position', description: 'The position at which to start', constraint: corePosition.Position.isIPosition },
             { name: 'locations', description: 'An array of locations.', constraint: Array },
-            { name: 'multiple', description: 'Define what to do when having multiple results, either `peek`, `gotoAndPeek`, or `goto' },
+            { name: 'multiple', description: 'Define what to do when having multiple results, either `peek`, `gotoAndPeek`, or `goto`' },
         ]
     },
-    handler: (accessor, resource, position, references, multiple) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: async (accessor, resource, position, references, multiple) => {
         accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true);
-    })
+    }
 });
 //#endregion
 //#region --- REFERENCE search special commands

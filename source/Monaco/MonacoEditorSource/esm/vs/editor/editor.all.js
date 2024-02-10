@@ -57,6 +57,7 @@ import './contrib/wordHighlighter/browser/wordHighlighter.js';
 import './contrib/wordOperations/browser/wordOperations.js';
 import './contrib/wordPartOperations/browser/wordPartOperations.js';
 import './contrib/readOnlyMessage/browser/contribution.js';
+import './contrib/diffEditorBreadcrumbs/browser/contribution.js';
 // Load up these strings even in VSCode, even if they are not used
 // in order to get them translated
 import './common/standaloneStrings.js';

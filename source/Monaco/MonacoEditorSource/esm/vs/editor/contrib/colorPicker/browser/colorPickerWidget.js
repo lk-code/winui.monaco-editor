@@ -83,9 +83,9 @@ class CloseButton extends Disposable {
         dom.append(this._button, innerDiv);
         const closeButton = dom.append(innerDiv, $('.button' + ThemeIcon.asCSSSelector(registerIcon('color-picker-close', Codicon.close, localize('closeIcon', 'Icon to close the color picker')))));
         closeButton.classList.add('close-icon');
-        this._button.onclick = () => {
+        this._register(dom.addDisposableListener(this._button, dom.EventType.CLICK, () => {
             this._onClicked.fire();
-        };
+        }));
     }
 }
 export class ColorPickerBody extends Disposable {
@@ -328,9 +328,9 @@ export class InsertButton extends Disposable {
         this._button = dom.append(container, document.createElement('button'));
         this._button.classList.add('insert-button');
         this._button.textContent = 'Insert';
-        this._button.onclick = e => {
+        this._register(dom.addDisposableListener(this._button, dom.EventType.CLICK, () => {
             this._onClicked.fire();
-        };
+        }));
     }
     get button() {
         return this._button;

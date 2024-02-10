@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var CodeEditorWidget_1;
 import '../services/markerDecorations.js';
 import './media/editor.css';
@@ -108,6 +99,8 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this.onDidChangeModelTokens = this._onDidChangeModelTokens.event;
         this._onDidChangeConfiguration = this._register(new Emitter({ deliveryQueue: this._deliveryQueue }));
         this.onDidChangeConfiguration = this._onDidChangeConfiguration.event;
+        this._onWillChangeModel = this._register(new Emitter({ deliveryQueue: this._deliveryQueue }));
+        this.onWillChangeModel = this._onWillChangeModel.event;
         this._onDidChangeModel = this._register(new Emitter({ deliveryQueue: this._deliveryQueue }));
         this.onDidChangeModel = this._onDidChangeModel.event;
         this._onDidChangeCursorPosition = this._register(new Emitter({ deliveryQueue: this._deliveryQueue }));
@@ -170,7 +163,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._bannerDomNode = null;
         this._dropIntoEditorDecorations = this.createDecorationsCollection();
         codeEditorService.willCreateCodeEditor();
-        const options = Object.assign({}, _options);
+        const options = { ..._options };
         this._domElement = domElement;
         this._overflowWidgetsDomNode = options.overflowWidgetsDomNode;
         delete options.overflowWidgetsDomNode;
@@ -196,7 +189,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._register(new EditorModeContext(this, this._contextKeyService, languageFeaturesService));
         this._instantiationService = instantiationService.createChild(new ServiceCollection([IContextKeyService, this._contextKeyService]));
         this._modelData = null;
-        this._focusTracker = new CodeEditorWidgetFocusTracker(domElement);
+        this._focusTracker = new CodeEditorWidgetFocusTracker(domElement, this._overflowWidgetsDomNode);
         this._register(this._focusTracker.onChange(() => {
             this._editorWidgetFocus.setValue(this._focusTracker.hasFocus());
         }));
@@ -216,9 +209,9 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                 onUnexpectedError(new Error(`Cannot have two actions with the same id ${action.id}`));
                 continue;
             }
-            const internalAction = new InternalEditorAction(action.id, action.label, action.alias, (_a = action.precondition) !== null && _a !== void 0 ? _a : undefined, () => {
+            const internalAction = new InternalEditorAction(action.id, action.label, action.alias, action.metadata, (_a = action.precondition) !== null && _a !== void 0 ? _a : undefined, (args) => {
                 return this._instantiationService.invokeFunction((accessor) => {
-                    return Promise.resolve(action.runEditorCommand(accessor, this, null));
+                    return Promise.resolve(action.runEditorCommand(accessor, this, args));
                 });
             }, this._contextKeyService);
             this._actions.set(internalAction.id, internalAction);
@@ -228,7 +221,6 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                 && this._configuration.options.get(36 /* EditorOption.dropIntoEditor */).enabled;
         };
         this._register(new dom.DragAndDropObserver(this._domElement, {
-            onDragEnter: () => undefined,
             onDragOver: e => {
                 if (!isDropIntoEnabled()) {
                     return;
@@ -238,7 +230,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                     this.showDropIndicatorAt(target.position);
                 }
             },
-            onDrop: (e) => __awaiter(this, void 0, void 0, function* () {
+            onDrop: async (e) => {
                 if (!isDropIntoEnabled()) {
                     return;
                 }
@@ -250,7 +242,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                 if (target === null || target === void 0 ? void 0 : target.position) {
                     this._onDropIntoEditor.fire({ position: target.position, event: e });
                 }
-            }),
+            },
             onDragLeave: () => {
                 this.removeDropIndicator();
             },
@@ -335,6 +327,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         return this._modelData.model;
     }
     setModel(_model = null) {
+        var _a;
         const model = _model;
         if (this._modelData === null && model === null) {
             // Current model is the new model
@@ -344,16 +337,17 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
             // Current model is the new model
             return;
         }
+        const e = {
+            oldModelUrl: ((_a = this._modelData) === null || _a === void 0 ? void 0 : _a.model.uri) || null,
+            newModelUrl: (model === null || model === void 0 ? void 0 : model.uri) || null
+        };
+        this._onWillChangeModel.fire(e);
         const hasTextFocus = this.hasTextFocus();
         const detachedModel = this._detachModel();
         this._attachModel(model);
         if (hasTextFocus && this.hasModel()) {
             this.focus();
         }
-        const e = {
-            oldModelUrl: detachedModel ? detachedModel.uri : null,
-            newModelUrl: model ? model.uri : null
-        };
         this._removeDecorationTypes();
         this._onDidChangeModel.fire(e);
         this._postDetachModelCleanup(detachedModel);
@@ -981,9 +975,11 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         }
         this._modelData.view.delegateScrollFromMouseWheelEvent(browserEvent);
     }
-    layout(dimension) {
+    layout(dimension, postponeRendering = false) {
         this._configuration.observeContainer(dimension);
-        this.render();
+        if (!postponeRendering) {
+            this.render();
+        }
     }
     focus() {
         if (!this._modelData || !this._modelData.hasRealView) {
@@ -1006,7 +1002,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
             position: widget.getPosition()
         };
         if (this._contentWidgets.hasOwnProperty(widget.getId())) {
-            console.warn('Overwriting a content widget with the same id.');
+            console.warn('Overwriting a content widget with the same id:' + widget.getId());
         }
         this._contentWidgets[widget.getId()] = widgetData;
         if (this._modelData && this._modelData.hasRealView) {
@@ -1167,7 +1163,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._configuration.setIsDominatedByLongLines(model.isDominatedByLongLines());
         this._configuration.setModelLineCount(model.getLineCount());
         const attachedView = model.onBeforeAttached();
-        const viewModel = new ViewModel(this._id, this._configuration, model, DOMLineBreaksComputerFactory.create(), MonospaceLineBreaksComputerFactory.create(this._configuration.options), (callback) => dom.scheduleAtNextAnimationFrame(callback), this.languageConfigurationService, this._themeService, attachedView);
+        const viewModel = new ViewModel(this._id, this._configuration, model, DOMLineBreaksComputerFactory.create(dom.getWindow(this._domElement)), MonospaceLineBreaksComputerFactory.create(this._configuration.options), (callback) => dom.scheduleAtNextAnimationFrame(dom.getWindow(this._domElement), callback), this.languageConfigurationService, this._themeService, attachedView);
         // Someone might destroy the model from under the editor, so prevent any exceptions by setting a null model
         listenersToRemove.push(model.onWillDispose(() => this.setModel(null)));
         listenersToRemove.push(viewModel.onEvent((e) => {
@@ -1609,23 +1605,44 @@ export class EditorModeContext extends Disposable {
     }
 }
 class CodeEditorWidgetFocusTracker extends Disposable {
-    constructor(domElement) {
+    constructor(domElement, overflowWidgetsDomNode) {
         super();
         this._onChange = this._register(new Emitter());
         this.onChange = this._onChange.event;
-        this._hasFocus = false;
+        this._hadFocus = undefined;
+        this._hasDomElementFocus = false;
         this._domFocusTracker = this._register(dom.trackFocus(domElement));
+        this._overflowWidgetsDomNodeHasFocus = false;
         this._register(this._domFocusTracker.onDidFocus(() => {
-            this._hasFocus = true;
-            this._onChange.fire(undefined);
+            this._hasDomElementFocus = true;
+            this._update();
         }));
         this._register(this._domFocusTracker.onDidBlur(() => {
-            this._hasFocus = false;
-            this._onChange.fire(undefined);
+            this._hasDomElementFocus = false;
+            this._update();
         }));
+        if (overflowWidgetsDomNode) {
+            this._overflowWidgetsDomNode = this._register(dom.trackFocus(overflowWidgetsDomNode));
+            this._register(this._overflowWidgetsDomNode.onDidFocus(() => {
+                this._overflowWidgetsDomNodeHasFocus = true;
+                this._update();
+            }));
+            this._register(this._overflowWidgetsDomNode.onDidBlur(() => {
+                this._overflowWidgetsDomNodeHasFocus = false;
+                this._update();
+            }));
+        }
+    }
+    _update() {
+        const focused = this._hasDomElementFocus || this._overflowWidgetsDomNodeHasFocus;
+        if (this._hadFocus !== focused) {
+            this._hadFocus = focused;
+            this._onChange.fire(undefined);
+        }
     }
     hasFocus() {
-        return this._hasFocus;
+        var _a;
+        return (_a = this._hadFocus) !== null && _a !== void 0 ? _a : false;
     }
 }
 class EditorDecorationsCollection {
@@ -1692,6 +1709,20 @@ class EditorDecorationsCollection {
             this._isChangingDecorations = false;
         }
         return this._decorationIds;
+    }
+    append(newDecorations) {
+        let newDecorationIds = [];
+        try {
+            this._isChangingDecorations = true;
+            this._editor.changeDecorations((accessor) => {
+                newDecorationIds = accessor.deltaDecorations([], newDecorations);
+                this._decorationIds = this._decorationIds.concat(newDecorationIds);
+            });
+        }
+        finally {
+            this._isChangingDecorations = false;
+        }
+        return newDecorationIds;
     }
 }
 const squigglyStart = encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' enable-background='new 0 0 6 3' height='3' width='6'><g fill='`);

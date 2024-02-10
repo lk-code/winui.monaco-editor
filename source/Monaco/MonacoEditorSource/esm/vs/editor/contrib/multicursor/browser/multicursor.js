@@ -887,7 +887,8 @@ let SelectionHighlighter = SelectionHighlighter_1 = class SelectionHighlighter e
                 }
             }
         }
-        const hasSemanticHighlights = this._languageFeaturesService.documentHighlightProvider.has(model) && this.editor.getOption(80 /* EditorOption.occurrencesHighlight */);
+        const occurrenceHighlighting = this.editor.getOption(80 /* EditorOption.occurrencesHighlight */) !== 'off';
+        const hasSemanticHighlights = this._languageFeaturesService.documentHighlightProvider.has(model) && occurrenceHighlighting;
         const decorations = matches.map(r => {
             return {
                 range: r,
@@ -929,7 +930,7 @@ export class FocusNextCursor extends EditorAction {
         super({
             id: 'editor.action.focusNextCursor',
             label: nls.localize('mutlicursor.focusNextCursor', "Focus Next Cursor"),
-            description: {
+            metadata: {
                 description: nls.localize('mutlicursor.focusNextCursor.description', "Focuses the next cursor"),
                 args: [],
             },
@@ -962,7 +963,7 @@ export class FocusPreviousCursor extends EditorAction {
         super({
             id: 'editor.action.focusPreviousCursor',
             label: nls.localize('mutlicursor.focusPreviousCursor', "Focus Previous Cursor"),
-            description: {
+            metadata: {
                 description: nls.localize('mutlicursor.focusPreviousCursor.description', "Focuses the previous cursor"),
                 args: [],
             },

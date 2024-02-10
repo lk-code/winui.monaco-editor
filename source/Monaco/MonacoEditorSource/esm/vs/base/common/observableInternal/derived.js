@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BugIndicatingError } from '../errors.js';
+import { assertFn } from '../assert.js';
 import { DisposableStore } from '../lifecycle.js';
-import { BaseObservable, _setDerivedOpts, getFunctionName, getDebugName } from './base.js';
+import { BaseObservable, _setDerivedOpts, getDebugName, getFunctionName } from './base.js';
 import { getLogger } from './logging.js';
 const defaultEqualityComparer = (a, b) => a === b;
 export function derived(computeFnOrOwner, computeFn) {
@@ -15,8 +15,21 @@ export function derived(computeFnOrOwner, computeFn) {
 }
 export function derivedOpts(options, computeFn) {
     var _a;
-    return new Derived(options.owner, options.debugName, computeFn, undefined, undefined, undefined, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
+    return new Derived(options.owner, options.debugName, computeFn, undefined, undefined, options.onLastObserverRemoved, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
 }
+/**
+ * Represents an observable that is derived from other observables.
+ * The value is only recomputed when absolutely needed.
+ *
+ * {@link computeFn} should start with a JS Doc using `@description` to name the derived.
+ *
+ * Use `createEmptyChangeSummary` to create a "change summary" that can collect the changes.
+ * Use `handleChange` to add a reported change to the change summary.
+ * The compute function is given the last change summary.
+ * The change summary is discarded after the compute function was called.
+ *
+ * @see derived
+ */
 export function derivedHandleChanges(options, computeFn) {
     var _a;
     return new Derived(options.owner, options.debugName, computeFn, options.createEmptyChangeSummary, options.handleChange, undefined, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
@@ -38,11 +51,32 @@ export function derivedWithStore(computeFnOrOwner, computeFnOrUndefined) {
         return computeFn(r, store);
     }, undefined, undefined, () => store.dispose(), defaultEqualityComparer);
 }
-_setDerivedOpts(derived);
+export function derivedDisposable(computeFnOrOwner, computeFnOrUndefined) {
+    let computeFn;
+    let owner;
+    if (computeFnOrUndefined === undefined) {
+        computeFn = computeFnOrOwner;
+        owner = undefined;
+    }
+    else {
+        owner = computeFnOrOwner;
+        computeFn = computeFnOrUndefined;
+    }
+    const store = new DisposableStore();
+    return new Derived(owner, (() => { var _a; return (_a = getFunctionName(computeFn)) !== null && _a !== void 0 ? _a : '(anonymous)'; }), r => {
+        store.clear();
+        const result = computeFn(r);
+        if (result) {
+            store.add(result);
+        }
+        return result;
+    }, undefined, undefined, () => store.dispose(), defaultEqualityComparer);
+}
+_setDerivedOpts(derivedOpts);
 export class Derived extends BaseObservable {
     get debugName() {
         var _a;
-        return (_a = getDebugName(this._debugName, this._computeFn, this._owner, this)) !== null && _a !== void 0 ? _a : '(anonymous)';
+        return (_a = getDebugName(this, this._debugName, this._computeFn, this._owner)) !== null && _a !== void 0 ? _a : '(anonymous)';
     }
     constructor(_owner, _debugName, _computeFn, createChangeSummary, _handleChange, _handleLastObserverRemoved = undefined, _equalityComparator) {
         var _a, _b;
@@ -182,9 +216,7 @@ export class Derived extends BaseObservable {
                 r.endUpdate(this);
             }
         }
-        if (this.updateCount < 0) {
-            throw new BugIndicatingError();
-        }
+        assertFn(() => this.updateCount >= 0);
     }
     handlePossibleChange(observable) {
         // In all other states, observers already know that we might have changed.

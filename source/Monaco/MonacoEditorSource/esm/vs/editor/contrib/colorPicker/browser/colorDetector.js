@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var ColorDetector_1;
 import { createCancelablePromise, TimeoutTimer } from '../../../../base/common/async.js';
 import { RGBA } from '../../../../base/common/color.js';
@@ -122,28 +113,26 @@ let ColorDetector = ColorDetector_1 = class ColorDetector extends Disposable {
         }));
         this.beginCompute();
     }
-    beginCompute() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._computePromise = createCancelablePromise((token) => __awaiter(this, void 0, void 0, function* () {
-                const model = this._editor.getModel();
-                if (!model) {
-                    return [];
-                }
-                const sw = new StopWatch(false);
-                const colors = yield getColors(this._languageFeaturesService.colorProvider, model, token, this._isDefaultColorDecoratorsEnabled);
-                this._debounceInformation.update(model, sw.elapsed());
-                return colors;
-            }));
-            try {
-                const colors = yield this._computePromise;
-                this.updateDecorations(colors);
-                this.updateColorDecorators(colors);
-                this._computePromise = null;
+    async beginCompute() {
+        this._computePromise = createCancelablePromise(async (token) => {
+            const model = this._editor.getModel();
+            if (!model) {
+                return [];
             }
-            catch (e) {
-                onUnexpectedError(e);
-            }
+            const sw = new StopWatch(false);
+            const colors = await getColors(this._languageFeaturesService.colorProvider, model, token, this._isDefaultColorDecoratorsEnabled);
+            this._debounceInformation.update(model, sw.elapsed());
+            return colors;
         });
+        try {
+            const colors = await this._computePromise;
+            this.updateDecorations(colors);
+            this.updateColorDecorators(colors);
+            this._computePromise = null;
+        }
+        catch (e) {
+            onUnexpectedError(e);
+        }
     }
     stop() {
         if (this._timeoutTimer) {

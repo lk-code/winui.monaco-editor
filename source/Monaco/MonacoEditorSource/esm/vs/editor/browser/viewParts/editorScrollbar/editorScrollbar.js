@@ -37,7 +37,7 @@ export class EditorScrollbar extends ViewPart {
             scrollByPage: scrollbar.scrollByPage,
         };
         this.scrollbar = this._register(new SmoothScrollableElement(linesContent.domNode, scrollbarOptions, this._context.viewLayout.getScrollable()));
-        PartFingerprints.write(this.scrollbar.getDomNode(), 5 /* PartFingerprint.ScrollableElement */);
+        PartFingerprints.write(this.scrollbar.getDomNode(), 6 /* PartFingerprint.ScrollableElement */);
         this.scrollbarDomNode = createFastDomNode(this.scrollbar.getDomNode());
         this.scrollbarDomNode.setPosition('absolute');
         this._setLayout();

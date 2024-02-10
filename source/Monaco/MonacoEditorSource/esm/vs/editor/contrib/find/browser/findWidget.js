@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import * as dom from '../../../../base/browser/dom.js';
 import { alert as alertFn } from '../../../../base/browser/ui/aria/aria.js';
 import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
@@ -145,15 +136,15 @@ export class FindWidget extends Widget {
                 this._updateToggleSelectionFindButton();
             }
         }));
-        this._register(this._codeEditor.onDidFocusEditorWidget(() => __awaiter(this, void 0, void 0, function* () {
+        this._register(this._codeEditor.onDidFocusEditorWidget(async () => {
             if (this._isVisible) {
-                const globalBufferTerm = yield this._controller.getGlobalBufferTerm();
+                const globalBufferTerm = await this._controller.getGlobalBufferTerm();
                 if (globalBufferTerm && globalBufferTerm !== this._state.searchString) {
                     this._state.change({ searchString: globalBufferTerm }, false);
                     this._findInput.select();
                 }
             }
-        })));
+        }));
         this._findInputFocused = CONTEXT_FIND_INPUT_FOCUSED.bindTo(contextKeyService);
         this._findFocusTracker = this._register(dom.trackFocus(this._findInput.inputBox.inputElement));
         this._register(this._findFocusTracker.onDidFocus(() => {
@@ -537,7 +528,7 @@ export class FindWidget extends Widget {
         if (!this._isVisible) {
             return;
         }
-        if (!dom.isInDOM(this._domNode)) {
+        if (!this._domNode.isConnected) {
             // the widget is not in the DOM
             return;
         }

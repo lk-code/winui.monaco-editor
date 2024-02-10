@@ -1,11 +1,11 @@
-"use strict";
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
+ * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
 define("vs/basic-languages/redshift/redshift", ["require"],(require)=>{
+"use strict";
 var moduleExports = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -760,8 +760,12 @@ var moduleExports = (() => {
       "xpath",
       "xpath_exists"
     ],
-    builtinVariables: [],
-    pseudoColumns: [],
+    builtinVariables: [
+      // NOT SUPPORTED
+    ],
+    pseudoColumns: [
+      // NOT SUPPORTED
+    ],
     tokenizer: {
       root: [
         { include: "@comments" },
@@ -794,6 +798,9 @@ var moduleExports = (() => {
       ],
       comment: [
         [/[^*/]+/, "comment"],
+        // Not supporting nested comments, as nested comments seem to not be standard?
+        // i.e. http://stackoverflow.com/questions/728172/are-there-multiline-comment-delimiters-in-sql-that-are-vendor-agnostic
+        // [/\/\*/, { token: 'comment.quote', next: '@push' }],    // nested comment not allowed :-(
         [/\*\//, { token: "comment.quote", next: "@pop" }],
         [/./, "comment"]
       ],
@@ -825,7 +832,9 @@ var moduleExports = (() => {
         [/""/, "identifier"],
         [/"/, { token: "identifier.quote", next: "@pop" }]
       ],
-      scopes: []
+      scopes: [
+        // NOT SUPPORTED
+      ]
     }
   };
   return __toCommonJS(redshift_exports);

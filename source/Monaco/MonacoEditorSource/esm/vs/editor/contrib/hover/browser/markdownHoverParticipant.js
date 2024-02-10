@@ -16,7 +16,7 @@ import { asArray } from '../../../../base/common/arrays.js';
 import { AsyncIterableObject } from '../../../../base/common/async.js';
 import { isEmptyMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { MarkdownRenderer } from '../../markdownRenderer/browser/markdownRenderer.js';
+import { MarkdownRenderer } from '../../../browser/widget/markdownRenderer/browser/markdownRenderer.js';
 import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
 import { ILanguageService } from '../../../common/languages/language.js';

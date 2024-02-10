@@ -37,7 +37,7 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
         this.model = model;
         this.languageService = languageService;
         this.isDisposed = observableValue(this, false);
-        this.currentTextModel = observableFromEvent(this.editor.onDidChangeModel, () => this.editor.getModel());
+        this.currentTextModel = observableFromEvent(this.editor.onDidChangeModel, () => /** @description editor.model */ this.editor.getModel());
         this.uiState = derived(this, reader => {
             if (this.isDisposed.read(reader)) {
                 return undefined;

@@ -48,12 +48,12 @@ export class IconLabel extends Disposable {
         this.creationOptions = options;
         this.domNode = this._register(new FastLabelNode(dom.append(container, dom.$('.monaco-icon-label'))));
         this.labelContainer = dom.append(this.domNode.element, dom.$('.monaco-icon-label-container'));
-        const nameContainer = dom.append(this.labelContainer, dom.$('span.monaco-icon-name-container'));
+        this.nameContainer = dom.append(this.labelContainer, dom.$('span.monaco-icon-name-container'));
         if ((options === null || options === void 0 ? void 0 : options.supportHighlights) || (options === null || options === void 0 ? void 0 : options.supportIcons)) {
-            this.nameNode = new LabelWithHighlights(nameContainer, !!options.supportIcons);
+            this.nameNode = new LabelWithHighlights(this.nameContainer, !!options.supportIcons);
         }
         else {
-            this.nameNode = new Label(nameContainer);
+            this.nameNode = new Label(this.nameContainer);
         }
         this.hoverDelegate = options === null || options === void 0 ? void 0 : options.hoverDelegate;
     }
@@ -61,6 +61,7 @@ export class IconLabel extends Disposable {
         return this.domNode.element;
     }
     setLabel(label, description, options) {
+        var _a;
         const labelClasses = ['monaco-icon-label'];
         const containerClasses = ['monaco-icon-label-container'];
         let ariaLabel = '';
@@ -78,7 +79,12 @@ export class IconLabel extends Disposable {
                 containerClasses.push('disabled');
             }
             if (options.title) {
-                ariaLabel += options.title;
+                if (typeof options.title === 'string') {
+                    ariaLabel += options.title;
+                }
+                else {
+                    ariaLabel += label;
+                }
             }
         }
         this.domNode.className = labelClasses.join(' ');
@@ -97,6 +103,10 @@ export class IconLabel extends Disposable {
                 this.setupHover(descriptionNode.element, (options === null || options === void 0 ? void 0 : options.descriptionTitle) || '');
                 descriptionNode.empty = !description;
             }
+        }
+        if ((options === null || options === void 0 ? void 0 : options.suffix) || this.suffixNode) {
+            const suffixNode = this.getOrCreateSuffixNode();
+            suffixNode.textContent = (_a = options === null || options === void 0 ? void 0 : options.suffix) !== null && _a !== void 0 ? _a : '';
         }
     }
     setupHover(htmlElement, tooltip) {
@@ -125,6 +135,13 @@ export class IconLabel extends Disposable {
             disposable.dispose();
         }
         this.customHovers.clear();
+    }
+    getOrCreateSuffixNode() {
+        if (!this.suffixNode) {
+            const suffixContainer = this._register(new FastLabelNode(dom.after(this.nameContainer, dom.$('span.monaco-icon-suffix-container'))));
+            this.suffixNode = this._register(new FastLabelNode(dom.append(suffixContainer.element, dom.$('span.label-suffix'))));
+        }
+        return this.suffixNode;
     }
     getOrCreateDescriptionNode() {
         var _a;

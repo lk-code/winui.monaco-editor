@@ -183,7 +183,7 @@ export class ViewLayout extends Disposable {
         if (options.get(104 /* EditorOption.scrollBeyondLastLine */)) {
             result += Math.max(0, height - options.get(66 /* EditorOption.lineHeight */) - options.get(83 /* EditorOption.padding */).bottom);
         }
-        else {
+        else if (!options.get(102 /* EditorOption.scrollbar */).ignoreHorizontalScrollbarInContentHeight) {
             result += this._getHorizontalScrollbarHeight(width, contentWidth);
         }
         return result;

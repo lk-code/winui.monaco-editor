@@ -8,6 +8,7 @@ import { Color } from '../../../common/color.js';
 import { Emitter } from '../../../common/event.js';
 import { isMarkdownString, markdownStringEqual } from '../../../common/htmlContent.js';
 import { Disposable } from '../../../common/lifecycle.js';
+import { ThemeIcon } from '../../../common/themables.js';
 import './button.css';
 export const unthemedButtonStyles = {
     buttonBackground: '#0E639C',
@@ -43,6 +44,9 @@ export class Button extends Disposable {
             this._labelElement.classList.add('monaco-button-label');
             this._element.appendChild(this._labelElement);
             this._element.classList.add('monaco-text-button-with-short-label');
+        }
+        if (typeof options.ariaLabel === 'string') {
+            this._element.setAttribute('aria-label', options.ariaLabel);
         }
         container.appendChild(this._element);
         this._register(Gesture.addTarget(this._element));
@@ -164,10 +168,19 @@ export class Button extends Disposable {
         else if (this.options.title) {
             this._element.title = renderStringAsPlaintext(value);
         }
+        if (typeof this.options.ariaLabel === 'string') {
+            this._element.setAttribute('aria-label', this.options.ariaLabel);
+        }
+        else if (this.options.ariaLabel) {
+            this._element.setAttribute('aria-label', this._element.title);
+        }
         this._label = value;
     }
     get label() {
         return this._label;
+    }
+    set icon(icon) {
+        this._element.classList.add(...ThemeIcon.asClassNameArray(icon));
     }
     set enabled(value) {
         if (value) {

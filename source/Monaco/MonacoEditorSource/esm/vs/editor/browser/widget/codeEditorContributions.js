@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { runWhenIdle } from '../../../base/common/async.js';
+import { getWindow, runWhenWindowIdle } from '../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 export class CodeEditorContributions extends Disposable {
@@ -41,19 +41,19 @@ export class CodeEditorContributions extends Disposable {
         // AfterFirstRender
         // - these extensions will be instantiated at the latest 50ms after the first render.
         // - but if there is idle time, we will instantiate them sooner.
-        this._register(runWhenIdle(() => {
+        this._register(runWhenWindowIdle(getWindow(this._editor.getDomNode()), () => {
             this._instantiateSome(1 /* EditorContributionInstantiation.AfterFirstRender */);
         }));
         // BeforeFirstInteraction
         // - these extensions will be instantiated at the latest before a mouse or a keyboard event.
         // - but if there is idle time, we will instantiate them sooner.
-        this._register(runWhenIdle(() => {
+        this._register(runWhenWindowIdle(getWindow(this._editor.getDomNode()), () => {
             this._instantiateSome(2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
         }));
         // Eventually
         // - these extensions will only be instantiated when there is idle time.
         // - since there is no guarantee that there will ever be idle time, we set a timeout of 5s here.
-        this._register(runWhenIdle(() => {
+        this._register(runWhenWindowIdle(getWindow(this._editor.getDomNode()), () => {
             this._instantiateSome(3 /* EditorContributionInstantiation.Eventually */);
         }, 5000));
     }
@@ -82,7 +82,8 @@ export class CodeEditorContributions extends Disposable {
         this._instantiateSome(2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
     }
     onAfterModelAttached() {
-        this._register(runWhenIdle(() => {
+        var _a;
+        this._register(runWhenWindowIdle(getWindow((_a = this._editor) === null || _a === void 0 ? void 0 : _a.getDomNode()), () => {
             this._instantiateSome(1 /* EditorContributionInstantiation.AfterFirstRender */);
         }, 50));
     }

@@ -9,6 +9,7 @@ import { Range } from '../../core/range.js';
 import { ignoreBracketsInToken } from '../../languages/supports.js';
 import { BracketsUtils } from '../../languages/supports/richEditBrackets.js';
 import { BracketPairsTree } from './bracketPairsTree/bracketPairsTree.js';
+/* hot-reload:patch-prototype-methods */
 export class BracketPairsTextModelPart extends Disposable {
     get canBuildAST() {
         const maxSupportedDocumentLength = /* max lines */ 50000 * /* average column count */ 100;

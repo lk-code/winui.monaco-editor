@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { Color } from '../../../base/common/color.js';
 import { Range } from '../../common/core/range.js';
 import * as languages from '../../common/languages.js';
@@ -260,8 +251,8 @@ function createTokenizationSupportAdapter(languageId, provider) {
  * with a tokens provider set using `registerDocumentSemanticTokensProvider` or `registerDocumentRangeSemanticTokensProvider`.
  */
 export function registerTokensProviderFactory(languageId, factory) {
-    const adaptedFactory = new languages.LazyTokenizationSupport(() => __awaiter(this, void 0, void 0, function* () {
-        const result = yield Promise.resolve(factory.create());
+    const adaptedFactory = new languages.LazyTokenizationSupport(async () => {
+        const result = await Promise.resolve(factory.create());
         if (!result) {
             return null;
         }
@@ -269,7 +260,7 @@ export function registerTokensProviderFactory(languageId, factory) {
             return createTokenizationSupportAdapter(languageId, result);
         }
         return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, result), StandaloneServices.get(IConfigurationService));
-    }));
+    });
     return languages.TokenizationRegistry.registerFactory(languageId, adaptedFactory);
 }
 /**

@@ -18,7 +18,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { MarkdownRenderer } from '../../markdownRenderer/browser/markdownRenderer.js';
+import { MarkdownRenderer } from '../../../browser/widget/markdownRenderer/browser/markdownRenderer.js';
 import { ResizableHTMLElement } from '../../../../base/browser/ui/resizable/resizable.js';
 import * as nls from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -168,6 +168,9 @@ let SuggestDetailsWidget = class SuggestDetailsWidget {
         this._type.textContent = '';
         this._docs.textContent = '';
     }
+    get isEmpty() {
+        return this.domNode.classList.contains('no-docs');
+    }
     get size() {
         return this._size;
     }
@@ -212,6 +215,7 @@ export class SuggestDetailsOverlay {
     constructor(widget, _editor) {
         this.widget = widget;
         this._editor = _editor;
+        this.allowEditorOverflow = true;
         this._disposables = new DisposableStore();
         this._added = false;
         this._preferAlignAtTop = true;
@@ -273,12 +277,11 @@ export class SuggestDetailsOverlay {
         return this._resizable.domNode;
     }
     getPosition() {
-        return null;
+        return this._topLeft ? { preference: this._topLeft } : null;
     }
     show() {
         if (!this._added) {
             this._editor.addOverlayWidget(this);
-            this.getDomNode().style.position = 'fixed';
             this._added = true;
         }
     }
@@ -363,8 +366,18 @@ export class SuggestDetailsOverlay {
                 maxSize = placement.maxSizeTop;
             }
         }
-        this._applyTopLeft({ left: placement.left, top: alignAtTop ? placement.top : bottom - height });
-        this.getDomNode().style.position = 'fixed';
+        let { top, left } = placement;
+        if (!alignAtTop && height > anchorBox.height) {
+            top = bottom - height;
+        }
+        const editorDomNode = this._editor.getDomNode();
+        if (editorDomNode) {
+            // get bounding rectangle of the suggest widget relative to the editor
+            const editorBoundingBox = editorDomNode.getBoundingClientRect();
+            top -= editorBoundingBox.top;
+            left -= editorBoundingBox.left;
+        }
+        this._applyTopLeft({ left, top });
         this._resizable.enableSashes(!alignAtTop, placement === eastPlacement, alignAtTop, placement !== eastPlacement);
         this._resizable.minSize = placement.minSize;
         this._resizable.maxSize = maxSize;
@@ -373,7 +386,6 @@ export class SuggestDetailsOverlay {
     }
     _applyTopLeft(topLeft) {
         this._topLeft = topLeft;
-        this.getDomNode().style.left = `${this._topLeft.left}px`;
-        this.getDomNode().style.top = `${this._topLeft.top}px`;
+        this._editor.layoutOverlayWidget(this);
     }
 }

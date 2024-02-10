@@ -1,11 +1,11 @@
-"use strict";
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
+ * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
 define("vs/basic-languages/objective-c/objective-c", ["require"],(require)=>{
+"use strict";
 var moduleExports = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -188,6 +188,7 @@ var moduleExports = (() => {
           }
         ]
       ],
+      // Recognize strings, including those broken across lines with \ (but not without)
       strings: [
         [/'$/, "string.escape", "@popall"],
         [/'/, "string.escape", "@stringBody"],

@@ -24,6 +24,7 @@ export class LanguageFeaturesService {
         this.signatureHelpProvider = new LanguageFeatureRegistry(this._score.bind(this));
         this.hoverProvider = new LanguageFeatureRegistry(this._score.bind(this));
         this.documentHighlightProvider = new LanguageFeatureRegistry(this._score.bind(this));
+        this.multiDocumentHighlightProvider = new LanguageFeatureRegistry(this._score.bind(this));
         this.selectionRangeProvider = new LanguageFeatureRegistry(this._score.bind(this));
         this.foldingRangeProvider = new LanguageFeatureRegistry(this._score.bind(this));
         this.linkProvider = new LanguageFeatureRegistry(this._score.bind(this));

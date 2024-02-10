@@ -33,6 +33,7 @@ import { TokenizationRegistry } from '../../common/languages.js';
 import { Color } from '../../../base/common/color.js';
 import { IME } from '../../../base/common/ime.js';
 import { IKeybindingService } from '../../../platform/keybinding/common/keybinding.js';
+import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 class VisibleTextAreaData {
     constructor(_context, modelLineNumber, distanceToModelLineStart, widthOfHiddenLineTextBefore, distanceToModelLineEnd) {
         this._context = _context;
@@ -89,9 +90,10 @@ class VisibleTextAreaData {
 }
 const canUseZeroSizeTextarea = (browser.isFirefox);
 let TextAreaHandler = class TextAreaHandler extends ViewPart {
-    constructor(context, viewController, visibleRangeProvider, _keybindingService) {
+    constructor(context, viewController, visibleRangeProvider, _keybindingService, _instantiationService) {
         super(context);
         this._keybindingService = _keybindingService;
+        this._instantiationService = _instantiationService;
         this._primaryCursorPosition = new Position(1, 1);
         this._primaryCursorVisibleRange = null;
         this._viewController = viewController;
@@ -114,7 +116,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         this._lastRenderPosition = null;
         // Text Area (The focus will always be in the textarea when the cursor is blinking)
         this.textArea = createFastDomNode(document.createElement('textarea'));
-        PartFingerprints.write(this.textArea, 6 /* PartFingerprint.TextArea */);
+        PartFingerprints.write(this.textArea, 7 /* PartFingerprint.TextArea */);
         this.textArea.setClassName(`inputarea ${MOUSE_CURSOR_TEXT_CSS_CLASS_NAME}`);
         this.textArea.setAttribute('wrap', this._textAreaWrapping && !this._visibleTextArea ? 'on' : 'off');
         const { tabSize } = this._context.viewModel.model.getOptions();
@@ -230,7 +232,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
             }
         };
         const textAreaWrapper = this._register(new TextAreaWrapper(this.textArea.domNode));
-        this._textAreaInput = this._register(new TextAreaInput(textAreaInputHost, textAreaWrapper, platform.OS, {
+        this._textAreaInput = this._register(this._instantiationService.createInstance(TextAreaInput, textAreaInputHost, textAreaWrapper, platform.OS, {
             isAndroid: browser.isAndroid,
             isChrome: browser.isChrome,
             isFirefox: browser.isFirefox,
@@ -362,7 +364,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         }));
     }
     writeScreenReaderContent(reason) {
-        this._textAreaInput.writeScreenReaderContent(reason);
+        this._textAreaInput.writeNativeTextAreaContent(reason);
     }
     dispose() {
         super.dispose();
@@ -505,7 +507,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
             this._ensureReadOnlyAttribute();
         }
         if (e.hasChanged(2 /* EditorOption.accessibilitySupport */)) {
-            this._textAreaInput.writeScreenReaderContent('strategy changed');
+            this._textAreaInput.writeNativeTextAreaContent('strategy changed');
         }
         return true;
     }
@@ -514,7 +516,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         this._modelSelections = e.modelSelections.slice(0);
         // We must update the <textarea> synchronously, otherwise long press IME on macos breaks.
         // See https://github.com/microsoft/vscode/issues/165821
-        this._textAreaInput.writeScreenReaderContent('selection changed');
+        this._textAreaInput.writeNativeTextAreaContent('selection changed');
         return true;
     }
     onDecorationsChanged(e) {
@@ -587,7 +589,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         (_a = this._visibleTextArea) === null || _a === void 0 ? void 0 : _a.prepareRender(ctx);
     }
     render(ctx) {
-        this._textAreaInput.writeScreenReaderContent('render');
+        this._textAreaInput.writeNativeTextAreaContent('render');
         this._render();
     }
     _render() {
@@ -667,7 +669,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
             return;
         }
         // The primary cursor is in the viewport (at least vertically) => place textarea on the cursor
-        if (platform.isMacintosh) {
+        if (platform.isMacintosh || this._accessibilitySupport === 2 /* AccessibilitySupport.Enabled */) {
             // For the popup emoji input, we will make the text area as high as the line height
             // We will also make the fontSize and lineHeight the correct dimensions to help with the placement of these pickers
             this._doRender({
@@ -753,25 +755,26 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
     }
 };
 TextAreaHandler = __decorate([
-    __param(3, IKeybindingService)
+    __param(3, IKeybindingService),
+    __param(4, IInstantiationService)
 ], TextAreaHandler);
 export { TextAreaHandler };
-function measureText(document, text, fontInfo, tabSize) {
+function measureText(targetDocument, text, fontInfo, tabSize) {
     if (text.length === 0) {
         return 0;
     }
-    const container = document.createElement('div');
+    const container = targetDocument.createElement('div');
     container.style.position = 'absolute';
     container.style.top = '-50000px';
     container.style.width = '50000px';
-    const regularDomNode = document.createElement('span');
+    const regularDomNode = targetDocument.createElement('span');
     applyFontInfo(regularDomNode, fontInfo);
     regularDomNode.style.whiteSpace = 'pre'; // just like the textarea
     regularDomNode.style.tabSize = `${tabSize * fontInfo.spaceWidth}px`; // just like the textarea
     regularDomNode.append(text);
     container.appendChild(regularDomNode);
-    document.body.appendChild(container);
+    targetDocument.body.appendChild(container);
     const res = regularDomNode.offsetWidth;
-    document.body.removeChild(container);
+    targetDocument.body.removeChild(container);
     return res;
 }

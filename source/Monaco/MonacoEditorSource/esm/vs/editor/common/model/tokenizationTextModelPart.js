@@ -17,6 +17,7 @@ import { DefaultBackgroundTokenizer, TokenizerWithStateStoreAndTextModel, Tracki
 import { ContiguousMultilineTokensBuilder } from '../tokens/contiguousMultilineTokensBuilder.js';
 import { ContiguousTokensStore } from '../tokens/contiguousTokensStore.js';
 import { SparseTokensStore } from '../tokens/sparseTokensStore.js';
+/* hot-reload:patch-prototype-methods */
 export class TokenizationTextModelPart extends TextModelPart {
     constructor(_languageService, _languageConfigurationService, _textModel, _bracketPairsTextModelPart, _languageId, _attachedViews) {
         super();
@@ -342,7 +343,7 @@ class GrammarTokens extends Disposable {
             if (tokenizationSupport && tokenizationSupport.createBackgroundTokenizer && !tokenizationSupport.backgroundTokenizerShouldOnlyVerifyTokens) {
                 this._backgroundTokenizer.value = tokenizationSupport.createBackgroundTokenizer(this._textModel, b);
             }
-            if (!this._backgroundTokenizer.value) {
+            if (!this._backgroundTokenizer.value && !this._textModel.isTooLargeForTokenization()) {
                 this._backgroundTokenizer.value = this._defaultBackgroundTokenizer =
                     new DefaultBackgroundTokenizer(this._tokenizer, b);
                 this._defaultBackgroundTokenizer.handleChanges();

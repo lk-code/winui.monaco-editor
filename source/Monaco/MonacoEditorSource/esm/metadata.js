@@ -55,6 +55,10 @@ exports.features = [
     "entry": "vs/editor/browser/widget/diffEditor/diffEditor.contribution"
   },
   {
+    "label": "diffEditorBreadcrumbs",
+    "entry": "vs/editor/contrib/diffEditorBreadcrumbs/browser/contribution"
+  },
+  {
     "label": "dnd",
     "entry": "vs/editor/contrib/dnd/browser/dnd"
   },

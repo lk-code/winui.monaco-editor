@@ -77,7 +77,7 @@ export class ViewLines extends ViewPart {
         this._cursorSurroundingLinesStyle = options.get(30 /* EditorOption.cursorSurroundingLinesStyle */);
         this._canUseLayerHinting = !options.get(32 /* EditorOption.disableLayerHinting */);
         this._viewLineOptions = new ViewLineOptions(conf, this._context.theme.type);
-        PartFingerprints.write(this.domNode, 7 /* PartFingerprint.ViewLines */);
+        PartFingerprints.write(this.domNode, 8 /* PartFingerprint.ViewLines */);
         this.domNode.setClassName(`view-lines ${MOUSE_CURSOR_TEXT_CSS_CLASS_NAME}`);
         applyFontInfo(this.domNode, fontInfo);
         // --- width & height

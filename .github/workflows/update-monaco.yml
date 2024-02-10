@@ -35,8 +35,6 @@ jobs:
       - name: Create new Branch
         run: |
           version=$(jq -r '.version' node_modules/monaco-editor/package.json)
-          secondDigit=$(echo "$version" | cut -d '.' -f 2)
-          sed -i "s/VERSION: 1\.1\.[0-9]*\\.\${{ github.run_number }}/VERSION: 1.$secondDigit.\${{ github.run_number }}/g" .github/workflows/dotnet.yml
           newBranchName="MONACO-UPDATE-$version"
           git commit -m "Update Monaco NPM Package to version $version"
           git push origin $newBranchName

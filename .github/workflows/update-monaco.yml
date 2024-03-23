@@ -27,7 +27,7 @@ jobs:
 
       - name: Copy Monaco Files to WinUI-Editor
         run: |
-         cp -r node_modules/monaco-editor/ source/Monaco/MonacoEditorSource
+         cp -r node_modules/monaco-editor/ source/Monaco
 
       - name: Read package.json and get version
         id: get-version

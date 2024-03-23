@@ -11,17 +11,20 @@ import { EventMultiplexer } from '../../../common/event.js';
 import { Disposable, DisposableStore } from '../../../common/lifecycle.js';
 import './toolbar.css';
 import * as nls from '../../../../nls.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
 /**
  * A widget that combines an action bar for primary actions and a dropdown for secondary actions.
  */
 export class ToolBar extends Disposable {
     constructor(container, contextMenuProvider, options = { orientation: 0 /* ActionsOrientation.HORIZONTAL */ }) {
+        var _a;
         super();
         this.submenuActionViewItems = [];
         this.hasSecondaryActions = false;
         this._onDidChangeDropdownVisibility = this._register(new EventMultiplexer());
         this.onDidChangeDropdownVisibility = this._onDidChangeDropdownVisibility.event;
         this.disposables = this._register(new DisposableStore());
+        options.hoverDelegate = (_a = options.hoverDelegate) !== null && _a !== void 0 ? _a : this._register(getDefaultHoverDelegate('element', true));
         this.options = options;
         this.lookupKeybindings = typeof this.options.getKeyBinding === 'function';
         this.toggleMenuAction = this._register(new ToggleMenuAction(() => { var _a; return (_a = this.toggleMenuActionViewItem) === null || _a === void 0 ? void 0 : _a.show(); }, options.toggleMenuTitle));
@@ -34,6 +37,7 @@ export class ToolBar extends Disposable {
             actionRunner: options.actionRunner,
             allowContextMenu: options.allowContextMenu,
             highlightToggledItems: options.highlightToggledItems,
+            hoverDelegate: options.hoverDelegate,
             actionViewItemProvider: (action, viewItemOptions) => {
                 var _a;
                 if (action.id === ToggleMenuAction.ID) {
@@ -45,7 +49,8 @@ export class ToolBar extends Disposable {
                         anchorAlignmentProvider: this.options.anchorAlignmentProvider,
                         menuAsChild: !!this.options.renderDropdownAsChildElement,
                         skipTelemetry: this.options.skipTelemetry,
-                        isMenu: true
+                        isMenu: true,
+                        hoverDelegate: this.options.hoverDelegate
                     });
                     this.toggleMenuActionViewItem.setActionContext(this.actionBar.context);
                     this.disposables.add(this._onDidChangeDropdownVisibility.add(this.toggleMenuActionViewItem.onDidChangeVisibility));
@@ -65,7 +70,8 @@ export class ToolBar extends Disposable {
                         classNames: action.class,
                         anchorAlignmentProvider: this.options.anchorAlignmentProvider,
                         menuAsChild: !!this.options.renderDropdownAsChildElement,
-                        skipTelemetry: this.options.skipTelemetry
+                        skipTelemetry: this.options.skipTelemetry,
+                        hoverDelegate: this.options.hoverDelegate
                     });
                     result.setActionContext(this.actionBar.context);
                     this.submenuActionViewItems.push(result);

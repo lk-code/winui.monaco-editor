@@ -7,7 +7,7 @@ import { Range } from '../../../common/core/range.js';
 import { BracketSelectionRangeProvider } from '../../smartSelect/browser/bracketSelections.js';
 export class WordDistance {
     static async create(service, editor) {
-        if (!editor.getOption(117 /* EditorOption.suggest */).localityBonus) {
+        if (!editor.getOption(118 /* EditorOption.suggest */).localityBonus) {
             return WordDistance.None;
         }
         if (!editor.hasModel()) {

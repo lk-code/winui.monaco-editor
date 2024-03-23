@@ -1074,13 +1074,17 @@ export class EventMultiplexer {
         e.listener = e.event(r => this.emitter.fire(r));
     }
     unhook(e) {
-        if (e.listener) {
-            e.listener.dispose();
-        }
+        var _a;
+        (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
         e.listener = null;
     }
     dispose() {
+        var _a;
         this.emitter.dispose();
+        for (const e of this.events) {
+            (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
+        this.events = [];
     }
 }
 /**

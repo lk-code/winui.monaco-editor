@@ -148,8 +148,6 @@ export class MovedBlocksLinesFeature extends Disposable {
                 store.add(new MovedBlockOverlayWidget(this._editors.modified, b.modified, b.move, 'modified', this._diffModel.get()));
             }
         }));
-        const originalCursorPosition = observableFromEvent(this._editors.original.onDidChangeCursorPosition, () => this._editors.original.getPosition());
-        const modifiedCursorPosition = observableFromEvent(this._editors.modified.onDidChangeCursorPosition, () => this._editors.modified.getPosition());
         const originalHasFocus = observableSignalFromEvent('original.onDidFocusEditorWidget', e => this._editors.original.onDidFocusEditorWidget(() => setTimeout(() => e(undefined), 0)));
         const modifiedHasFocus = observableSignalFromEvent('modified.onDidFocusEditorWidget', e => this._editors.modified.onDidFocusEditorWidget(() => setTimeout(() => e(undefined), 0)));
         let lastChangedEditor = 'modified';
@@ -175,13 +173,13 @@ export class MovedBlocksLinesFeature extends Disposable {
             const diff = m.diff.read(reader);
             let movedText = undefined;
             if (diff && lastChangedEditor === 'original') {
-                const originalPos = originalCursorPosition.read(reader);
+                const originalPos = this._editors.originalCursor.read(reader);
                 if (originalPos) {
                     movedText = diff.movedTexts.find(m => m.lineRangeMapping.original.contains(originalPos.lineNumber));
                 }
             }
             if (diff && lastChangedEditor === 'modified') {
-                const modifiedPos = modifiedCursorPosition.read(reader);
+                const modifiedPos = this._editors.modifiedCursor.read(reader);
                 if (modifiedPos) {
                     movedText = diff.movedTexts.find(m => m.lineRangeMapping.modified.contains(modifiedPos.lineNumber));
                 }

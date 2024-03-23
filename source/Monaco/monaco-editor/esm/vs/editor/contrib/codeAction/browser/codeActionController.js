@@ -229,7 +229,10 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
                     const diagnostics = action.action.diagnostics;
                     currentDecorations.clear();
                     if (ranges && ranges.length > 0) {
-                        const decorations = ranges.map(range => ({ range, options: CodeActionController_1.DECORATION }));
+                        // Handles case for `fix all` where there are multiple diagnostics.
+                        const decorations = (diagnostics && (diagnostics === null || diagnostics === void 0 ? void 0 : diagnostics.length) > 1)
+                            ? diagnostics.map(diagnostic => ({ range: diagnostic, options: CodeActionController_1.DECORATION }))
+                            : ranges.map(range => ({ range, options: CodeActionController_1.DECORATION }));
                         currentDecorations.set(decorations);
                     }
                     else if (diagnostics && diagnostics.length > 0) {

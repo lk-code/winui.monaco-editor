@@ -22,7 +22,7 @@ import { ExtensionIdentifierSet } from '../../../../platform/extensions/common/e
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
-import { AudioCue, IAudioCueService } from '../../../../platform/audioCues/browser/audioCueService.js';
+import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 export function getRealAndSyntheticDocumentFormattersOrdered(documentFormattingEditProvider, documentRangeFormattingEditProvider, model) {
     const result = [];
     const seen = new ExtensionIdentifierSet();
@@ -85,7 +85,7 @@ export async function formatDocumentRangesWithProvider(accessor, provider, edito
     var _a, _b;
     const workerService = accessor.get(IEditorWorkerService);
     const logService = accessor.get(ILogService);
-    const audioCueService = accessor.get(IAudioCueService);
+    const accessibilitySignalService = accessor.get(IAccessibilitySignalService);
     let model;
     let cts;
     if (isCodeEditor(editorOrModel)) {
@@ -211,7 +211,7 @@ export async function formatDocumentRangesWithProvider(accessor, provider, edito
             return null;
         });
     }
-    audioCueService.playAudioCue(AudioCue.format, { userGesture });
+    accessibilitySignalService.playSignal(AccessibilitySignal.format, { userGesture });
     return true;
 }
 export async function formatDocumentWithSelectedProvider(accessor, editorOrModel, mode, progress, token, userGesture) {
@@ -227,7 +227,7 @@ export async function formatDocumentWithSelectedProvider(accessor, editorOrModel
 }
 export async function formatDocumentWithProvider(accessor, provider, editorOrModel, mode, token, userGesture) {
     const workerService = accessor.get(IEditorWorkerService);
-    const audioCueService = accessor.get(IAudioCueService);
+    const accessibilitySignalService = accessor.get(IAccessibilitySignalService);
     let model;
     let cts;
     if (isCodeEditor(editorOrModel)) {
@@ -278,7 +278,7 @@ export async function formatDocumentWithProvider(accessor, provider, editorOrMod
             return null;
         });
     }
-    audioCueService.playAudioCue(AudioCue.format, { userGesture });
+    accessibilitySignalService.playSignal(AccessibilitySignal.format, { userGesture });
     return true;
 }
 export async function getDocumentRangeFormattingEditsUntilResult(workerService, languageFeaturesService, model, range, options, token) {

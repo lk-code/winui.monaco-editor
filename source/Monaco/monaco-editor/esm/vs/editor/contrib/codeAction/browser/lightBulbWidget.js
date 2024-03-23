@@ -67,7 +67,7 @@ let LightBulbWidget = LightBulbWidget_1 = class LightBulbWidget extends Disposab
             // a bit of extra work to make sure the menu
             // doesn't cover the line-text
             const { top, height } = dom.getDomNodePagePosition(this._domNode);
-            const lineHeight = this._editor.getOption(66 /* EditorOption.lineHeight */);
+            const lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
             let pad = Math.floor(lineHeight / 3);
             if (this.state.widgetPosition.position !== null && this.state.widgetPosition.position.lineNumber < this.state.editorPosition.lineNumber) {
                 pad += lineHeight;
@@ -112,7 +112,7 @@ let LightBulbWidget = LightBulbWidget_1 = class LightBulbWidget extends Disposab
             return this.hide();
         }
         const options = this._editor.getOptions();
-        if (!options.get(64 /* EditorOption.lightbulb */).enabled) {
+        if (!options.get(65 /* EditorOption.lightbulb */).enabled) {
             return this.hide();
         }
         const model = this._editor.getModel();

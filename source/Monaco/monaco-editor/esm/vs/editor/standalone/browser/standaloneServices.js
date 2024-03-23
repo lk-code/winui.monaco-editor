@@ -91,7 +91,7 @@ import { IOpenerService } from '../../../platform/opener/common/opener.js';
 import { IQuickInputService } from '../../../platform/quickinput/common/quickInput.js';
 import { IStorageService, InMemoryStorageService } from '../../../platform/storage/common/storage.js';
 import { DefaultConfiguration } from '../../../platform/configuration/common/configurations.js';
-import { IAudioCueService } from '../../../platform/audioCues/browser/audioCueService.js';
+import { IAccessibilitySignalService } from '../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { LogService } from '../../../platform/log/common/logService.js';
 import { getEditorFeatures } from '../../common/editorFeatures.js';
 import { onUnexpectedError } from '../../../base/common/errors.js';
@@ -637,8 +637,8 @@ StandaloneContextMenuService = __decorate([
     __param(4, IMenuService),
     __param(5, IContextKeyService)
 ], StandaloneContextMenuService);
-class StandaloneAudioService {
-    async playAudioCue(cue, options) {
+class StandaloneAccessbilitySignalService {
+    async playSignal(cue, options) {
     }
 }
 registerSingleton(IConfigurationService, StandaloneConfigurationService, 0 /* InstantiationType.Eager */);
@@ -674,7 +674,7 @@ registerSingleton(IOpenerService, OpenerService, 0 /* InstantiationType.Eager */
 registerSingleton(IClipboardService, BrowserClipboardService, 0 /* InstantiationType.Eager */);
 registerSingleton(IContextMenuService, StandaloneContextMenuService, 0 /* InstantiationType.Eager */);
 registerSingleton(IMenuService, MenuService, 0 /* InstantiationType.Eager */);
-registerSingleton(IAudioCueService, StandaloneAudioService, 0 /* InstantiationType.Eager */);
+registerSingleton(IAccessibilitySignalService, StandaloneAccessbilitySignalService, 0 /* InstantiationType.Eager */);
 /**
  * We don't want to eagerly instantiate services because embedders get a one time chance
  * to override services when they create the first editor.

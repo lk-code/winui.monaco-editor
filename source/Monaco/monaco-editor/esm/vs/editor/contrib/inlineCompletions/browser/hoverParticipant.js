@@ -117,7 +117,7 @@ let InlineCompletionsHoverParticipant = class InlineCompletionsHoverParticipant 
         disposableStore.add(autorun(reader => {
             var _a;
             /** @description update hover */
-            const ghostText = (_a = part.controller.model.read(reader)) === null || _a === void 0 ? void 0 : _a.ghostText.read(reader);
+            const ghostText = (_a = part.controller.model.read(reader)) === null || _a === void 0 ? void 0 : _a.primaryGhostText.read(reader);
             if (ghostText) {
                 const lineText = this._editor.getModel().getLineContent(ghostText.lineNumber);
                 render(ghostText.renderForScreenReader(lineText));

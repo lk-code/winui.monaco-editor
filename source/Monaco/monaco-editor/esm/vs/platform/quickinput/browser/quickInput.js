@@ -2,6 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 import * as dom from '../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
 import { Toggle } from '../../../base/browser/ui/toggle/toggle.js';
@@ -18,6 +27,8 @@ import { localize } from '../../../nls.js';
 import { ItemActivation, NO_KEY_MODS, QuickInputHideReason } from '../common/quickInput.js';
 import { QuickInputListFocus } from './quickInputList.js';
 import { quickInputButtonToAction, renderQuickInputDescription } from './quickInputUtils.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { IHoverService, WorkbenchHoverDelegate } from '../../hover/browser/hover.js';
 export const backButton = {
     iconClass: ThemeIcon.asClassName(Codicon.quickInputBack),
     tooltip: localize('quickInput.back', "Back"),
@@ -907,29 +918,19 @@ export class InputBox extends QuickInput {
         }
     }
 }
-export class QuickInputHoverDelegate {
-    get delay() {
-        if (Date.now() - this.lastHoverHideTime < 200) {
-            return 0; // show instantly when a hover was recently shown
-        }
-        return this.configurationService.getValue('workbench.hover.delay');
-    }
+let QuickInputHoverDelegate = class QuickInputHoverDelegate extends WorkbenchHoverDelegate {
     constructor(configurationService, hoverService) {
-        this.configurationService = configurationService;
-        this.hoverService = hoverService;
-        this.lastHoverHideTime = 0;
-        this.placement = 'element';
+        super('element', false, (options) => this.getOverrideOptions(options), configurationService, hoverService);
     }
-    showHover(options, focus) {
+    getOverrideOptions(options) {
         var _a;
         // Only show the hover hint if the content is of a decent size
         const showHoverHint = (options.content instanceof HTMLElement
             ? (_a = options.content.textContent) !== null && _a !== void 0 ? _a : ''
             : typeof options.content === 'string'
                 ? options.content
-                : options.content.value).length > 20;
-        return this.hoverService.showHover({
-            ...options,
+                : options.content.value).includes('\n');
+        return {
             persistence: {
                 hideOnKeyDown: false,
             },
@@ -937,9 +938,11 @@ export class QuickInputHoverDelegate {
                 showHoverHint,
                 skipFadeInAnimation: true,
             },
-        }, focus);
+        };
     }
-    onDidHideHover() {
-        this.lastHoverHideTime = Date.now();
-    }
-}
+};
+QuickInputHoverDelegate = __decorate([
+    __param(0, IConfigurationService),
+    __param(1, IHoverService)
+], QuickInputHoverDelegate);
+export { QuickInputHoverDelegate };

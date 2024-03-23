@@ -31,6 +31,8 @@ import { INotificationService } from '../../../../../platform/notification/commo
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { OneReference } from '../referencesModel.js';
 import { LayoutData, ReferenceWidget } from './referencesWidget.js';
+import { EditorContextKeys } from '../../../../common/editorContextKeys.js';
+import { InputFocusedContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 export const ctxReferenceSearchVisible = new RawContextKey('referenceSearchVisible', false, nls.localize('referenceSearchVisible', "Whether reference peek is visible, like 'Peek References' or 'Peek Definition'"));
 let ReferencesController = ReferencesController_1 = class ReferencesController {
     static get(editor) {
@@ -142,7 +144,7 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
                     const selection = this._model.nearestReference(uri, pos);
                     if (selection) {
                         return this._widget.setSelection(selection).then(() => {
-                            if (this._widget && this._editor.getOption(86 /* EditorOption.peekWidgetDefaultFocus */) === 'editor') {
+                            if (this._widget && this._editor.getOption(87 /* EditorOption.peekWidgetDefaultFocus */) === 'editor') {
                                 this._widget.focusOnPreviewEditor();
                             }
                         });
@@ -331,7 +333,7 @@ KeybindingsRegistry.registerKeybindingRule({
     weight: 200 /* KeybindingWeight.WorkbenchContrib */ + 50,
     primary: 9 /* KeyCode.Escape */,
     secondary: [1024 /* KeyMod.Shift */ | 9 /* KeyCode.Escape */],
-    when: ContextKeyExpr.and(ctxReferenceSearchVisible, ContextKeyExpr.not('config.editor.stablePeek'))
+    when: ContextKeyExpr.and(ctxReferenceSearchVisible, ContextKeyExpr.not('config.editor.stablePeek'), ContextKeyExpr.or(EditorContextKeys.editorTextFocus, InputFocusedContext.negate()))
 });
 KeybindingsRegistry.registerCommandAndKeybindingRule({
     id: 'revealReference',

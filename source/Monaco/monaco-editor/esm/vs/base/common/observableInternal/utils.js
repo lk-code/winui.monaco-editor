@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { DisposableStore, toDisposable } from '../lifecycle.js';
-import { autorun } from './autorun.js';
-import { BaseObservable, ConvenientObservable, _setKeepObserved, _setRecomputeInitiallyAndOnChange, getDebugName, getFunctionName, subtransaction, transaction } from './base.js';
+import { BaseObservable, ConvenientObservable, _setKeepObserved, _setRecomputeInitiallyAndOnChange, subtransaction, transaction } from './base.js';
+import { DebugNameData, getFunctionName } from './debugName.js';
 import { derived, derivedOpts } from './derived.js';
 import { getLogger } from './logging.js';
 /**
@@ -33,30 +33,6 @@ class ConstObservable extends ConvenientObservable {
     toString() {
         return `Const: ${this.value}`;
     }
-}
-export function waitForState(observable, predicate) {
-    return new Promise(resolve => {
-        let didRun = false;
-        let shouldDispose = false;
-        const stateObs = observable.map(state => ({ isFinished: predicate(state), state }));
-        const d = autorun(reader => {
-            /** @description waitForState */
-            const { isFinished, state } = stateObs.read(reader);
-            if (isFinished) {
-                if (!didRun) {
-                    shouldDispose = true;
-                }
-                else {
-                    d.dispose();
-                }
-                resolve(state);
-            }
-        });
-        didRun = true;
-        if (shouldDispose) {
-            d.dispose();
-        }
-    });
 }
 export function observableFromEvent(event, getValue) {
     return new FromEventObservable(event, getValue);
@@ -183,7 +159,7 @@ export function observableSignal(debugNameOrOwner) {
 class ObservableSignal extends BaseObservable {
     get debugName() {
         var _a;
-        return (_a = getDebugName(this, this._debugName, undefined, this._owner)) !== null && _a !== void 0 ? _a : 'Observable Signal';
+        return (_a = new DebugNameData(this._owner, this._debugName, undefined).getDebugName(this)) !== null && _a !== void 0 ? _a : 'Observable Signal';
     }
     constructor(_debugName, _owner) {
         super();
@@ -234,7 +210,7 @@ export function recomputeInitiallyAndOnChange(observable, handleValue) {
     });
 }
 _setRecomputeInitiallyAndOnChange(recomputeInitiallyAndOnChange);
-class KeepAliveObserver {
+export class KeepAliveObserver {
     constructor(_forceRecompute, _handleValue) {
         this._forceRecompute = _forceRecompute;
         this._handleValue = _handleValue;
@@ -275,7 +251,7 @@ export function derivedObservableWithCache(computeFn) {
 export function mapObservableArrayCached(owner, items, map, keySelector) {
     let m = new ArrayMap(map, keySelector);
     const self = derivedOpts({
-        debugName: () => getDebugName(m, undefined, map, owner),
+        debugReferenceFn: map,
         owner,
         onLastObserverRemoved: () => {
             m.dispose();

@@ -22,9 +22,11 @@ import { MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolb
 import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ActionRunnerWithContext } from './utils.js';
+import { createActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 export class TemplateData {
-    constructor(viewModel) {
+    constructor(viewModel, deltaScrollVertical) {
         this.viewModel = viewModel;
+        this.deltaScrollVertical = deltaScrollVertical;
     }
     getId() {
         return this.viewModel;
@@ -60,13 +62,15 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         });
         this._elements = h('div.multiDiffEntry', [
             h('div.header@header', [
-                h('div.collapse-button@collapseButton'),
-                h('div.file-path', [
-                    h('div.title.modified.show-file-icons@primaryPath', []),
-                    h('div.status.deleted@status', ['R']),
-                    h('div.title.original.show-file-icons@secondaryPath', []),
+                h('div.header-content', [
+                    h('div.collapse-button@collapseButton'),
+                    h('div.file-path', [
+                        h('div.title.modified.show-file-icons@primaryPath', []),
+                        h('div.status.deleted@status', ['R']),
+                        h('div.title.original.show-file-icons@secondaryPath', []),
+                    ]),
+                    h('div.actions@actions'),
                 ]),
-                h('div.actions@actions'),
             ]),
             h('div.editorParent', [
                 h('div.editorContainer@editor'),
@@ -85,7 +89,9 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
             ? this._register(this._workbenchUIElementFactory.createResourceLabel(this._elements.secondaryPath))
             : undefined;
         this._dataStore = new DisposableStore();
-        this._headerHeight = 38;
+        this._headerHeight = 48;
+        this._lastScrollTop = -1;
+        this._isSettingScrollTop = false;
         const btn = new Button(this._elements.collapseButton, {});
         this._register(autorun(reader => {
             btn.element.className = '';
@@ -98,14 +104,14 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         this._register(autorun(reader => {
             this._elements.editor.style.display = this._collapsed.read(reader) ? 'none' : 'block';
         }));
-        this.editor.getModifiedEditor().onDidLayoutChange(e => {
+        this._register(this.editor.getModifiedEditor().onDidLayoutChange(e => {
             const width = this.editor.getModifiedEditor().getLayoutInfo().contentWidth;
             this._modifiedWidth.set(width, undefined);
-        });
-        this.editor.getOriginalEditor().onDidLayoutChange(e => {
+        }));
+        this._register(this.editor.getOriginalEditor().onDidLayoutChange(e => {
             const width = this.editor.getOriginalEditor().getLayoutInfo().contentWidth;
             this._originalWidth.set(width, undefined);
-        });
+        }));
         this._register(this.editor.onDidContentSizeChange(e => {
             globalTransaction(tx => {
                 this._editorContentHeight.set(e.contentHeight, tx);
@@ -113,18 +119,29 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
                 this._originalContentWidth.set(this.editor.getOriginalEditor().getContentWidth(), tx);
             });
         }));
+        this._register(this.editor.getOriginalEditor().onDidScrollChange(e => {
+            if (this._isSettingScrollTop) {
+                return;
+            }
+            if (!e.scrollTopChanged || !this._data) {
+                return;
+            }
+            const delta = e.scrollTop - this._lastScrollTop;
+            this._data.deltaScrollVertical(delta);
+        }));
         this._register(autorun(reader => {
             const isFocused = this.isFocused.read(reader);
             this._elements.root.classList.toggle('focused', isFocused);
         }));
         this._container.appendChild(this._elements.root);
-        this._outerEditorHeight = 38;
+        this._outerEditorHeight = this._headerHeight;
         this._register(this._instantiationService.createInstance(MenuWorkbenchToolBar, this._elements.actions, MenuId.MultiDiffEditorFileToolbar, {
             actionRunner: this._register(new ActionRunnerWithContext(() => { var _a; return ((_a = this._viewModel.get()) === null || _a === void 0 ? void 0 : _a.modifiedUri); })),
             menuOptions: {
                 shouldForwardArgs: true,
             },
             toolbarOptions: { primaryGroup: g => g.startsWith('navigation') },
+            actionViewItemProvider: (action, options) => createActionViewItem(_instantiationService, action, options),
         }));
     }
     setScrollLeft(left) {
@@ -136,6 +153,7 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         }
     }
     setData(data) {
+        this._data = data;
         function updateOptions(options) {
             return {
                 ...options,
@@ -198,16 +216,25 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         this._elements.root.style.width = `${width}px`;
         this._elements.root.style.position = 'absolute';
         // For sticky scroll
-        const delta = Math.max(0, Math.min(verticalRange.length - this._headerHeight, viewPort.start - verticalRange.start));
+        const maxDelta = verticalRange.length - this._headerHeight;
+        const delta = Math.max(0, Math.min(viewPort.start - verticalRange.start, maxDelta));
         this._elements.header.style.transform = `translateY(${delta}px)`;
         globalTransaction(tx => {
             this.editor.layout({
-                width: width,
+                width: width - 2 * 8 - 2 * 1,
                 height: verticalRange.length - this._outerEditorHeight,
             });
         });
-        this.editor.getOriginalEditor().setScrollTop(editorScroll);
+        try {
+            this._isSettingScrollTop = true;
+            this._lastScrollTop = editorScroll;
+            this.editor.getOriginalEditor().setScrollTop(editorScroll);
+        }
+        finally {
+            this._isSettingScrollTop = false;
+        }
         this._elements.header.classList.toggle('shadow', delta > 0 || editorScroll > 0);
+        this._elements.header.classList.toggle('collapsed', delta === maxDelta);
     }
     hide() {
         this._elements.root.style.top = `-100000px`;

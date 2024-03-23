@@ -163,14 +163,14 @@ function renderHoverParts(participant, editor, themeService, hoverParts, context
         return Disposable.None;
     }
     if (context.setMinimumDimensions) {
-        const minimumHeight = editor.getOption(66 /* EditorOption.lineHeight */) + 8;
+        const minimumHeight = editor.getOption(67 /* EditorOption.lineHeight */) + 8;
         context.setMinimumDimensions(new Dimension(302, minimumHeight));
     }
     const disposables = new DisposableStore();
     const colorHover = hoverParts[0];
     const editorModel = editor.getModel();
     const model = colorHover.model;
-    const widget = disposables.add(new ColorPickerWidget(context.fragment, model, editor.getOption(141 /* EditorOption.pixelRatio */), themeService, participant instanceof StandaloneColorPickerParticipant));
+    const widget = disposables.add(new ColorPickerWidget(context.fragment, model, editor.getOption(142 /* EditorOption.pixelRatio */), themeService, participant instanceof StandaloneColorPickerParticipant));
     context.setColorPicker(widget);
     let editorUpdatedByColorPicker = false;
     let range = new Range(colorHover.range.startLineNumber, colorHover.range.startColumn, colorHover.range.endLineNumber, colorHover.range.endColumn);

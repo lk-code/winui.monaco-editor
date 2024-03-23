@@ -21,13 +21,13 @@ import { Scrollable } from '../../../../base/common/scrollable.js';
 import './style.css';
 import { ObservableElementSizeObserver } from '../diffEditor/utils.js';
 import { OffsetRange } from '../../../common/core/offsetRange.js';
+import { Selection } from '../../../common/core/selection.js';
+import { EditorContextKeys } from '../../../common/editorContextKeys.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { DiffEditorItemTemplate, TemplateData } from './diffEditorItemTemplate.js';
 import { ObjectPool } from './objectPool.js';
-import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
-import { EditorContextKeys } from '../../../common/editorContextKeys.js';
-import { Selection } from '../../../common/core/selection.js';
 let MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl extends Disposable {
     constructor(_element, _dimension, _viewModel, _workbenchUIElementFactory, _parentContextKeyService, _parentInstantiationService) {
         super();
@@ -71,7 +71,9 @@ let MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl extends Disposab
             const items = vm.items.read(reader);
             return items.map(d => {
                 var _a;
-                const item = store.add(new VirtualizedViewItem(d, this._objectPool, this.scrollLeft));
+                const item = store.add(new VirtualizedViewItem(d, this._objectPool, this.scrollLeft, delta => {
+                    this._scrollableElement.setScrollPosition({ scrollTop: this._scrollableElement.getScrollPosition().scrollTop + delta });
+                }));
                 const data = (_a = this._lastDocStates) === null || _a === void 0 ? void 0 : _a[item.getKey()];
                 if (data) {
                     transaction(tx => {
@@ -81,7 +83,7 @@ let MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl extends Disposab
                 return item;
             });
         });
-        this._spaceBetweenPx = 10;
+        this._spaceBetweenPx = 0;
         this._totalHeight = this._viewItems.map(this, (items, reader) => items.reduce((r, i) => r + i.contentHeight.read(reader) + this._spaceBetweenPx, 0));
         this.activeDiffItem = derived(this, reader => this._viewItems.read(reader).find(i => { var _a; return (_a = i.template.read(reader)) === null || _a === void 0 ? void 0 : _a.isFocused.read(reader); }));
         this.lastActiveDiffItem = derivedObservableWithCache((reader, lastValue) => { var _a; return (_a = this.activeDiffItem.read(reader)) !== null && _a !== void 0 ? _a : lastValue; });
@@ -191,11 +193,12 @@ MultiDiffEditorWidgetImpl = __decorate([
 ], MultiDiffEditorWidgetImpl);
 export { MultiDiffEditorWidgetImpl };
 class VirtualizedViewItem extends Disposable {
-    constructor(viewModel, _objectPool, _scrollLeft) {
+    constructor(viewModel, _objectPool, _scrollLeft, _deltaScrollVertical) {
         super();
         this.viewModel = viewModel;
         this._objectPool = _objectPool;
         this._scrollLeft = _scrollLeft;
+        this._deltaScrollVertical = _deltaScrollVertical;
         this._templateRef = this._register(disposableObservableValue(this, undefined));
         this.contentHeight = derived(this, reader => { var _a, _b, _c; return (_c = (_b = (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object.contentHeight) === null || _b === void 0 ? void 0 : _b.read(reader)) !== null && _c !== void 0 ? _c : this.viewModel.lastTemplateData.read(reader).contentHeight; });
         this.maxScroll = derived(this, reader => { var _a, _b; return (_b = (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object.maxScroll.read(reader)) !== null && _b !== void 0 ? _b : { maxScroll: 0, scrollWidth: 0 }; });
@@ -279,7 +282,7 @@ class VirtualizedViewItem extends Disposable {
         this._isHidden.set(false, undefined);
         let ref = this._templateRef.get();
         if (!ref) {
-            ref = this._objectPool.getUnusedObj(new TemplateData(this.viewModel));
+            ref = this._objectPool.getUnusedObj(new TemplateData(this.viewModel, this._deltaScrollVertical));
             this._templateRef.set(ref, undefined);
             const selections = this.viewModel.lastTemplateData.get().selections;
             if (selections) {

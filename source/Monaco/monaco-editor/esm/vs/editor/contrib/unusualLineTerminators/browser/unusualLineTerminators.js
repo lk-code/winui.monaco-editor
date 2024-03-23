@@ -31,10 +31,10 @@ let UnusualLineTerminatorsDetector = class UnusualLineTerminatorsDetector extend
         this._dialogService = _dialogService;
         this._codeEditorService = _codeEditorService;
         this._isPresentingDialog = false;
-        this._config = this._editor.getOption(125 /* EditorOption.unusualLineTerminators */);
+        this._config = this._editor.getOption(126 /* EditorOption.unusualLineTerminators */);
         this._register(this._editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(125 /* EditorOption.unusualLineTerminators */)) {
-                this._config = this._editor.getOption(125 /* EditorOption.unusualLineTerminators */);
+            if (e.hasChanged(126 /* EditorOption.unusualLineTerminators */)) {
+                this._config = this._editor.getOption(126 /* EditorOption.unusualLineTerminators */);
                 this._checkForUnusualLineTerminators();
             }
         }));
@@ -66,7 +66,7 @@ let UnusualLineTerminatorsDetector = class UnusualLineTerminatorsDetector extend
             // this model should be ignored
             return;
         }
-        if (this._editor.getOption(90 /* EditorOption.readOnly */)) {
+        if (this._editor.getOption(91 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return;
         }

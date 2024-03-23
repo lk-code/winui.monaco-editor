@@ -83,9 +83,9 @@ export class CodeEditorContributions extends Disposable {
     }
     onAfterModelAttached() {
         var _a;
-        this._register(runWhenWindowIdle(getWindow((_a = this._editor) === null || _a === void 0 ? void 0 : _a.getDomNode()), () => {
+        return runWhenWindowIdle(getWindow((_a = this._editor) === null || _a === void 0 ? void 0 : _a.getDomNode()), () => {
             this._instantiateSome(1 /* EditorContributionInstantiation.AfterFirstRender */);
-        }, 50));
+        }, 50);
     }
     _instantiateSome(instantiation) {
         if (this._finishedInstantiation[instantiation]) {

@@ -149,7 +149,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
         const details = this._disposables.add(instantiationService.createInstance(SuggestDetailsWidget, this.editor));
         details.onDidClose(this.toggleDetails, this, this._disposables);
         this._details = new SuggestDetailsOverlay(details, this.editor);
-        const applyIconStyle = () => this.element.domNode.classList.toggle('no-icons', !this.editor.getOption(117 /* EditorOption.suggest */).showIcons);
+        const applyIconStyle = () => this.element.domNode.classList.toggle('no-icons', !this.editor.getOption(118 /* EditorOption.suggest */).showIcons);
         applyIconStyle();
         const renderer = instantiationService.createInstance(ItemRenderer, this.editor);
         this._disposables.add(renderer);
@@ -194,7 +194,7 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
             listInactiveFocusOutline: activeContrastBorder
         }));
         this._status = instantiationService.createInstance(SuggestWidgetStatus, this.element.domNode, suggestWidgetStatusbarMenu);
-        const applyStatusBarStyle = () => this.element.domNode.classList.toggle('with-status-bar', this.editor.getOption(117 /* EditorOption.suggest */).showStatusBar);
+        const applyStatusBarStyle = () => this.element.domNode.classList.toggle('with-status-bar', this.editor.getOption(118 /* EditorOption.suggest */).showStatusBar);
         applyStatusBarStyle();
         this._disposables.add(_themeService.onDidColorThemeChange(t => this._onThemeChange(t)));
         this._onThemeChange(_themeService.getColorTheme());
@@ -204,11 +204,11 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
         this._disposables.add(this._list.onDidChangeFocus(e => this._onListFocus(e)));
         this._disposables.add(this.editor.onDidChangeCursorSelection(() => this._onCursorSelectionChanged()));
         this._disposables.add(this.editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(117 /* EditorOption.suggest */)) {
+            if (e.hasChanged(118 /* EditorOption.suggest */)) {
                 applyStatusBarStyle();
                 applyIconStyle();
             }
-            if (this._completionModel && (e.hasChanged(50 /* EditorOption.fontInfo */) || e.hasChanged(118 /* EditorOption.suggestFontSize */) || e.hasChanged(119 /* EditorOption.suggestLineHeight */))) {
+            if (this._completionModel && (e.hasChanged(50 /* EditorOption.fontInfo */) || e.hasChanged(119 /* EditorOption.suggestFontSize */) || e.hasChanged(120 /* EditorOption.suggestLineHeight */))) {
                 this._list.splice(0, this._list.length, this._completionModel.items);
             }
         }));
@@ -753,8 +753,8 @@ let SuggestWidget = SuggestWidget_1 = class SuggestWidget {
     }
     getLayoutInfo() {
         const fontInfo = this.editor.getOption(50 /* EditorOption.fontInfo */);
-        const itemHeight = clamp(this.editor.getOption(119 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight, 8, 1000);
-        const statusBarHeight = !this.editor.getOption(117 /* EditorOption.suggest */).showStatusBar || this._state === 2 /* State.Empty */ || this._state === 1 /* State.Loading */ ? 0 : itemHeight;
+        const itemHeight = clamp(this.editor.getOption(120 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight, 8, 1000);
+        const statusBarHeight = !this.editor.getOption(118 /* EditorOption.suggest */).showStatusBar || this._state === 2 /* State.Empty */ || this._state === 1 /* State.Loading */ ? 0 : itemHeight;
         const borderWidth = this._details.widget.borderWidth;
         const borderHeight = 2 * borderWidth;
         return {

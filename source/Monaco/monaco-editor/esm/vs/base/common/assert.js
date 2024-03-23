@@ -25,9 +25,12 @@ export function ok(value, message) {
 export function assertNever(value, message = 'Unreachable') {
     throw new Error(message);
 }
+/**
+ * Like assert, but doesn't throw.
+ */
 export function softAssert(condition) {
     if (!condition) {
-        onUnexpectedError(new BugIndicatingError('Assertion Failed'));
+        onUnexpectedError(new BugIndicatingError('Soft Assertion Failed'));
     }
 }
 /**

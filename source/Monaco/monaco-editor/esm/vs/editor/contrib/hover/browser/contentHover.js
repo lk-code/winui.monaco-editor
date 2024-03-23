@@ -400,7 +400,7 @@ let ContentHoverWidget = ContentHoverWidget_1 = class ContentHoverWidget extends
         return (_a = this._hoverFocusedKey.get()) !== null && _a !== void 0 ? _a : false;
     }
     constructor(editor, contextKeyService, _configurationService, _accessibilityService, _keybindingService) {
-        const minimumHeight = editor.getOption(66 /* EditorOption.lineHeight */) + 8;
+        const minimumHeight = editor.getOption(67 /* EditorOption.lineHeight */) + 8;
         const minimumWidth = 150;
         const minimumSize = new dom.Dimension(minimumWidth, minimumHeight);
         super(editor, minimumSize);

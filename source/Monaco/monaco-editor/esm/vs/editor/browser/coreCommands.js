@@ -1659,7 +1659,7 @@ export var CoreEditingCommands;
             activeElement.ownerDocument.execCommand('undo');
         }
         runEditorCommand(accessor, editor, args) {
-            if (!editor.hasModel() || editor.getOption(90 /* EditorOption.readOnly */) === true) {
+            if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */) === true) {
                 return;
             }
             return editor.getModel().undo();
@@ -1673,7 +1673,7 @@ export var CoreEditingCommands;
             activeElement.ownerDocument.execCommand('redo');
         }
         runEditorCommand(accessor, editor, args) {
-            if (!editor.hasModel() || editor.getOption(90 /* EditorOption.readOnly */) === true) {
+            if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */) === true) {
                 return;
             }
             return editor.getModel().redo();

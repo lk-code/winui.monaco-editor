@@ -9,6 +9,7 @@ import { setupCustomHover, setupNativeHover } from './iconLabelHover.js';
 import { Disposable } from '../../../common/lifecycle.js';
 import { equals } from '../../../common/objects.js';
 import { Range } from '../../../common/range.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
 class FastLabelNode {
     constructor(_element) {
         this._element = _element;
@@ -43,6 +44,7 @@ class FastLabelNode {
 }
 export class IconLabel extends Disposable {
     constructor(container, options) {
+        var _a;
         super();
         this.customHovers = new Map();
         this.creationOptions = options;
@@ -55,7 +57,7 @@ export class IconLabel extends Disposable {
         else {
             this.nameNode = new Label(this.nameContainer);
         }
-        this.hoverDelegate = options === null || options === void 0 ? void 0 : options.hoverDelegate;
+        this.hoverDelegate = (_a = options === null || options === void 0 ? void 0 : options.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('mouse');
     }
     get element() {
         return this.domNode.element;
@@ -119,7 +121,7 @@ export class IconLabel extends Disposable {
             htmlElement.removeAttribute('title');
             return;
         }
-        if (!this.hoverDelegate) {
+        if (this.hoverDelegate.showNativeHover) {
             setupNativeHover(htmlElement, tooltip);
         }
         else {

@@ -77,7 +77,7 @@ let FoldingController = FoldingController_1 = class FoldingController extends Di
         this.cursorChangedScheduler = null;
         this.mouseDownInfo = null;
         this.foldingDecorationProvider = new FoldingDecorationProvider(editor);
-        this.foldingDecorationProvider.showFoldingControls = options.get(109 /* EditorOption.showFoldingControls */);
+        this.foldingDecorationProvider.showFoldingControls = options.get(110 /* EditorOption.showFoldingControls */);
         this.foldingDecorationProvider.showFoldingHighlights = options.get(45 /* EditorOption.foldingHighlight */);
         this.foldingEnabled = CONTEXT_FOLDING_ENABLED.bindTo(this.contextKeyService);
         this.foldingEnabled.set(this._isEnabled);
@@ -91,9 +91,9 @@ let FoldingController = FoldingController_1 = class FoldingController extends Di
             if (e.hasChanged(47 /* EditorOption.foldingMaximumRegions */)) {
                 this.onModelChanged();
             }
-            if (e.hasChanged(109 /* EditorOption.showFoldingControls */) || e.hasChanged(45 /* EditorOption.foldingHighlight */)) {
+            if (e.hasChanged(110 /* EditorOption.showFoldingControls */) || e.hasChanged(45 /* EditorOption.foldingHighlight */)) {
                 const options = this.editor.getOptions();
-                this.foldingDecorationProvider.showFoldingControls = options.get(109 /* EditorOption.showFoldingControls */);
+                this.foldingDecorationProvider.showFoldingControls = options.get(110 /* EditorOption.showFoldingControls */);
                 this.foldingDecorationProvider.showFoldingHighlights = options.get(45 /* EditorOption.foldingHighlight */);
                 this.triggerFoldingModelChanged();
             }

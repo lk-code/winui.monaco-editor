@@ -11,7 +11,7 @@ export class ViewOverlayWidgets extends ViewPart {
         super(context);
         this._viewDomNode = viewDomNode;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         this._widgets = {};
         this._verticalScrollbarWidth = layoutInfo.verticalScrollbarWidth;
         this._minimapWidth = layoutInfo.minimap.minimapWidth;
@@ -36,7 +36,7 @@ export class ViewOverlayWidgets extends ViewPart {
     // ---- begin view event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         this._verticalScrollbarWidth = layoutInfo.verticalScrollbarWidth;
         this._minimapWidth = layoutInfo.minimap.minimapWidth;
         this._horizontalScrollbarHeight = layoutInfo.horizontalScrollbarHeight;

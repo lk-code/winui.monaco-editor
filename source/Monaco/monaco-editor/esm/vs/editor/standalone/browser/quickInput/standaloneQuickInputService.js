@@ -23,10 +23,9 @@ import { ICodeEditorService } from '../../../browser/services/codeEditorService.
 import { QuickInputService } from '../../../../platform/quickinput/browser/quickInputService.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 let EditorScopedQuickInputService = class EditorScopedQuickInputService extends QuickInputService {
-    constructor(editor, instantiationService, contextKeyService, themeService, codeEditorService, configurationService, hoverService) {
-        super(instantiationService, contextKeyService, themeService, new EditorScopedLayoutService(editor.getContainerDomNode(), codeEditorService), configurationService, hoverService);
+    constructor(editor, instantiationService, contextKeyService, themeService, codeEditorService, configurationService) {
+        super(instantiationService, contextKeyService, themeService, new EditorScopedLayoutService(editor.getContainerDomNode(), codeEditorService), configurationService);
         this.host = undefined;
         // Use the passed in code editor as host for the quick input widget
         const contribution = QuickInputEditorContribution.get(editor);
@@ -64,8 +63,7 @@ EditorScopedQuickInputService = __decorate([
     __param(2, IContextKeyService),
     __param(3, IThemeService),
     __param(4, ICodeEditorService),
-    __param(5, IConfigurationService),
-    __param(6, IHoverService)
+    __param(5, IConfigurationService)
 ], EditorScopedQuickInputService);
 let StandaloneQuickInputService = class StandaloneQuickInputService {
     get activeService() {

@@ -95,8 +95,8 @@ let ItemRenderer = class ItemRenderer {
             const fontInfo = options.get(50 /* EditorOption.fontInfo */);
             const fontFamily = fontInfo.getMassagedFontFamily();
             const fontFeatureSettings = fontInfo.fontFeatureSettings;
-            const fontSize = options.get(118 /* EditorOption.suggestFontSize */) || fontInfo.fontSize;
-            const lineHeight = options.get(119 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight;
+            const fontSize = options.get(119 /* EditorOption.suggestFontSize */) || fontInfo.fontSize;
+            const lineHeight = options.get(120 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight;
             const fontWeight = fontInfo.fontWeight;
             const letterSpacing = fontInfo.letterSpacing;
             const fontSizePx = `${fontSize}px`;
@@ -169,7 +169,7 @@ let ItemRenderer = class ItemRenderer {
             data.detailsLabel.textContent = stripNewLines(completion.label.description || '');
             data.root.classList.remove('string-label');
         }
-        if (this._editor.getOption(117 /* EditorOption.suggest */).showInlineDetails) {
+        if (this._editor.getOption(118 /* EditorOption.suggest */).showInlineDetails) {
             show(data.detailsLabel);
         }
         else {

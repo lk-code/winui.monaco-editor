@@ -26,17 +26,17 @@ import { ILanguageFeaturesService } from '../../../common/services/languageFeatu
 import { formatDocumentRangesWithSelectedProvider, formatDocumentWithSelectedProvider, getOnTypeFormattingEdits } from './format.js';
 import { FormattingEdit } from './formattingEdit.js';
 import * as nls from '../../../../nls.js';
-import { AudioCue, IAudioCueService } from '../../../../platform/audioCues/browser/audioCueService.js';
+import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorProgressService, Progress } from '../../../../platform/progress/common/progress.js';
 let FormatOnType = class FormatOnType {
-    constructor(_editor, _languageFeaturesService, _workerService, _audioCueService) {
+    constructor(_editor, _languageFeaturesService, _workerService, _accessibilitySignalService) {
         this._editor = _editor;
         this._languageFeaturesService = _languageFeaturesService;
         this._workerService = _workerService;
-        this._audioCueService = _audioCueService;
+        this._accessibilitySignalService = _accessibilitySignalService;
         this._disposables = new DisposableStore();
         this._sessionDisposables = new DisposableStore();
         this._disposables.add(_languageFeaturesService.onTypeFormattingEditProvider.onDidChange(this._update, this));
@@ -118,7 +118,7 @@ let FormatOnType = class FormatOnType {
                 return;
             }
             if (isNonEmptyArray(edits)) {
-                this._audioCueService.playAudioCue(AudioCue.format, { userGesture: false });
+                this._accessibilitySignalService.playSignal(AccessibilitySignal.format, { userGesture: false });
                 FormattingEdit.execute(this._editor, edits, true);
             }
         }).finally(() => {
@@ -130,7 +130,7 @@ FormatOnType.ID = 'editor.contrib.autoFormat';
 FormatOnType = __decorate([
     __param(1, ILanguageFeaturesService),
     __param(2, IEditorWorkerService),
-    __param(3, IAudioCueService)
+    __param(3, IAccessibilitySignalService)
 ], FormatOnType);
 export { FormatOnType };
 let FormatOnPaste = class FormatOnPaste {

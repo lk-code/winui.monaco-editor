@@ -97,7 +97,7 @@ let InlayHintsHover = class InlayHintsHover extends MarkdownHoverParticipant {
             // (2.2) Inlay Label Part Help Hover
             if (part.part.location || part.part.command) {
                 let linkHint;
-                const useMetaKey = this._editor.getOption(77 /* EditorOption.multiCursorModifier */) === 'altKey';
+                const useMetaKey = this._editor.getOption(78 /* EditorOption.multiCursorModifier */) === 'altKey';
                 const kb = useMetaKey
                     ? platform.isMacintosh
                         ? localize('links.navigate.kb.meta.mac', "cmd + click")

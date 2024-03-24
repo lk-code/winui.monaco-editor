@@ -236,8 +236,9 @@ export function matchesCamelCase(word, camelCaseWord) {
     if (!isCamelCasePattern(word)) {
         return null;
     }
+    // TODO: Consider removing this check
     if (camelCaseWord.length > 60) {
-        return null;
+        camelCaseWord = camelCaseWord.substring(0, 60);
     }
     const analysis = analyzeCamelCaseWord(camelCaseWord);
     if (!isCamelCaseWord(analysis)) {

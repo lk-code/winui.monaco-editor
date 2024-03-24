@@ -4,19 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 import { assertFn } from '../assert.js';
 import { DisposableStore } from '../lifecycle.js';
-import { BaseObservable, _setDerivedOpts, getDebugName, getFunctionName } from './base.js';
+import { BaseObservable, _setDerivedOpts } from './base.js';
+import { DebugNameData } from './debugName.js';
 import { getLogger } from './logging.js';
-const defaultEqualityComparer = (a, b) => a === b;
+export const defaultEqualityComparer = (a, b) => a === b;
 export function derived(computeFnOrOwner, computeFn) {
     if (computeFn !== undefined) {
-        return new Derived(computeFnOrOwner, undefined, computeFn, undefined, undefined, undefined, defaultEqualityComparer);
+        return new Derived(new DebugNameData(computeFnOrOwner, undefined, computeFn), computeFn, undefined, undefined, undefined, defaultEqualityComparer);
     }
-    return new Derived(undefined, undefined, computeFnOrOwner, undefined, undefined, undefined, defaultEqualityComparer);
+    return new Derived(new DebugNameData(undefined, undefined, computeFnOrOwner), computeFnOrOwner, undefined, undefined, undefined, defaultEqualityComparer);
 }
 export function derivedOpts(options, computeFn) {
     var _a;
-    return new Derived(options.owner, options.debugName, computeFn, undefined, undefined, options.onLastObserverRemoved, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
+    return new Derived(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn), computeFn, undefined, undefined, options.onLastObserverRemoved, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
 }
+_setDerivedOpts(derivedOpts);
 /**
  * Represents an observable that is derived from other observables.
  * The value is only recomputed when absolutely needed.
@@ -32,7 +34,7 @@ export function derivedOpts(options, computeFn) {
  */
 export function derivedHandleChanges(options, computeFn) {
     var _a;
-    return new Derived(options.owner, options.debugName, computeFn, options.createEmptyChangeSummary, options.handleChange, undefined, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
+    return new Derived(new DebugNameData(options.owner, options.debugName, undefined), computeFn, options.createEmptyChangeSummary, options.handleChange, undefined, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : defaultEqualityComparer);
 }
 export function derivedWithStore(computeFnOrOwner, computeFnOrUndefined) {
     let computeFn;
@@ -46,7 +48,7 @@ export function derivedWithStore(computeFnOrOwner, computeFnOrUndefined) {
         computeFn = computeFnOrUndefined;
     }
     const store = new DisposableStore();
-    return new Derived(owner, (() => { var _a; return (_a = getFunctionName(computeFn)) !== null && _a !== void 0 ? _a : '(anonymous)'; }), r => {
+    return new Derived(new DebugNameData(owner, undefined, computeFn), r => {
         store.clear();
         return computeFn(r, store);
     }, undefined, undefined, () => store.dispose(), defaultEqualityComparer);
@@ -63,7 +65,7 @@ export function derivedDisposable(computeFnOrOwner, computeFnOrUndefined) {
         computeFn = computeFnOrUndefined;
     }
     const store = new DisposableStore();
-    return new Derived(owner, (() => { var _a; return (_a = getFunctionName(computeFn)) !== null && _a !== void 0 ? _a : '(anonymous)'; }), r => {
+    return new Derived(new DebugNameData(owner, undefined, computeFn), r => {
         store.clear();
         const result = computeFn(r);
         if (result) {
@@ -72,17 +74,15 @@ export function derivedDisposable(computeFnOrOwner, computeFnOrUndefined) {
         return result;
     }, undefined, undefined, () => store.dispose(), defaultEqualityComparer);
 }
-_setDerivedOpts(derivedOpts);
 export class Derived extends BaseObservable {
     get debugName() {
         var _a;
-        return (_a = getDebugName(this, this._debugName, this._computeFn, this._owner)) !== null && _a !== void 0 ? _a : '(anonymous)';
+        return (_a = this._debugNameData.getDebugName(this)) !== null && _a !== void 0 ? _a : '(anonymous)';
     }
-    constructor(_owner, _debugName, _computeFn, createChangeSummary, _handleChange, _handleLastObserverRemoved = undefined, _equalityComparator) {
+    constructor(_debugNameData, _computeFn, createChangeSummary, _handleChange, _handleLastObserverRemoved = undefined, _equalityComparator) {
         var _a, _b;
         super();
-        this._owner = _owner;
-        this._debugName = _debugName;
+        this._debugNameData = _debugNameData;
         this._computeFn = _computeFn;
         this.createChangeSummary = createChangeSummary;
         this._handleChange = _handleChange;

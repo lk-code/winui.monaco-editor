@@ -114,7 +114,7 @@ export class MarginHoverWidget extends Disposable {
         const editorLayout = this._editor.getLayoutInfo();
         const topForLineNumber = this._editor.getTopForLineNumber(lineNumber);
         const editorScrollTop = this._editor.getScrollTop();
-        const lineHeight = this._editor.getOption(66 /* EditorOption.lineHeight */);
+        const lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
         const nodeHeight = this._hover.containerDomNode.clientHeight;
         const top = topForLineNumber - editorScrollTop - ((nodeHeight - lineHeight) / 2);
         const left = editorLayout.glyphMarginLeft + editorLayout.glyphMarginWidth + (this._computer.lane === 'lineNo' ? editorLayout.lineNumbersWidth : 0);

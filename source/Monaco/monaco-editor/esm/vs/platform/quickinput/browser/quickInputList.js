@@ -199,10 +199,23 @@ class ListElementRenderer {
             data.icon.className = ((_d = element.item) === null || _d === void 0 ? void 0 : _d.iconClass) ? `quick-input-list-icon ${element.item.iconClass}` : '';
         }
         // Label
+        let descriptionTitle;
+        // if we have a tooltip, that will be the hover,
+        // with the saneDescription as fallback if it
+        // is defined
+        if (!element.saneTooltip && element.saneDescription) {
+            descriptionTitle = {
+                markdown: {
+                    value: element.saneDescription,
+                    supportThemeIcons: true
+                },
+                markdownNotSupportedFallback: element.saneDescription
+            };
+        }
         const options = {
             matches: labelHighlights || [],
             // If we have a tooltip, we want that to be shown and not any other hover
-            descriptionTitle: element.saneTooltip ? undefined : element.saneDescription,
+            descriptionTitle,
             descriptionMatches: descriptionHighlights || [],
             labelEscapeNewLines: true
         };
@@ -220,11 +233,21 @@ class ListElementRenderer {
         data.keybinding.set(mainItem.type === 'separator' ? undefined : mainItem.keybinding);
         // Detail
         if (element.saneDetail) {
+            let title;
+            // If we have a tooltip, we want that to be shown and not any other hover
+            if (!element.saneTooltip) {
+                title = {
+                    markdown: {
+                        value: element.saneDetail,
+                        supportThemeIcons: true
+                    },
+                    markdownNotSupportedFallback: element.saneDetail
+                };
+            }
             data.detail.element.style.display = '';
             data.detail.setLabel(element.saneDetail, undefined, {
                 matches: detailHighlights,
-                // If we have a tooltip, we want that to be shown and not any other hover
-                title: element.saneTooltip ? undefined : element.saneDetail,
+                title,
                 labelEscapeNewLines: true
             });
         }

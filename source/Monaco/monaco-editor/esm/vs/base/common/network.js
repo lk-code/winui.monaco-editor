@@ -48,6 +48,9 @@ export var Schemas;
     Schemas.vscodeSettings = 'vscode-settings';
     Schemas.vscodeWorkspaceTrust = 'vscode-workspace-trust';
     Schemas.vscodeTerminal = 'vscode-terminal';
+    /** Scheme used for code blocks in chat. */
+    Schemas.vscodeChatCodeBlock = 'vscode-chat-code-block';
+    /** Scheme used for the chat input editor. */
     Schemas.vscodeChatSesssion = 'vscode-chat-editor';
     /**
      * Scheme used internally for webviews that aren't linked to a resource (i.e. not custom editors)
@@ -78,6 +81,14 @@ export var Schemas;
      * Scheme used for the Source Control commit input's text document
      */
     Schemas.vscodeSourceControl = 'vscode-scm';
+    /**
+     * Scheme used for special rendering of settings in the release notes
+     */
+    Schemas.codeSetting = 'code-setting';
+    /**
+     * Scheme used for special rendering of features in the release notes
+     */
+    Schemas.codeFeature = 'code-feature';
 })(Schemas || (Schemas = {}));
 export function matchesScheme(target, scheme) {
     if (URI.isUri(target)) {

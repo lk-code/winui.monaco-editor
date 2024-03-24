@@ -228,11 +228,10 @@ registerAction2((_a = class GoToDefinitionAction extends DefinitionAction {
             }, {
                 id: _a.id,
                 title: {
-                    value: nls.localize('actions.goToDecl.label', "Go to Definition"),
-                    original: 'Go to Definition',
-                    mnemonicTitle: nls.localize({ key: 'miGotoDefinition', comment: ['&& denotes a mnemonic'] }, "Go to &&Definition")
+                    ...nls.localize2('actions.goToDecl.label', "Go to Definition"),
+                    mnemonicTitle: nls.localize({ key: 'miGotoDefinition', comment: ['&& denotes a mnemonic'] }, "Go to &&Definition"),
                 },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasDefinitionProvider, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                precondition: EditorContextKeys.hasDefinitionProvider,
                 keybinding: [{
                         when: EditorContextKeys.editorTextFocus,
                         primary: 70 /* KeyCode.F12 */,
@@ -266,11 +265,8 @@ registerAction2((_b = class OpenDefinitionToSideAction extends DefinitionAction 
                 muteMessage: false
             }, {
                 id: _b.id,
-                title: {
-                    value: nls.localize('actions.goToDeclToSide.label', "Open Definition to the Side"),
-                    original: 'Open Definition to the Side'
-                },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasDefinitionProvider, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                title: nls.localize2('actions.goToDeclToSide.label', "Open Definition to the Side"),
+                precondition: ContextKeyExpr.and(EditorContextKeys.hasDefinitionProvider, EditorContextKeys.isInEmbeddedEditor.toNegated()),
                 keybinding: [{
                         when: EditorContextKeys.editorTextFocus,
                         primary: KeyChord(2048 /* KeyMod.CtrlCmd */ | 41 /* KeyCode.KeyK */, 70 /* KeyCode.F12 */),
@@ -294,11 +290,8 @@ registerAction2((_c = class PeekDefinitionAction extends DefinitionAction {
                 muteMessage: false
             }, {
                 id: _c.id,
-                title: {
-                    value: nls.localize('actions.previewDecl.label', "Peek Definition"),
-                    original: 'Peek Definition'
-                },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasDefinitionProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                title: nls.localize2('actions.previewDecl.label', "Peek Definition"),
+                precondition: ContextKeyExpr.and(EditorContextKeys.hasDefinitionProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
                 keybinding: {
                     when: EditorContextKeys.editorTextFocus,
                     primary: 512 /* KeyMod.Alt */ | 70 /* KeyCode.F12 */,
@@ -343,11 +336,10 @@ registerAction2((_d = class GoToDeclarationAction extends DeclarationAction {
             }, {
                 id: _d.id,
                 title: {
-                    value: nls.localize('actions.goToDeclaration.label', "Go to Declaration"),
-                    original: 'Go to Declaration',
-                    mnemonicTitle: nls.localize({ key: 'miGotoDeclaration', comment: ['&& denotes a mnemonic'] }, "Go to &&Declaration")
+                    ...nls.localize2('actions.goToDeclaration.label', "Go to Declaration"),
+                    mnemonicTitle: nls.localize({ key: 'miGotoDeclaration', comment: ['&& denotes a mnemonic'] }, "Go to &&Declaration"),
                 },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasDeclarationProvider, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                precondition: ContextKeyExpr.and(EditorContextKeys.hasDeclarationProvider, EditorContextKeys.isInEmbeddedEditor.toNegated()),
                 menu: [{
                         id: MenuId.EditorContext,
                         group: 'navigation',
@@ -376,11 +368,8 @@ registerAction2(class PeekDeclarationAction extends DeclarationAction {
             muteMessage: false
         }, {
             id: 'editor.action.peekDeclaration',
-            title: {
-                value: nls.localize('actions.peekDecl.label', "Peek Declaration"),
-                original: 'Peek Declaration'
-            },
-            precondition: ContextKeyExpr.and(EditorContextKeys.hasDeclarationProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+            title: nls.localize2('actions.peekDecl.label', "Peek Declaration"),
+            precondition: ContextKeyExpr.and(EditorContextKeys.hasDeclarationProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
             menu: {
                 id: MenuId.EditorContextPeek,
                 group: 'peek',
@@ -416,11 +405,10 @@ registerAction2((_e = class GoToTypeDefinitionAction extends TypeDefinitionActio
             }, {
                 id: _e.ID,
                 title: {
-                    value: nls.localize('actions.goToTypeDefinition.label', "Go to Type Definition"),
-                    original: 'Go to Type Definition',
-                    mnemonicTitle: nls.localize({ key: 'miGotoTypeDefinition', comment: ['&& denotes a mnemonic'] }, "Go to &&Type Definition")
+                    ...nls.localize2('actions.goToTypeDefinition.label', "Go to Type Definition"),
+                    mnemonicTitle: nls.localize({ key: 'miGotoTypeDefinition', comment: ['&& denotes a mnemonic'] }, "Go to &&Type Definition"),
                 },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasTypeDefinitionProvider, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                precondition: EditorContextKeys.hasTypeDefinitionProvider,
                 keybinding: {
                     when: EditorContextKeys.editorTextFocus,
                     primary: 0,
@@ -449,11 +437,8 @@ registerAction2((_f = class PeekTypeDefinitionAction extends TypeDefinitionActio
                 muteMessage: false
             }, {
                 id: _f.ID,
-                title: {
-                    value: nls.localize('actions.peekTypeDefinition.label', "Peek Type Definition"),
-                    original: 'Peek Type Definition'
-                },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasTypeDefinitionProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                title: nls.localize2('actions.peekTypeDefinition.label', "Peek Type Definition"),
+                precondition: ContextKeyExpr.and(EditorContextKeys.hasTypeDefinitionProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
                 menu: {
                     id: MenuId.EditorContextPeek,
                     group: 'peek',
@@ -491,11 +476,10 @@ registerAction2((_g = class GoToImplementationAction extends ImplementationActio
             }, {
                 id: _g.ID,
                 title: {
-                    value: nls.localize('actions.goToImplementation.label', "Go to Implementations"),
-                    original: 'Go to Implementations',
-                    mnemonicTitle: nls.localize({ key: 'miGotoImplementation', comment: ['&& denotes a mnemonic'] }, "Go to &&Implementations")
+                    ...nls.localize2('actions.goToImplementation.label', "Go to Implementations"),
+                    mnemonicTitle: nls.localize({ key: 'miGotoImplementation', comment: ['&& denotes a mnemonic'] }, "Go to &&Implementations"),
                 },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasImplementationProvider, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                precondition: EditorContextKeys.hasImplementationProvider,
                 keybinding: {
                     when: EditorContextKeys.editorTextFocus,
                     primary: 2048 /* KeyMod.CtrlCmd */ | 70 /* KeyCode.F12 */,
@@ -524,11 +508,8 @@ registerAction2((_h = class PeekImplementationAction extends ImplementationActio
                 muteMessage: false
             }, {
                 id: _h.ID,
-                title: {
-                    value: nls.localize('actions.peekImplementation.label', "Peek Implementations"),
-                    original: 'Peek Implementations'
-                },
-                precondition: ContextKeyExpr.and(EditorContextKeys.hasImplementationProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+                title: nls.localize2('actions.peekImplementation.label', "Peek Implementations"),
+                precondition: ContextKeyExpr.and(EditorContextKeys.hasImplementationProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
                 keybinding: {
                     when: EditorContextKeys.editorTextFocus,
                     primary: 2048 /* KeyMod.CtrlCmd */ | 1024 /* KeyMod.Shift */ | 70 /* KeyCode.F12 */,
@@ -568,11 +549,10 @@ registerAction2(class GoToReferencesAction extends ReferencesAction {
         }, {
             id: 'editor.action.goToReferences',
             title: {
-                value: nls.localize('goToReferences.label', "Go to References"),
-                original: 'Go to References',
-                mnemonicTitle: nls.localize({ key: 'miGotoReference', comment: ['&& denotes a mnemonic'] }, "Go to &&References")
+                ...nls.localize2('goToReferences.label', "Go to References"),
+                mnemonicTitle: nls.localize({ key: 'miGotoReference', comment: ['&& denotes a mnemonic'] }, "Go to &&References"),
             },
-            precondition: ContextKeyExpr.and(EditorContextKeys.hasReferenceProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+            precondition: ContextKeyExpr.and(EditorContextKeys.hasReferenceProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
             keybinding: {
                 when: EditorContextKeys.editorTextFocus,
                 primary: 1024 /* KeyMod.Shift */ | 70 /* KeyCode.F12 */,
@@ -602,11 +582,8 @@ registerAction2(class PeekReferencesAction extends ReferencesAction {
             muteMessage: false
         }, {
             id: 'editor.action.referenceSearch.trigger',
-            title: {
-                value: nls.localize('references.action.label', "Peek References"),
-                original: 'Peek References'
-            },
-            precondition: ContextKeyExpr.and(EditorContextKeys.hasReferenceProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+            title: nls.localize2('references.action.label', "Peek References"),
+            precondition: ContextKeyExpr.and(EditorContextKeys.hasReferenceProvider, PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
             menu: {
                 id: MenuId.EditorContextPeek,
                 group: 'peek',
@@ -624,11 +601,8 @@ class GenericGoToLocationAction extends SymbolNavigationAction {
     constructor(config, _references, _gotoMultipleBehaviour) {
         super(config, {
             id: 'editor.action.goToLocation',
-            title: {
-                value: nls.localize('label.generic', "Go to Any Symbol"),
-                original: 'Go to Any Symbol'
-            },
-            precondition: ContextKeyExpr.and(PeekContext.notInPeekEditor, EditorContextKeys.isInWalkThroughSnippet.toNegated()),
+            title: nls.localize2('label.generic', "Go to Any Symbol"),
+            precondition: ContextKeyExpr.and(PeekContext.notInPeekEditor, EditorContextKeys.isInEmbeddedEditor.toNegated()),
         });
         this._references = _references;
         this._gotoMultipleBehaviour = _gotoMultipleBehaviour;

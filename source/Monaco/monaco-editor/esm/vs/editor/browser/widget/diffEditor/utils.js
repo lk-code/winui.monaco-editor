@@ -348,7 +348,7 @@ function addLength(position, length) {
 }
 export function bindContextKey(key, service, computeValue) {
     const boundKey = key.bindTo(service);
-    return autorunOpts({ debugName: () => `Update ${key.key}` }, reader => {
+    return autorunOpts({ debugName: () => `Set Context Key "${key.key}"` }, reader => {
         boundKey.set(computeValue(reader));
     });
 }

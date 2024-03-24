@@ -23,6 +23,7 @@ import { Scrollable } from '../../../common/scrollable.js';
 import { RangeMap, shift } from './rangeMap.js';
 import { RowCache } from './rowCache.js';
 import { BugIndicatingError } from '../../../common/errors.js';
+import { clamp } from '../../../common/numbers.js';
 const StaticDND = {
     CurrentDragAndDropData: undefined
 };
@@ -185,7 +186,7 @@ export class ListView {
         }
         this.items = [];
         this.itemId = 0;
-        this.rangeMap = new RangeMap((_a = options.paddingTop) !== null && _a !== void 0 ? _a : 0);
+        this.rangeMap = this.createRangeMap((_a = options.paddingTop) !== null && _a !== void 0 ? _a : 0);
         for (const renderer of renderers) {
             this.renderers.set(renderer.templateId, renderer);
         }
@@ -278,6 +279,9 @@ export class ListView {
             }
         }
     }
+    createRangeMap(paddingTop) {
+        return new RangeMap(paddingTop);
+    }
     splice(start, deleteCount, elements = []) {
         if (this.splicing) {
             throw new Error('Can\'t run recursive splices.');
@@ -314,6 +318,7 @@ export class ListView {
                 rows.push(item.row);
             }
             item.row = null;
+            item.stale = true;
         }
         const previousRestRange = { start: start + deleteCount, end: this.items.length };
         const previousRenderedRestRange = Range.intersect(previousRestRange, previousRenderRange);
@@ -330,12 +335,13 @@ export class ListView {
             uri: undefined,
             dropTarget: false,
             dragStartDisposable: Disposable.None,
-            checkedDisposable: Disposable.None
+            checkedDisposable: Disposable.None,
+            stale: false
         }));
         let deleted;
         // TODO@joao: improve this optimization to catch even more cases
         if (start === 0 && deleteCount >= this.items.length) {
-            this.rangeMap = new RangeMap(this.rangeMap.paddingTop);
+            this.rangeMap = this.createRangeMap(this.rangeMap.paddingTop);
             this.rangeMap.splice(0, 0, inserted);
             deleted = this.items;
             this.items = inserted;
@@ -359,14 +365,13 @@ export class ListView {
         }
         const unrenderedRestRanges = previousUnrenderedRestRanges.map(r => shift(r, delta));
         const elementsRange = { start, end: start + elements.length };
-        const insertRanges = [elementsRange, ...unrenderedRestRanges].map(r => Range.intersect(renderRange, r));
-        const beforeElement = this.getNextToLastElement(insertRanges);
+        const insertRanges = [elementsRange, ...unrenderedRestRanges].map(r => Range.intersect(renderRange, r)).reverse();
         for (const range of insertRanges) {
-            for (let i = range.start; i < range.end; i++) {
+            for (let i = range.end - 1; i >= range.start; i--) {
                 const item = this.items[i];
                 const rows = rowsToDispose.get(item.templateId);
                 const row = rows === null || rows === void 0 ? void 0 : rows.pop();
-                this.insertItemInDOM(i, beforeElement, row);
+                this.insertItemInDOM(i, row);
             }
         }
         for (const rows of rowsToDispose.values()) {
@@ -479,9 +484,8 @@ export class ListView {
     // Render
     render(previousRenderRange, renderTop, renderHeight, renderLeft, scrollWidth, updateItemsInDOM = false) {
         const renderRange = this.getRenderRange(renderTop, renderHeight);
-        const rangesToInsert = Range.relativeComplement(renderRange, previousRenderRange);
+        const rangesToInsert = Range.relativeComplement(renderRange, previousRenderRange).reverse();
         const rangesToRemove = Range.relativeComplement(previousRenderRange, renderRange);
-        const beforeElement = this.getNextToLastElement(rangesToInsert);
         if (updateItemsInDOM) {
             const rangesToUpdate = Range.intersect(previousRenderRange, renderRange);
             for (let i = rangesToUpdate.start; i < rangesToUpdate.end; i++) {
@@ -495,8 +499,8 @@ export class ListView {
                 }
             }
             for (const range of rangesToInsert) {
-                for (let i = range.start; i < range.end; i++) {
-                    this.insertItemInDOM(i, beforeElement);
+                for (let i = range.end - 1; i >= range.start; i--) {
+                    this.insertItemInDOM(i);
                 }
             }
         });
@@ -511,17 +515,18 @@ export class ListView {
         this.lastRenderHeight = renderHeight;
     }
     // DOM operations
-    insertItemInDOM(index, beforeElement, row) {
+    insertItemInDOM(index, row) {
+        var _a, _b, _c;
         const item = this.items[index];
-        let isStale = false;
         if (!item.row) {
             if (row) {
                 item.row = row;
+                item.stale = true;
             }
             else {
                 const result = this.cache.alloc(item.templateId);
                 item.row = result.row;
-                isStale = result.isReusingConnectedDomNode;
+                item.stale || (item.stale = result.isReusingConnectedDomNode);
             }
         }
         const role = this.accessibilityProvider.getRole(item.element) || 'listitem';
@@ -535,13 +540,10 @@ export class ListView {
             update(checked.value);
             item.checkedDisposable = checked.onDidChange(update);
         }
-        if (isStale || !item.row.domNode.parentElement) {
-            if (beforeElement) {
-                this.rowsContainer.insertBefore(item.row.domNode, beforeElement);
-            }
-            else {
-                this.rowsContainer.appendChild(item.row.domNode);
-            }
+        if (item.stale || !item.row.domNode.parentElement) {
+            const referenceNode = (_c = (_b = (_a = this.items.at(index + 1)) === null || _a === void 0 ? void 0 : _a.row) === null || _b === void 0 ? void 0 : _b.domNode) !== null && _c !== void 0 ? _c : null;
+            this.rowsContainer.insertBefore(item.row.domNode, referenceNode);
+            item.stale = false;
         }
         this.updateItemInDOM(item, index);
         const renderer = this.renderers.get(item.templateId);
@@ -889,7 +891,8 @@ export class ListView {
             return undefined;
         }
         const relativePosition = browserEvent.offsetY / this.items[targetIndex].size;
-        return Math.floor(relativePosition / 0.25);
+        const sector = Math.floor(relativePosition / 0.25);
+        return clamp(sector, 0, 3);
     }
     getItemIndexFromEventTarget(target) {
         const scrollableElement = this.scrollableElement.getDomNode();
@@ -954,13 +957,10 @@ export class ListView {
                         }
                     }
                 }
-                const renderRanges = Range.relativeComplement(renderRange, previousRenderRange);
+                const renderRanges = Range.relativeComplement(renderRange, previousRenderRange).reverse();
                 for (const range of renderRanges) {
-                    for (let i = range.start; i < range.end; i++) {
-                        const afterIndex = i + 1;
-                        const beforeRow = afterIndex < this.items.length ? this.items[afterIndex].row : null;
-                        const beforeElement = beforeRow ? beforeRow.domNode : null;
-                        this.insertItemInDOM(i, beforeElement);
+                    for (let i = range.end - 1; i >= range.start; i--) {
+                        this.insertItemInDOM(i);
                     }
                 }
                 for (let i = renderRange.start; i < renderRange.end; i++) {
@@ -1023,20 +1023,6 @@ export class ListView {
         this.rowsContainer.removeChild(row.domNode);
         this.cache.release(row);
         return item.size - size;
-    }
-    getNextToLastElement(ranges) {
-        const lastRange = ranges[ranges.length - 1];
-        if (!lastRange) {
-            return null;
-        }
-        const nextToLastItem = this.items[lastRange.end];
-        if (!nextToLastItem) {
-            return null;
-        }
-        if (!nextToLastItem.row) {
-            return null;
-        }
-        return nextToLastItem.row.domNode;
     }
     getElementDomId(index) {
         return `${this.domId}_${index}`;

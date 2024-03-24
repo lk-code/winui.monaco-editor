@@ -11,6 +11,7 @@ import { LineRange, LineRangeSet } from '../../../../common/core/lineRange.js';
 import { Range } from '../../../../common/core/range.js';
 import { GlyphMarginLane } from '../../../../common/model.js';
 import { localize } from '../../../../../nls.js';
+const emptyArr = [];
 export class RevertButtonsFeature extends Disposable {
     constructor(_editors, _diffModel, _options, _widget) {
         super();
@@ -18,11 +19,11 @@ export class RevertButtonsFeature extends Disposable {
         this._diffModel = _diffModel;
         this._options = _options;
         this._widget = _widget;
-        const emptyArr = [];
-        const selectedDiffs = derived(this, (reader) => {
+        this._selectedDiffs = derived(this, (reader) => {
             /** @description selectedDiffs */
             const model = this._diffModel.read(reader);
             const diff = model === null || model === void 0 ? void 0 : model.diff.read(reader);
+            // Return `emptyArr` because it is a constant. [] is always a new array and would trigger a change.
             if (!diff) {
                 return emptyArr;
             }
@@ -30,9 +31,9 @@ export class RevertButtonsFeature extends Disposable {
             if (selections.every(s => s.isEmpty())) {
                 return emptyArr;
             }
-            const lineRanges = new LineRangeSet(selections.map(s => LineRange.fromRangeInclusive(s)));
-            const mappings = diff.mappings.filter(m => m.lineRangeMapping.innerChanges && lineRanges.intersects(m.lineRangeMapping.modified));
-            const result = mappings.map(mapping => ({
+            const selectedLineNumbers = new LineRangeSet(selections.map(s => LineRange.fromRangeInclusive(s)));
+            const selectedMappings = diff.mappings.filter(m => m.lineRangeMapping.innerChanges && selectedLineNumbers.intersects(m.lineRangeMapping.modified));
+            const result = selectedMappings.map(mapping => ({
                 mapping,
                 rangeMappings: mapping.lineRangeMapping.innerChanges.filter(c => selections.some(s => Range.areIntersecting(c.modifiedRange, s)))
             }));
@@ -42,29 +43,29 @@ export class RevertButtonsFeature extends Disposable {
             return result;
         });
         this._register(autorunWithStore((reader, store) => {
+            if (!this._options.shouldRenderRevertArrows.read(reader)) {
+                return;
+            }
             const model = this._diffModel.read(reader);
             const diff = model === null || model === void 0 ? void 0 : model.diff.read(reader);
             if (!model || !diff) {
                 return;
             }
-            const movedTextToCompare = this._diffModel.read(reader).movedTextToCompare.read(reader);
-            if (movedTextToCompare) {
-                return;
-            }
-            if (!this._options.shouldRenderRevertArrows.read(reader)) {
+            if (model.movedTextToCompare.read(reader)) {
                 return;
             }
             const glyphWidgetsModified = [];
-            const selectedDiffs_ = selectedDiffs.read(reader);
-            const diffsSet = new Set(selectedDiffs_.map(d => d.mapping));
-            if (selectedDiffs_.length > 0) {
+            const selectedDiffs = this._selectedDiffs.read(reader);
+            const selectedDiffsSet = new Set(selectedDiffs.map(d => d.mapping));
+            if (selectedDiffs.length > 0) {
+                // The button to revert the selection
                 const selections = this._editors.modifiedSelections.read(reader);
-                const btn = store.add(new RevertButton(selections[selections.length - 1].positionLineNumber, this._widget, selectedDiffs_.flatMap(d => d.rangeMappings), true));
+                const btn = store.add(new RevertButton(selections[selections.length - 1].positionLineNumber, this._widget, selectedDiffs.flatMap(d => d.rangeMappings), true));
                 this._editors.modified.addGlyphMarginWidget(btn);
                 glyphWidgetsModified.push(btn);
             }
             for (const m of diff.mappings) {
-                if (diffsSet.has(m)) {
+                if (selectedDiffsSet.has(m)) {
                     continue;
                 }
                 if (!m.lineRangeMapping.modified.isEmpty && m.lineRangeMapping.innerChanges) {
@@ -83,15 +84,15 @@ export class RevertButtonsFeature extends Disposable {
 }
 export class RevertButton extends Disposable {
     getId() { return this._id; }
-    constructor(_lineNumber, _widget, _diffs, _selection) {
+    constructor(_lineNumber, _widget, _diffs, _revertSelection) {
         super();
         this._lineNumber = _lineNumber;
         this._widget = _widget;
         this._diffs = _diffs;
-        this._selection = _selection;
+        this._revertSelection = _revertSelection;
         this._id = `revertButton${RevertButton.counter++}`;
         this._domNode = h('div.revertButton', {
-            title: this._selection
+            title: this._revertSelection
                 ? localize('revertSelectedChanges', 'Revert Selected Changes')
                 : localize('revertChange', 'Revert Change')
         }, [renderIcon(Codicon.arrowRight)]).root;

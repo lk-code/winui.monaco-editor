@@ -13,45 +13,45 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var CodeEditorWidget_1;
 import '../services/markerDecorations.js';
-import './media/editor.css';
-import * as nls from '../../../nls.js';
 import * as dom from '../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, createEventDeliveryQueue } from '../../../base/common/event.js';
 import { Disposable, dispose } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
+import './media/editor.css';
+import { applyFontInfo } from '../config/domFontInfo.js';
 import { EditorConfiguration } from '../config/editorConfiguration.js';
+import { TabFocus } from '../config/tabFocus.js';
 import { EditorExtensionsRegistry } from '../editorExtensions.js';
 import { ICodeEditorService } from '../services/codeEditorService.js';
 import { View } from '../view.js';
+import { DOMLineBreaksComputerFactory } from '../view/domLineBreaksComputer.js';
 import { ViewUserInputEvents } from '../view/viewUserInputEvents.js';
+import { CodeEditorContributions } from './codeEditorContributions.js';
 import { filterValidationDecorations } from '../../common/config/editorOptions.js';
 import { CursorColumns } from '../../common/core/cursorColumns.js';
+import { editorUnnecessaryCodeOpacity } from '../../common/core/editorColorRegistry.js';
 import { Position } from '../../common/core/position.js';
 import { Range } from '../../common/core/range.js';
 import { Selection } from '../../common/core/selection.js';
+import { WordOperations } from '../../common/cursor/cursorWordOperations.js';
 import { InternalEditorAction } from '../../common/editorAction.js';
 import * as editorCommon from '../../common/editorCommon.js';
 import { EditorContextKeys } from '../../common/editorContextKeys.js';
+import { ILanguageConfigurationService } from '../../common/languages/languageConfigurationRegistry.js';
 import { ModelDecorationOptions } from '../../common/model/textModel.js';
-import { editorUnnecessaryCodeOpacity } from '../../common/core/editorColorRegistry.js';
-import { editorErrorForeground, editorHintForeground, editorInfoForeground, editorWarningForeground } from '../../../platform/theme/common/colorRegistry.js';
+import { ILanguageFeaturesService } from '../../common/services/languageFeatures.js';
+import { MonospaceLineBreaksComputerFactory } from '../../common/viewModel/monospaceLineBreaksComputer.js';
 import { ViewModel } from '../../common/viewModel/viewModelImpl.js';
+import * as nls from '../../../nls.js';
+import { IAccessibilityService } from '../../../platform/accessibility/common/accessibility.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
 import { IContextKeyService } from '../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { ServiceCollection } from '../../../platform/instantiation/common/serviceCollection.js';
 import { INotificationService, Severity } from '../../../platform/notification/common/notification.js';
+import { editorErrorForeground, editorHintForeground, editorInfoForeground, editorWarningForeground } from '../../../platform/theme/common/colorRegistry.js';
 import { IThemeService, registerThemingParticipant } from '../../../platform/theme/common/themeService.js';
-import { IAccessibilityService } from '../../../platform/accessibility/common/accessibility.js';
-import { MonospaceLineBreaksComputerFactory } from '../../common/viewModel/monospaceLineBreaksComputer.js';
-import { DOMLineBreaksComputerFactory } from '../view/domLineBreaksComputer.js';
-import { WordOperations } from '../../common/cursor/cursorWordOperations.js';
-import { ILanguageConfigurationService } from '../../common/languages/languageConfigurationRegistry.js';
-import { applyFontInfo } from '../config/domFontInfo.js';
-import { ILanguageFeaturesService } from '../../common/services/languageFeatures.js';
-import { CodeEditorContributions } from './codeEditorContributions.js';
-import { TabFocus } from '../config/tabFocus.js';
 let EDITOR_ID = 0;
 class ModelData {
     constructor(model, viewModel, view, hasRealView, listenersToRemove, attachedView) {
@@ -175,8 +175,8 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._register(this._configuration.onDidChange((e) => {
             this._onDidChangeConfiguration.fire(e);
             const options = this._configuration.options;
-            if (e.hasChanged(143 /* EditorOption.layoutInfo */)) {
-                const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+            if (e.hasChanged(144 /* EditorOption.layoutInfo */)) {
+                const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
                 this._onDidLayoutChange.fire(layoutInfo);
             }
         }));
@@ -217,7 +217,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
             this._actions.set(internalAction.id, internalAction);
         }
         const isDropIntoEnabled = () => {
-            return !this._configuration.options.get(90 /* EditorOption.readOnly */)
+            return !this._configuration.options.get(91 /* EditorOption.readOnly */)
                 && this._configuration.options.get(36 /* EditorOption.dropIntoEditor */).enabled;
         };
         this._register(new dom.DragAndDropObserver(this._domElement, {
@@ -298,7 +298,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return null;
         }
-        return WordOperations.getWordAtPosition(this._modelData.model, this._configuration.options.get(129 /* EditorOption.wordSeparators */), position);
+        return WordOperations.getWordAtPosition(this._modelData.model, this._configuration.options.get(130 /* EditorOption.wordSeparators */), position);
     }
     getValue(options = null) {
         if (!this._modelData) {
@@ -351,7 +351,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._removeDecorationTypes();
         this._onDidChangeModel.fire(e);
         this._postDetachModelCleanup(detachedModel);
-        this._contributions.onAfterModelAttached();
+        this._contributionsDisposable = this._contributions.onAfterModelAttached();
     }
     _removeDecorationTypes() {
         this._decorationTypeKeysToIds = {};
@@ -837,7 +837,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(90 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -848,7 +848,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(90 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -859,7 +859,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(90 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -934,7 +934,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         // remove decorations for type and sub type
         const oldDecorationsIds = this._decorationTypeKeysToIds[decorationTypeKey];
         if (oldDecorationsIds) {
-            this.deltaDecorations(oldDecorationsIds, []);
+            this.changeDecorations(accessor => accessor.deltaDecorations(oldDecorationsIds, []));
         }
         if (this._decorationTypeKeysToIds.hasOwnProperty(decorationTypeKey)) {
             delete this._decorationTypeKeysToIds[decorationTypeKey];
@@ -945,7 +945,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
     }
     getLayoutInfo() {
         const options = this._configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         return layoutInfo;
     }
     createOverviewRuler(cssClassName) {
@@ -1113,13 +1113,13 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         }
         const position = this._modelData.model.validatePosition(rawPosition);
         const options = this._configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         const top = CodeEditorWidget_1._getVerticalOffsetForPosition(this._modelData, position.lineNumber, position.column) - this.getScrollTop();
         const left = this._modelData.view.getOffsetForColumn(position.lineNumber, position.column) + layoutInfo.glyphMarginWidth + layoutInfo.lineNumbersWidth + layoutInfo.decorationsWidth - this.getScrollLeft();
         return {
             top: top,
             left: left,
-            height: options.get(66 /* EditorOption.lineHeight */)
+            height: options.get(67 /* EditorOption.lineHeight */)
         };
     }
     getOffsetForColumn(lineNumber, column) {
@@ -1188,7 +1188,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                     break;
                 case 6 /* OutgoingViewModelEventKind.CursorStateChanged */: {
                     if (e.reachedMaxCursorCount) {
-                        const multiCursorLimit = this.getOption(79 /* EditorOption.multiCursorLimit */);
+                        const multiCursorLimit = this.getOption(80 /* EditorOption.multiCursorLimit */);
                         const message = nls.localize('cursors.maximum', "The number of cursors has been limited to {0}. Consider using [find and replace](https://code.visualstudio.com/docs/editor/codebasics#_find-and-replace) for larger changes or increase the editor multi cursor limit setting.", multiCursorLimit);
                         this._notificationService.prompt(Severity.Warning, message, [
                             {
@@ -1350,6 +1350,9 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         detachedModel === null || detachedModel === void 0 ? void 0 : detachedModel.removeAllDecorationsWithOwnerId(this._id);
     }
     _detachModel() {
+        var _a;
+        (_a = this._contributionsDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._contributionsDisposable = undefined;
         if (!this._modelData) {
             return null;
         }
@@ -1475,7 +1478,7 @@ class EditorContextKeysManager extends Disposable {
     _updateFromConfig() {
         const options = this._editor.getOptions();
         this._tabMovesFocus.set(TabFocus.getTabFocusMode());
-        this._editorReadonly.set(options.get(90 /* EditorOption.readOnly */));
+        this._editorReadonly.set(options.get(91 /* EditorOption.readOnly */));
         this._inDiffEditor.set(options.get(61 /* EditorOption.inDiffEditor */));
         this._editorColumnSelection.set(options.get(22 /* EditorOption.columnSelection */));
     }
@@ -1526,7 +1529,7 @@ export class EditorModeContext extends Disposable {
         this._hasDocumentSelectionFormattingProvider = EditorContextKeys.hasDocumentSelectionFormattingProvider.bindTo(_contextKeyService);
         this._hasMultipleDocumentFormattingProvider = EditorContextKeys.hasMultipleDocumentFormattingProvider.bindTo(_contextKeyService);
         this._hasMultipleDocumentSelectionFormattingProvider = EditorContextKeys.hasMultipleDocumentSelectionFormattingProvider.bindTo(_contextKeyService);
-        this._isInWalkThrough = EditorContextKeys.isInWalkThroughSnippet.bindTo(_contextKeyService);
+        this._isInEmbeddedEditor = EditorContextKeys.isInEmbeddedEditor.bindTo(_contextKeyService);
         const update = () => this._update();
         // update when model/mode changes
         this._register(_editor.onDidChangeModel(update));
@@ -1571,7 +1574,7 @@ export class EditorModeContext extends Disposable {
             this._hasDocumentFormattingProvider.reset();
             this._hasDocumentSelectionFormattingProvider.reset();
             this._hasSignatureHelpProvider.reset();
-            this._isInWalkThrough.reset();
+            this._isInEmbeddedEditor.reset();
         });
     }
     _update() {
@@ -1600,7 +1603,7 @@ export class EditorModeContext extends Disposable {
             this._hasDocumentSelectionFormattingProvider.set(this._languageFeaturesService.documentRangeFormattingEditProvider.has(model));
             this._hasMultipleDocumentFormattingProvider.set(this._languageFeaturesService.documentFormattingEditProvider.all(model).length + this._languageFeaturesService.documentRangeFormattingEditProvider.all(model).length > 1);
             this._hasMultipleDocumentSelectionFormattingProvider.set(this._languageFeaturesService.documentRangeFormattingEditProvider.all(model).length > 1);
-            this._isInWalkThrough.set(model.uri.scheme === Schemas.walkThroughSnippet);
+            this._isInEmbeddedEditor.set(model.uri.scheme === Schemas.walkThroughSnippet || model.uri.scheme === Schemas.vscodeChatCodeBlock);
         });
     }
 }

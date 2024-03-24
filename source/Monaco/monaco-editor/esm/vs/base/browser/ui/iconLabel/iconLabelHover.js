@@ -121,13 +121,14 @@ export function setupCustomHover(hoverDelegate, htmlElement, content, options) {
         }
         if (hadHover) {
             (_a = hoverDelegate.onDidHideHover) === null || _a === void 0 ? void 0 : _a.call(hoverDelegate);
+            hoverWidget = undefined;
         }
     };
     const triggerShowHover = (delay, focus, target) => {
         return new TimeoutTimer(async () => {
             if (!hoverWidget || hoverWidget.isDisposed) {
                 hoverWidget = new UpdatableHoverWidget(hoverDelegate, target || htmlElement, delay > 0);
-                await hoverWidget.update(content, focus, options);
+                await hoverWidget.update(typeof content === 'function' ? content() : content, focus, options);
             }
         }, delay);
     };

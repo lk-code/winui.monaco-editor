@@ -69,7 +69,7 @@ export class TriggerInlineSuggestionAction extends EditorAction {
             var _a;
             /** @description triggerExplicitly from command */
             await ((_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.triggerExplicitly(tx));
-            controller === null || controller === void 0 ? void 0 : controller.playAudioCue(tx);
+            controller === null || controller === void 0 ? void 0 : controller.playAccessibilitySignal(tx);
         });
     }
 }

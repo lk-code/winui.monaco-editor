@@ -162,13 +162,13 @@ export class EmptySubmenuAction extends Action {
 }
 EmptySubmenuAction.ID = 'vs.actions.empty';
 export function toAction(props) {
-    var _a, _b;
+    var _a;
     return {
         id: props.id,
         label: props.label,
         class: props.class,
         enabled: (_a = props.enabled) !== null && _a !== void 0 ? _a : true,
-        checked: (_b = props.checked) !== null && _b !== void 0 ? _b : false,
+        checked: props.checked,
         run: async (...args) => props.run(...args),
         tooltip: props.label
     };

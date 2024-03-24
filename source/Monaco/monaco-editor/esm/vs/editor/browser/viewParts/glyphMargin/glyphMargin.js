@@ -101,12 +101,12 @@ export class GlyphMarginWidgets extends ViewPart {
         this._widgets = {};
         this._context = context;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         this.domNode = createFastDomNode(document.createElement('div'));
         this.domNode.setClassName('glyph-margin-widgets');
         this.domNode.setPosition('absolute');
         this.domNode.setTop(0);
-        this._lineHeight = options.get(66 /* EditorOption.lineHeight */);
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
         this._glyphMargin = options.get(57 /* EditorOption.glyphMargin */);
         this._glyphMarginLeft = layoutInfo.glyphMarginLeft;
         this._glyphMarginWidth = layoutInfo.glyphMarginWidth;
@@ -126,8 +126,8 @@ export class GlyphMarginWidgets extends ViewPart {
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
-        this._lineHeight = options.get(66 /* EditorOption.lineHeight */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
         this._glyphMargin = options.get(57 /* EditorOption.glyphMargin */);
         this._glyphMarginLeft = layoutInfo.glyphMarginLeft;
         this._glyphMarginWidth = layoutInfo.glyphMarginWidth;

@@ -105,7 +105,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         this._disposables.add(_editor.onDidChangeModel(() => this._update()));
         this._disposables.add(_editor.onDidChangeModelLanguage(() => this._update()));
         this._disposables.add(_editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(139 /* EditorOption.inlayHints */)) {
+            if (e.hasChanged(140 /* EditorOption.inlayHints */)) {
                 this._update();
             }
         }));
@@ -119,7 +119,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
     _update() {
         this._sessionDisposables.clear();
         this._removeAllDecorations();
-        const options = this._editor.getOption(139 /* EditorOption.inlayHints */);
+        const options = this._editor.getOption(140 /* EditorOption.inlayHints */);
         if (options.enabled === 'off') {
             return;
         }
@@ -533,7 +533,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         }
     }
     _getLayoutInfo() {
-        const options = this._editor.getOption(139 /* EditorOption.inlayHints */);
+        const options = this._editor.getOption(140 /* EditorOption.inlayHints */);
         const padding = options.padding;
         const editorFontSize = this._editor.getOption(52 /* EditorOption.fontSize */);
         const editorFontFamily = this._editor.getOption(49 /* EditorOption.fontFamily */);

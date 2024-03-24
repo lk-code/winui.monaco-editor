@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { DebugNameData, getFunctionName } from './debugName.js';
 import { getLogger } from './logging.js';
 let _recomputeInitiallyAndOnChange;
 export function _setRecomputeInitiallyAndOnChange(recomputeInitiallyAndOnChange) {
@@ -165,89 +166,6 @@ export class TransactionImpl {
         (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleEndTransaction();
     }
 }
-const countPerName = new Map();
-const cachedDebugName = new WeakMap();
-export function getDebugName(self, debugNameFn, fn, owner) {
-    var _a;
-    const cached = cachedDebugName.get(self);
-    if (cached) {
-        return cached;
-    }
-    const dbgName = computeDebugName(self, debugNameFn, fn, owner);
-    if (dbgName) {
-        let count = (_a = countPerName.get(dbgName)) !== null && _a !== void 0 ? _a : 0;
-        count++;
-        countPerName.set(dbgName, count);
-        const result = count === 1 ? dbgName : `${dbgName}#${count}`;
-        cachedDebugName.set(self, result);
-        return result;
-    }
-    return undefined;
-}
-function computeDebugName(self, debugNameFn, fn, owner) {
-    const cached = cachedDebugName.get(self);
-    if (cached) {
-        return cached;
-    }
-    const ownerStr = owner ? formatOwner(owner) + `.` : '';
-    let result;
-    if (debugNameFn !== undefined) {
-        if (typeof debugNameFn === 'function') {
-            result = debugNameFn();
-            if (result !== undefined) {
-                return ownerStr + result;
-            }
-        }
-        else {
-            return ownerStr + debugNameFn;
-        }
-    }
-    if (fn !== undefined) {
-        result = getFunctionName(fn);
-        if (result !== undefined) {
-            return ownerStr + result;
-        }
-    }
-    if (owner !== undefined) {
-        for (const key in owner) {
-            if (owner[key] === self) {
-                return ownerStr + key;
-            }
-        }
-    }
-    return undefined;
-}
-const countPerClassName = new Map();
-const ownerId = new WeakMap();
-function formatOwner(owner) {
-    var _a;
-    const id = ownerId.get(owner);
-    if (id) {
-        return id;
-    }
-    const className = getClassName(owner);
-    let count = (_a = countPerClassName.get(className)) !== null && _a !== void 0 ? _a : 0;
-    count++;
-    countPerClassName.set(className, count);
-    const result = count === 1 ? className : `${className}#${count}`;
-    ownerId.set(owner, result);
-    return result;
-}
-function getClassName(obj) {
-    const ctor = obj.constructor;
-    if (ctor) {
-        return ctor.name;
-    }
-    return 'Object';
-}
-export function getFunctionName(fn) {
-    const fnSrc = fn.toString();
-    // Pattern: /** @description ... */
-    const regexp = /\/\*\*\s*@description\s*([^*]*)\*\//;
-    const match = regexp.exec(fnSrc);
-    const result = match ? match[1] : undefined;
-    return result === null || result === void 0 ? void 0 : result.trim();
-}
 export function observableValue(nameOrOwner, initialValue) {
     if (typeof nameOrOwner === 'string') {
         return new ObservableValue(undefined, nameOrOwner, initialValue);
@@ -259,7 +177,7 @@ export function observableValue(nameOrOwner, initialValue) {
 export class ObservableValue extends BaseObservable {
     get debugName() {
         var _a;
-        return (_a = getDebugName(this, this._debugName, undefined, this._owner)) !== null && _a !== void 0 ? _a : 'ObservableValue';
+        return (_a = new DebugNameData(this._owner, this._debugName, undefined).getDebugName(this)) !== null && _a !== void 0 ? _a : 'ObservableValue';
     }
     constructor(_owner, _debugName, initialValue) {
         super();

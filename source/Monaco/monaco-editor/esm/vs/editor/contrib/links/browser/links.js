@@ -60,7 +60,7 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
             this.cleanUpActiveLinkDecoration();
         }));
         this._register(editor.onDidChangeConfiguration((e) => {
-            if (!e.hasChanged(70 /* EditorOption.links */)) {
+            if (!e.hasChanged(71 /* EditorOption.links */)) {
                 return;
             }
             // Remove any links (for the getting disabled case)
@@ -93,7 +93,7 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
         this.computeLinks.schedule(0);
     }
     async computeLinksNow() {
-        if (!this.editor.hasModel() || !this.editor.getOption(70 /* EditorOption.links */)) {
+        if (!this.editor.hasModel() || !this.editor.getOption(71 /* EditorOption.links */)) {
             return;
         }
         const model = this.editor.getModel();
@@ -125,7 +125,7 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
         }
     }
     updateDecorations(links) {
-        const useMetaKey = (this.editor.getOption(77 /* EditorOption.multiCursorModifier */) === 'altKey');
+        const useMetaKey = (this.editor.getOption(78 /* EditorOption.multiCursorModifier */) === 'altKey');
         const oldDecorations = [];
         const keys = Object.keys(this.currentOccurrences);
         for (const decorationId of keys) {
@@ -150,7 +150,7 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
         });
     }
     _onEditorMouseMove(mouseEvent, withKey) {
-        const useMetaKey = (this.editor.getOption(77 /* EditorOption.multiCursorModifier */) === 'altKey');
+        const useMetaKey = (this.editor.getOption(78 /* EditorOption.multiCursorModifier */) === 'altKey');
         if (this.isEnabled(mouseEvent, withKey)) {
             this.cleanUpActiveLinkDecoration(); // always remove previous link decoration as their can only be one
             const occurrence = this.getLinkOccurrence(mouseEvent.target.position);
@@ -166,7 +166,7 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
         }
     }
     cleanUpActiveLinkDecoration() {
-        const useMetaKey = (this.editor.getOption(77 /* EditorOption.multiCursorModifier */) === 'altKey');
+        const useMetaKey = (this.editor.getOption(78 /* EditorOption.multiCursorModifier */) === 'altKey');
         if (this.activeLinkDecorationId) {
             const occurrence = this.currentOccurrences[this.activeLinkDecorationId];
             if (occurrence) {

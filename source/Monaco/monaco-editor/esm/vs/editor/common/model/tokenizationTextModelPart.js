@@ -17,7 +17,6 @@ import { DefaultBackgroundTokenizer, TokenizerWithStateStoreAndTextModel, Tracki
 import { ContiguousMultilineTokensBuilder } from '../tokens/contiguousMultilineTokensBuilder.js';
 import { ContiguousTokensStore } from '../tokens/contiguousTokensStore.js';
 import { SparseTokensStore } from '../tokens/sparseTokensStore.js';
-/* hot-reload:patch-prototype-methods */
 export class TokenizationTextModelPart extends TextModelPart {
     constructor(_languageService, _languageConfigurationService, _textModel, _bracketPairsTextModelPart, _languageId, _attachedViews) {
         super();

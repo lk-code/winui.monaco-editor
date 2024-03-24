@@ -67,12 +67,12 @@ let DiffEditorViewZones = class DiffEditorViewZones extends Disposable {
             updateImmediately.schedule();
         } }));
         this._register(this._editors.original.onDidChangeConfiguration((args) => {
-            if (args.hasChanged(144 /* EditorOption.wrappingInfo */) || args.hasChanged(66 /* EditorOption.lineHeight */)) {
+            if (args.hasChanged(145 /* EditorOption.wrappingInfo */) || args.hasChanged(67 /* EditorOption.lineHeight */)) {
                 updateImmediately.schedule();
             }
         }));
         this._register(this._editors.modified.onDidChangeConfiguration((args) => {
-            if (args.hasChanged(144 /* EditorOption.wrappingInfo */) || args.hasChanged(66 /* EditorOption.lineHeight */)) {
+            if (args.hasChanged(145 /* EditorOption.wrappingInfo */) || args.hasChanged(67 /* EditorOption.lineHeight */)) {
                 updateImmediately.schedule();
             }
         }));
@@ -153,7 +153,7 @@ let DiffEditorViewZones = class DiffEditorViewZones extends Disposable {
             }
             const lineBreakData = (_b = deletedCodeLineBreaksComputer === null || deletedCodeLineBreaksComputer === void 0 ? void 0 : deletedCodeLineBreaksComputer.finalize()) !== null && _b !== void 0 ? _b : [];
             let lineBreakDataIdx = 0;
-            const modLineHeight = this._editors.modified.getOption(66 /* EditorOption.lineHeight */);
+            const modLineHeight = this._editors.modified.getOption(67 /* EditorOption.lineHeight */);
             const syncedMovedText = (_c = this._diffModel.read(reader)) === null || _c === void 0 ? void 0 : _c.movedTextToCompare.read(reader);
             const mightContainNonBasicASCII = (_e = (_d = this._editors.original.getModel()) === null || _d === void 0 ? void 0 : _d.mightContainNonBasicASCII()) !== null && _e !== void 0 ? _e : false;
             const mightContainRTL = (_g = (_f = this._editors.original.getModel()) === null || _f === void 0 ? void 0 : _f.mightContainRTL()) !== null && _g !== void 0 ? _g : false;
@@ -377,8 +377,8 @@ export { DiffEditorViewZones };
 function computeRangeAlignment(originalEditor, modifiedEditor, diffs, originalEditorAlignmentViewZones, modifiedEditorAlignmentViewZones, innerHunkAlignment) {
     const originalLineHeightOverrides = new ArrayQueue(getAdditionalLineHeights(originalEditor, originalEditorAlignmentViewZones));
     const modifiedLineHeightOverrides = new ArrayQueue(getAdditionalLineHeights(modifiedEditor, modifiedEditorAlignmentViewZones));
-    const origLineHeight = originalEditor.getOption(66 /* EditorOption.lineHeight */);
-    const modLineHeight = modifiedEditor.getOption(66 /* EditorOption.lineHeight */);
+    const origLineHeight = originalEditor.getOption(67 /* EditorOption.lineHeight */);
+    const modLineHeight = modifiedEditor.getOption(67 /* EditorOption.lineHeight */);
     const result = [];
     let lastOriginalLineNumber = 0;
     let lastModifiedLineNumber = 0;
@@ -485,9 +485,9 @@ function computeRangeAlignment(originalEditor, modifiedEditor, diffs, originalEd
 function getAdditionalLineHeights(editor, viewZonesToIgnore) {
     const viewZoneHeights = [];
     const wrappingZoneHeights = [];
-    const hasWrapping = editor.getOption(144 /* EditorOption.wrappingInfo */).wrappingColumn !== -1;
+    const hasWrapping = editor.getOption(145 /* EditorOption.wrappingInfo */).wrappingColumn !== -1;
     const coordinatesConverter = editor._getViewModel().coordinatesConverter;
-    const editorLineHeight = editor.getOption(66 /* EditorOption.lineHeight */);
+    const editorLineHeight = editor.getOption(67 /* EditorOption.lineHeight */);
     if (hasWrapping) {
         for (let i = 1; i <= editor.getModel().getLineCount(); i++) {
             const lineCount = coordinatesConverter.getModelLineViewLineCount(i);

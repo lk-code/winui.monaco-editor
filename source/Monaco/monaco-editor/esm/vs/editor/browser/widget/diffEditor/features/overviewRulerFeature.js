@@ -128,7 +128,7 @@ let OverviewRulerFeature = OverviewRulerFeature_1 = class OverviewRulerFeature e
                     });
                     const scrollTop = this._editors.modifiedScrollTop.read(reader);
                     const scrollHeight = this._editors.modifiedScrollHeight.read(reader);
-                    const scrollBarOptions = this._editors.modified.getOption(102 /* EditorOption.scrollbar */);
+                    const scrollBarOptions = this._editors.modified.getOption(103 /* EditorOption.scrollbar */);
                     const state = new ScrollbarState(scrollBarOptions.verticalHasArrows ? scrollBarOptions.arrowSize : 0, scrollBarOptions.verticalScrollbarSize, 0, layoutInfo.height, scrollHeight, scrollTop);
                     viewportDomElement.setTop(state.getSliderPosition());
                     viewportDomElement.setHeight(state.getSliderSize());

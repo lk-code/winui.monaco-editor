@@ -129,6 +129,10 @@ exports.features = [
     "entry": "vs/editor/contrib/inlineCompletions/browser/inlineCompletions.contribution"
   },
   {
+    "label": "inlineEdit",
+    "entry": "vs/editor/contrib/inlineEdit/browser/inlineEdit.contribution"
+  },
+  {
     "label": "inlineProgress",
     "entry": "vs/editor/contrib/inlineProgress/browser/inlineProgress"
   },

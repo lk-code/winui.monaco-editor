@@ -37,7 +37,7 @@ export var EditorContextKeys;
     EditorContextKeys.hasSingleSelection = EditorContextKeys.hasMultipleSelections.toNegated();
     EditorContextKeys.tabMovesFocus = new RawContextKey('editorTabMovesFocus', false, nls.localize('editorTabMovesFocus', "Whether `Tab` will move focus out of the editor"));
     EditorContextKeys.tabDoesNotMoveFocus = EditorContextKeys.tabMovesFocus.toNegated();
-    EditorContextKeys.isInWalkThroughSnippet = new RawContextKey('isInEmbeddedEditor', false, true);
+    EditorContextKeys.isInEmbeddedEditor = new RawContextKey('isInEmbeddedEditor', false, true);
     EditorContextKeys.canUndo = new RawContextKey('canUndo', false, true);
     EditorContextKeys.canRedo = new RawContextKey('canRedo', false, true);
     EditorContextKeys.hoverVisible = new RawContextKey('editorHoverVisible', false, nls.localize('editorHoverVisible', "Whether the editor hover is visible"));

@@ -24,9 +24,10 @@ function registerGlobalHotReloadHandler() {
     }
     const g = globalThis;
     if (!g.$hotReload_applyNewExports) {
-        g.$hotReload_applyNewExports = oldExports => {
+        g.$hotReload_applyNewExports = args => {
+            const args2 = { config: { mode: undefined }, ...args };
             for (const h of hotReloadHandlers) {
-                const result = h(oldExports);
+                const result = h(args2);
                 if (result) {
                     return result;
                 }
@@ -39,9 +40,8 @@ function registerGlobalHotReloadHandler() {
 let hotReloadHandlers = undefined;
 if (isHotReloadEnabled()) {
     // This code does not run in production.
-    registerHotReloadHandler(({ oldExports, newSrc }) => {
-        // Don't match its own source code
-        if (newSrc.indexOf('/* ' + 'hot-reload:patch-prototype-methods */') === -1) {
+    registerHotReloadHandler(({ oldExports, newSrc, config }) => {
+        if (config.mode !== 'patch-prototype') {
             return undefined;
         }
         return newExports => {

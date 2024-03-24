@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
+ * Version: 0.47.0(69991d66135e4a1fc1cf0b1ac4ad25d429866a0d)
  * Released under the MIT license
  * https://github.com/microsoft/vscode/blob/main/LICENSE.txt
  *-----------------------------------------------------------*/
@@ -148,16 +148,16 @@ define("vs/editor/editor.main.nls", {
 	"vs/editor/browser/widget/diffEditor/diffEditor.contribution": [
 		"Use Inline View When Space Is Limited",
 		"Show Moved Code Blocks",
-		"Diff Editor",
-		"Accessible Diff Viewer",
 		"Open Accessible Diff Viewer",
 		"Toggle Collapse Unchanged Regions",
 		"Toggle Show Moved Code Blocks",
 		"Toggle Use Inline View When Space Is Limited",
+		"Diff Editor",
 		"Switch Side",
 		"Exit Compare Move",
 		"Collapse All Unchanged Regions",
 		"Show All Unchanged Regions",
+		"Accessible Diff Viewer",
 		"Go to Next Difference",
 		"Go to Previous Difference"
 	],
@@ -367,6 +367,13 @@ define("vs/editor/editor.main.nls", {
 		"Controls when to show the inline suggestion toolbar.",
 		"Controls how inline suggestions interact with the suggest widget. If enabled, the suggest widget is not shown automatically when inline suggestions are available.",
 		"Controls the font family of the inline suggestions.",
+		"Controls whether to show inline edits in the editor.",
+		"Show the inline edit toolbar whenever an inline suggestion is shown.",
+		"Show the inline edit toolbar when hovering over an inline suggestion.",
+		"Never show the inline edit toolbar.",
+		"Controls when to show the inline edit toolbar.",
+		"Controls the font family of the inline edit.",
+		"Controls whether to color the background of inline edits.",
 		"Controls whether bracket pair colorization is enabled or not. Use {0} to override the bracket highlight colors.",
 		"Controls whether each bracket type has its own independent color pool.",
 		"Enables bracket pair guides.",
@@ -798,16 +805,16 @@ define("vs/editor/editor.main.nls", {
 		"Copy",
 		"Copy",
 		"Copy",
-		"Copy As",
-		"Copy As",
-		"Share",
-		"Share",
-		"Share",
 		"&&Paste",
 		"Paste",
 		"Paste",
 		"Paste",
-		"Copy With Syntax Highlighting"
+		"Copy With Syntax Highlighting",
+		"Copy As",
+		"Copy As",
+		"Share",
+		"Share",
+		"Share"
 	],
 	"vs/editor/contrib/codeAction/browser/codeAction": [
 		"An unknown error occurred while applying the code action"
@@ -876,10 +883,10 @@ define("vs/editor/editor.main.nls", {
 		"Icon to close the color picker"
 	],
 	"vs/editor/contrib/colorPicker/browser/standaloneColorPickerActions": [
-		"Show or Focus Standalone Color Picker",
 		"&&Show or Focus Standalone Color Picker",
 		"Hide the Color Picker",
-		"Insert Color with Standalone Color Picker"
+		"Insert Color with Standalone Color Picker",
+		"Show or Focus Standalone Color Picker"
 	],
 	"vs/editor/contrib/comment/browser/comment": [
 		"Toggle Line Comment",
@@ -1057,41 +1064,41 @@ define("vs/editor/editor.main.nls", {
 		"Definitions",
 		"No definition found for '{0}'",
 		"No definition found",
-		"Go to Definition",
 		"Go to &&Definition",
-		"Open Definition to the Side",
-		"Peek Definition",
 		"Declarations",
 		"No declaration found for '{0}'",
 		"No declaration found",
-		"Go to Declaration",
 		"Go to &&Declaration",
 		"No declaration found for '{0}'",
 		"No declaration found",
-		"Peek Declaration",
 		"Type Definitions",
 		"No type definition found for '{0}'",
 		"No type definition found",
-		"Go to Type Definition",
 		"Go to &&Type Definition",
-		"Peek Type Definition",
 		"Implementations",
 		"No implementation found for '{0}'",
 		"No implementation found",
-		"Go to Implementations",
 		"Go to &&Implementations",
-		"Peek Implementations",
 		"No references found for '{0}'",
 		"No references found",
-		"Go to References",
 		"Go to &&References",
 		"References",
-		"Peek References",
 		"References",
-		"Go to Any Symbol",
 		"Locations",
 		"No results for '{0}'",
-		"References"
+		"References",
+		"Go to Definition",
+		"Open Definition to the Side",
+		"Peek Definition",
+		"Go to Declaration",
+		"Peek Declaration",
+		"Go to Type Definition",
+		"Peek Type Definition",
+		"Go to Implementations",
+		"Peek Implementations",
+		"Go to References",
+		"Peek References",
+		"Go to Any Symbol"
 	],
 	"vs/editor/contrib/gotoSymbol/browser/link/goToDefinitionAtPosition": [
 		"Click to show {0} definitions."
@@ -1374,12 +1381,16 @@ define("vs/editor/editor.main.nls", {
 		"Rename failed to apply edits",
 		"Rename failed to compute edits",
 		"Rename Symbol",
-		"Enable/disable the ability to preview changes before renaming"
+		"Enable/disable the ability to preview changes before renaming",
+		"Focus Next Rename Suggestion",
+		"Focus Previous Rename Suggestion"
 	],
 	"vs/editor/contrib/rename/browser/renameInputField": [
 		"Whether the rename input widget is visible",
+		"Whether the rename input widget is focused",
 		"Rename input. Type new name and press Enter to commit.",
-		"{0} to Rename, {1} to Preview"
+		"{0} to Rename, {1} to Preview",
+		"Received {0} rename suggestions"
 	],
 	"vs/editor/contrib/smartSelect/browser/smartSelect": [
 		"Expand Selection",
@@ -1434,12 +1445,12 @@ define("vs/editor/editor.main.nls", {
 		"Dec"
 	],
 	"vs/editor/contrib/stickyScroll/browser/stickyScrollActions": [
-		"Toggle Editor Sticky Scroll",
 		"&&Toggle Editor Sticky Scroll",
 		"Sticky Scroll",
 		"&&Sticky Scroll",
-		"Focus Sticky Scroll",
 		"&&Focus Sticky Scroll",
+		"Toggle Editor Sticky Scroll",
+		"Focus Sticky Scroll",
 		"Select next sticky scroll line",
 		"Select previous sticky scroll line",
 		"Go to focused sticky scroll line",
@@ -1532,9 +1543,9 @@ define("vs/editor/editor.main.nls", {
 		"The foreground color for variable symbols. These symbols appear in the outline, breadcrumb, and suggest widget."
 	],
 	"vs/editor/contrib/toggleTabFocusMode/browser/toggleTabFocusMode": [
-		"Toggle Tab Key Moves Focus",
 		"Pressing Tab will now move focus to the next focusable element",
-		"Pressing Tab will now insert the tab character"
+		"Pressing Tab will now insert the tab character",
+		"Toggle Tab Key Moves Focus"
 	],
 	"vs/editor/contrib/tokenization/browser/tokenization": [
 		"Developer: Force Retokenize"
@@ -1591,42 +1602,7 @@ define("vs/editor/editor.main.nls", {
 	"vs/editor/contrib/wordOperations/browser/wordOperations": [
 		"Delete Word"
 	],
-	"vs/platform/action/common/actionCommonCategories": [
-		"Developer",
-		"View",
-		"Help",
-		"Test",
-		"File",
-		"Preferences"
-	],
-	"vs/platform/actionWidget/browser/actionList": [
-		"{0} to apply, {1} to preview",
-		"{0} to apply",
-		"{0}, Disabled Reason: {1}",
-		"Action Widget"
-	],
-	"vs/platform/actionWidget/browser/actionWidget": [
-		"Background color for toggled action items in action bar.",
-		"Whether the action widget list is visible",
-		"Hide action widget",
-		"Select previous action",
-		"Select next action",
-		"Accept selected action",
-		"Preview selected action"
-	],
-	"vs/platform/actions/browser/menuEntryActionViewItem": [
-		"{0} ({1})",
-		"{0} ({1})",
-		"{0}\n[{1}] {2}"
-	],
-	"vs/platform/actions/browser/toolbar": [
-		"Hide",
-		"Reset Menu"
-	],
-	"vs/platform/actions/common/menuService": [
-		"Hide '{0}'"
-	],
-	"vs/platform/audioCues/browser/audioCueService": [
+	"vs/platform/accessibilitySignal/browser/accessibilitySignalService": [
 		"Error on Line",
 		"Error",
 		"Warning on Line",
@@ -1668,6 +1644,41 @@ define("vs/editor/editor.main.nls", {
 		"Save",
 		"Format",
 		"Format"
+	],
+	"vs/platform/action/common/actionCommonCategories": [
+		"View",
+		"Help",
+		"Test",
+		"File",
+		"Preferences",
+		"Developer"
+	],
+	"vs/platform/actionWidget/browser/actionList": [
+		"{0} to apply, {1} to preview",
+		"{0} to apply",
+		"{0}, Disabled Reason: {1}",
+		"Action Widget"
+	],
+	"vs/platform/actionWidget/browser/actionWidget": [
+		"Background color for toggled action items in action bar.",
+		"Whether the action widget list is visible",
+		"Hide action widget",
+		"Select previous action",
+		"Select next action",
+		"Accept selected action",
+		"Preview selected action"
+	],
+	"vs/platform/actions/browser/menuEntryActionViewItem": [
+		"{0} ({1})",
+		"{0} ({1})",
+		"{0}\n[{1}] {2}"
+	],
+	"vs/platform/actions/browser/toolbar": [
+		"Hide",
+		"Reset Menu"
+	],
+	"vs/platform/actions/common/menuService": [
+		"Hide '{0}'"
 	],
 	"vs/platform/configuration/common/configurationRegistry": [
 		"Default Language Configuration Overrides",

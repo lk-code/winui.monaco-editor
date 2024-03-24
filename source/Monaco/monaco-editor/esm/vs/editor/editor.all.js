@@ -40,6 +40,7 @@ import './contrib/linkedEditing/browser/linkedEditing.js';
 import './contrib/links/browser/links.js';
 import './contrib/longLinesHelper/browser/longLinesHelper.js';
 import './contrib/multicursor/browser/multicursor.js';
+import './contrib/inlineEdit/browser/inlineEdit.contribution.js';
 import './contrib/parameterHints/browser/parameterHints.js';
 import './contrib/rename/browser/rename.js';
 import './contrib/semanticTokens/browser/documentSemanticTokens.js';

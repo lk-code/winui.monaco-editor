@@ -8,7 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { asCssValueWithDefault, createStyleSheet, EventHelper, getActiveElement, getWindow, isMouseEvent } from '../../dom.js';
+import { asCssValueWithDefault, createStyleSheet, EventHelper, getActiveElement, getWindow, isActiveElement, isMouseEvent } from '../../dom.js';
 import { DomEmitter } from '../../event.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { Gesture } from '../../touch.js';
@@ -1085,6 +1085,7 @@ export class List {
     }
     get onKeyDown() { return this.disposables.add(new DomEmitter(this.view.domNode, 'keydown')).event; }
     get onDidFocus() { return Event.signal(this.disposables.add(new DomEmitter(this.view.domNode, 'focus', true)).event); }
+    get onDidBlur() { return Event.signal(this.disposables.add(new DomEmitter(this.view.domNode, 'blur', true)).event); }
     constructor(user, container, virtualDelegate, renderers, _options = DefaultOptions) {
         var _a, _b, _c, _d;
         this.user = user;
@@ -1452,6 +1453,9 @@ export class List {
         const m = elementHeight - this.view.renderHeight + paddingTop;
         return Math.abs((scrollTop + paddingTop - elementTop) / m);
     }
+    isDOMFocused() {
+        return isActiveElement(this.view.domNode);
+    }
     getHTMLElement() {
         return this.view.domNode;
     }
@@ -1516,3 +1520,6 @@ __decorate([
 __decorate([
     memoize
 ], List.prototype, "onDidFocus", null);
+__decorate([
+    memoize
+], List.prototype, "onDidBlur", null);

@@ -25,7 +25,7 @@ import { IThemeService, Themable } from '../../theme/common/themeService.js';
 import { QuickInputHoverDelegate } from './quickInput.js';
 import { QuickInputController } from './quickInputController.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
-import { IHoverService } from '../../hover/browser/hover.js';
+import { getWindow } from '../../../base/browser/dom.js';
 let QuickInputService = class QuickInputService extends Themable {
     get controller() {
         if (!this._controller) {
@@ -40,13 +40,12 @@ let QuickInputService = class QuickInputService extends Themable {
         }
         return this._quickAccess;
     }
-    constructor(instantiationService, contextKeyService, themeService, layoutService, configurationService, hoverService) {
+    constructor(instantiationService, contextKeyService, themeService, layoutService, configurationService) {
         super(themeService);
         this.instantiationService = instantiationService;
         this.contextKeyService = contextKeyService;
         this.layoutService = layoutService;
         this.configurationService = configurationService;
-        this.hoverService = hoverService;
         this._onShow = this._register(new Emitter());
         this._onHide = this._register(new Emitter());
         this.contexts = new Map();
@@ -68,7 +67,7 @@ let QuickInputService = class QuickInputService extends Themable {
             returnFocus: () => host.focus(),
             createList: (user, container, delegate, renderers, options) => this.instantiationService.createInstance(WorkbenchList, user, container, delegate, renderers, options),
             styles: this.computeStyles(),
-            hoverDelegate: new QuickInputHoverDelegate(this.configurationService, this.hoverService)
+            hoverDelegate: this._register(this.instantiationService.createInstance(QuickInputHoverDelegate))
         };
         const controller = this._register(new QuickInputController({
             ...defaultOptions,
@@ -76,7 +75,11 @@ let QuickInputService = class QuickInputService extends Themable {
         }, this.themeService, this.layoutService));
         controller.layout(host.activeContainerDimension, host.activeContainerOffset.quickPickTop);
         // Layout changes
-        this._register(host.onDidLayoutActiveContainer(dimension => controller.layout(dimension, host.activeContainerOffset.quickPickTop)));
+        this._register(host.onDidLayoutActiveContainer(dimension => {
+            if (getWindow(host.activeContainer) === getWindow(controller.container)) {
+                controller.layout(dimension, host.activeContainerOffset.quickPickTop);
+            }
+        }));
         this._register(host.onDidChangeActiveContainer(() => {
             if (controller.isVisible()) {
                 return;
@@ -169,7 +172,6 @@ QuickInputService = __decorate([
     __param(1, IContextKeyService),
     __param(2, IThemeService),
     __param(3, ILayoutService),
-    __param(4, IConfigurationService),
-    __param(5, IHoverService)
+    __param(4, IConfigurationService)
 ], QuickInputService);
 export { QuickInputService };

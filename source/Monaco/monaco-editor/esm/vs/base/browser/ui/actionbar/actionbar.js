@@ -5,6 +5,7 @@
 import * as DOM from '../../dom.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { ActionViewItem, BaseActionViewItem } from './actionViewItems.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
 import { ActionRunner, Separator } from '../../../common/actions.js';
 import { Emitter } from '../../../common/event.js';
 import { Disposable, DisposableMap, DisposableStore, dispose } from '../../../common/lifecycle.js';
@@ -12,7 +13,7 @@ import * as types from '../../../common/types.js';
 import './actionbar.css';
 export class ActionBar extends Disposable {
     constructor(container, options = {}) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         super();
         this._actionRunnerDisposables = this._register(new DisposableStore());
         this.viewItemDisposables = this._register(new DisposableMap());
@@ -35,6 +36,7 @@ export class ActionBar extends Disposable {
             keyDown: (_d = (_c = this.options.triggerKeys) === null || _c === void 0 ? void 0 : _c.keyDown) !== null && _d !== void 0 ? _d : false,
             keys: (_f = (_e = this.options.triggerKeys) === null || _e === void 0 ? void 0 : _e.keys) !== null && _f !== void 0 ? _f : [3 /* KeyCode.Enter */, 10 /* KeyCode.Space */]
         };
+        this._hoverDelegate = (_g = options.hoverDelegate) !== null && _g !== void 0 ? _g : this._register(getDefaultHoverDelegate('element', true));
         if (this.options.actionRunner) {
             this._actionRunner = this.options.actionRunner;
         }
@@ -48,9 +50,6 @@ export class ActionBar extends Disposable {
         this.focusedItem = undefined;
         this.domNode = document.createElement('div');
         this.domNode.className = 'monaco-action-bar';
-        if (options.animated !== false) {
-            this.domNode.classList.add('animated');
-        }
         let previousKeys;
         let nextKeys;
         switch (this._orientation) {
@@ -238,7 +237,7 @@ export class ActionBar extends Disposable {
             actionViewItemElement.className = 'action-item';
             actionViewItemElement.setAttribute('role', 'presentation');
             let item;
-            const viewItemOptions = { hoverDelegate: this.options.hoverDelegate, ...options };
+            const viewItemOptions = { hoverDelegate: this._hoverDelegate, ...options };
             if (this.options.actionViewItemProvider) {
                 item = this.options.actionViewItemProvider(action, viewItemOptions);
             }

@@ -72,8 +72,8 @@ let CopyPasteController = CopyPasteController_1 = class CopyPasteController exte
         }
     }
     isPasteAsEnabled() {
-        return this._editor.getOption(84 /* EditorOption.pasteAs */).enabled
-            && !this._editor.getOption(90 /* EditorOption.readOnly */);
+        return this._editor.getOption(85 /* EditorOption.pasteAs */).enabled
+            && !this._editor.getOption(91 /* EditorOption.readOnly */);
     }
     async finishedPaste() {
         await this._currentPasteOperation;
@@ -245,7 +245,7 @@ let CopyPasteController = CopyPasteController_1 = class CopyPasteController exte
                     return;
                 }
                 if (providerEdits.length) {
-                    const canShowWidget = editor.getOption(84 /* EditorOption.pasteAs */).showPasteSelector === 'afterPaste';
+                    const canShowWidget = editor.getOption(85 /* EditorOption.pasteAs */).showPasteSelector === 'afterPaste';
                     return this._postPasteWidgetManager.applyEditAndShowIfNeeded(selections, { activeEditIndex: 0, allEdits: providerEdits }, canShowWidget, tokenSource.token);
                 }
                 await this.applyDefaultPasteHandler(dataTransfer, metadata, tokenSource.token);

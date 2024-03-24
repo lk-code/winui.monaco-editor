@@ -36,6 +36,11 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="300" />
+        </Grid.RowDefinitions>
+
         <StackPanel Orientation="Vertical"
                     Grid.Column="0"
                     Padding="8">
@@ -78,13 +83,25 @@
                       HorizontalAlignment="Stretch" />
             </StackPanel>
 
+            <Button Style="{ThemeResource ModeButtonStyle}"
+                    Content="Open DevTools (F12)"
+                    Click="OpenDevToolsButton_Click" />
+
         </StackPanel>
 
         <monaco:MonacoEditor Grid.Column="1"
                              x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
                              EditorLanguage="python"
-                             EditorContentChanged="MonacoEditor_EditorContentChanged"/>
+                             EditorContentChanged="MonacoEditor_EditorContentChanged"
+                             MonacoEditorLoaded="MonacoEditor_MonacoEditorLoaded" />
+
+        <TextBox Grid.Column="0"
+                 Grid.ColumnSpan="2"
+                 Grid.Row="1"
+                 x:Name="LoggingTextBox"
+                 AcceptsReturn="True"
+                 IsReadOnly="True" />
 
     </Grid>
 

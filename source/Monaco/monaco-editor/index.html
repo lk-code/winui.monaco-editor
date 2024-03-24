@@ -46,6 +46,32 @@
         };
     </script>
 
+    <script>
+        // communication logic with parent element (winui webview)
+        function handleWebViewMessage(message) {
+            try {
+                if (window.hasOwnProperty("chrome") && typeof chrome.webview !== undefined) {
+                    // Windows
+                    chrome.webview.postMessage(message);
+                } else if (window.hasOwnProperty("unoWebView")) {
+                    // Android
+                    unoWebView.postMessage(JSON.stringify(message));
+                } else if (window.hasOwnProperty("webkit") && typeof webkit.messageHandlers !== undefined) {
+                    // iOS and macOS
+                    webkit.messageHandlers.unoWebView.postMessage(JSON.stringify(message));
+                }
+            }
+            catch (ex) {
+                alert("Error occurred: " + ex);
+            }
+        }
+
+        // trigger event if monaco is loaded
+        editor.getAction('editor.action.formatDocument').run().then(() => {
+            handleWebViewMessage('EVENT_EDITOR_LOADED');
+        });
+    </script>
+
 </body>
 
 </html>

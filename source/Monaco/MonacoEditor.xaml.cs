@@ -13,16 +13,20 @@ namespace Monaco;
 
 public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 {
-    public bool LoadCompleted { get; set; } = false;
+    private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     private string _content = "";
-    private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
+
+    public bool LoadCompleted { get; set; } = false;
+
+    public event EventHandler? MonacoEditorLoaded = null;
+
 
     #region PropertyChanged Event
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -121,62 +125,59 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     public MonacoEditor()
     {
         this.InitializeComponent();
-        this.Loaded += MonacoEditor_Loaded;
+
+        this.Loaded += MonacoEditorParentView_Loaded;
+
         MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
-        MonacoEditorWebView.WebMessageReceived += WebMessageReceived;
     }
 
-    private void WebMessageReceived(WebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
+    private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
     {
+        await MonacoEditorWebView.EnsureCoreWebView2Async();
 
-        switch(args.WebMessageAsJson)
+        MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+        // load launch html file
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, HTML_LAUNCH_FILE);
+        this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
+    }
+
+    private void CoreWebView2_WebMessageReceived(CoreWebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
+    {
+        string message = args.TryGetWebMessageAsString();
+
+        this.ProcessMonacoEvents(message);
+    }
+
+    private void ProcessMonacoEvents(string monacoEvent)
+    {
+        switch (monacoEvent)
         {
-            case "\"EVENT_EDITOR_CONTENT_CHANGED\"":
-                OnContentChanged();
+            // own events
+            case "EVENT_EDITOR_LOADED":
+                {
+                    MonacoEditorLoaded?.Invoke(this, EventArgs.Empty);
+                }
                 break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            case "EVENT_EDITOR_CONTENT_CHANGED":
+                {
+                    OnContentChanged();
+                }
+                break;
+
+            // monaco events
         }
     }
 
     private async void WebView_NavigationCompleted(object sender, object e)
     {
-        string javaScriptMessageFunction =
-           "\n" +
-           "function postWebViewMessage(message){\n" +
-                "try{\n" +
-                    "if (window.hasOwnProperty(\"chrome\") && typeof chrome.webview !== undefined) {\n" +
-                        "// Windows\n" +
-                        "chrome.webview.postMessage(message);\n" +
-                    "} else if (window.hasOwnProperty(\"unoWebView\")) {\n" +
-                        "// Android\n" +
-                        "unoWebView.postMessage(JSON.stringify(message));\n" +
-                    "} else if (window.hasOwnProperty(\"webkit\") && typeof webkit.messageHandlers !== undefined) {\n" +
-                        "// iOS and macOS\n" +
-                        "webkit.messageHandlers.unoWebView.postMessage(JSON.stringify(message));\n" +
-                    "}\n" +
-                "}\n" +
-                "catch (ex){\n" +
-                    "alert(\"Error occurred: \" + ex);\n" +
-                "}\n" +
-            "}";
-
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptMessageFunction);
-        await Task.Delay(100);
-
         LoadCompleted = true;
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
 
-    }
-
-    private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
-    {
-        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, HTML_LAUNCH_FILE);
-        this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
     }
 
     /// <inheritdoc />
@@ -261,7 +262,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
         // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+    }
+
+    /// <inheritdoc />
+    public void OpenDebugWebViewDeveloperTools()
+    {
+        MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
     }
 }

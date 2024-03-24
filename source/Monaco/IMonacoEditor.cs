@@ -1,9 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Monaco;
 
 public interface IMonacoEditor
 {
+    /// <summary>
+    /// is called when the monaco editor is loaded
+    /// </summary>
+    event EventHandler MonacoEditorLoaded;
+
     /// <summary>
     /// sets the requested theme to the monaco editor view
     /// </summary>
@@ -42,4 +48,10 @@ public interface IMonacoEditor
     /// <param name="languageId">the language id of the code language (csharp, plaintext, etc.)</param>
     /// <returns></returns>
     Task SetLanguageAsync(string languageId);
+
+    /// <summary>
+    /// open the webview developer tools (if available)
+    /// </summary>
+    /// <returns></returns>
+    void OpenDebugWebViewDeveloperTools();
 }

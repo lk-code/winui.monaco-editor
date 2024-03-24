@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
-using System.Diagnostics;
+using System;
 
 namespace MonacoTestApp;
 
@@ -30,6 +30,11 @@ public sealed partial class MainWindow : Window
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
+    }
+
+    private void LogMessage(string message)
+    {
+        this.LoggingTextBox.Text += $"{DateTime.Now.ToShortTimeString()} - {message}" + Environment.NewLine;
     }
 
     private void ThemeSelectionComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -79,6 +84,11 @@ public sealed partial class MainWindow : Window
 
     private void MonacoEditor_EditorContentChanged(object sender, System.EventArgs e)
     {
-        Debug.WriteLine("Content in the editor has changed to: \n" + MonacoEditor.EditorContent);
+        this.LogMessage("Content in the editor has changed to: \n" + MonacoEditor.EditorContent);
+    }
+
+    private void MonacoEditor_MonacoEditorLoaded(object sender, EventArgs e)
+    {
+        this.LogMessage("Monaco Editor loaded");
     }
 }

@@ -135,10 +135,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         await MonacoEditorWebView.EnsureCoreWebView2Async();
 
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(
-            @"document.addEventListener('monaco-editor-did-load', function() { handleWebViewMessage('EVENT_EDITOR_LOADED'); });"
-        );
-
         MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
         // load launch html file
@@ -163,13 +159,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                     MonacoEditorLoaded?.Invoke(this, EventArgs.Empty);
                 }
                 break;
-
-            // monaco events
             case "EVENT_EDITOR_CONTENT_CHANGED":
                 {
                     OnContentChanged();
                 }
                 break;
+
+            // monaco events
         }
     }
 
@@ -268,5 +264,11 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         // Reset the change content event
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+    }
+
+    /// <inheritdoc />
+    public void OpenDebugWebViewDeveloperTools()
+    {
+        MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
     }
 }

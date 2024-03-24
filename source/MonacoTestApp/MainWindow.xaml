@@ -49,6 +49,10 @@
                     Content="Select All"
                     Click="SelectAllButton_Click" />
 
+            <Button Style="{ThemeResource ModeButtonStyle}"
+                    Content="Open Developer DevTools (F12)"
+                    Click="OpenDevToolsButton_Click" />
+
             <StackPanel Margin="0,16">
                 <TextBlock Text="Theme" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <ComboBox x:Name="ThemeSelectionComboBox"

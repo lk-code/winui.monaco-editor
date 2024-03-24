@@ -91,4 +91,16 @@ public sealed partial class MainWindow : Window
     {
         this.LogMessage("Monaco Editor loaded");
     }
+
+    private void OpenDevToolsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            this.MonacoEditor.OpenDebugWebViewDeveloperTools();
+        }
+        catch (Exception err)
+        {
+            this.LogMessage("failed to open dev tools: " + err.Message);
+        }
+    }
 }

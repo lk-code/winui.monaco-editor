@@ -47,6 +47,7 @@
     </script>
 
     <script>
+        // communication logic with parent element (winui webview)
         function handleWebViewMessage(message) {
             try {
                 if (window.hasOwnProperty("chrome") && typeof chrome.webview !== undefined) {
@@ -64,6 +65,11 @@
                 alert("Error occurred: " + ex);
             }
         }
+
+        // trigger event if monaco is loaded
+        editor.getAction('editor.action.formatDocument').run().then(() => {
+            handleWebViewMessage('EVENT_EDITOR_LOADED');
+        });
     </script>
 
 </body>

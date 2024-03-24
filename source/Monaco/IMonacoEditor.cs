@@ -48,4 +48,10 @@ public interface IMonacoEditor
     /// <param name="languageId">the language id of the code language (csharp, plaintext, etc.)</param>
     /// <returns></returns>
     Task SetLanguageAsync(string languageId);
+
+    /// <summary>
+    /// open the webview developer tools (if available)
+    /// </summary>
+    /// <returns></returns>
+    void OpenDebugWebViewDeveloperTools();
 }

@@ -174,7 +174,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
     {
-        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"MonacoEditorSource\index.html");
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"monaco-editor\index.html");
         this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
     }
 

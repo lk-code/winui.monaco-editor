@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
@@ -13,16 +13,20 @@ namespace Monaco;
 
 public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 {
-    public bool LoadCompleted { get; set; } = false;
+    private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     private string _content = "";
-    private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
+
+    public bool LoadCompleted { get; set; } = false;
+
+    public event EventHandler? MonacoEditorLoaded = null;
+
 
     #region PropertyChanged Event
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -141,34 +145,11 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private async void WebView_NavigationCompleted(object sender, object e)
     {
-        string javaScriptMessageFunction =
-           "\n" +
-           "function postWebViewMessage(message){\n" +
-                "try{\n" +
-                    "if (window.hasOwnProperty(\"chrome\") && typeof chrome.webview !== undefined) {\n" +
-                        "// Windows\n" +
-                        "chrome.webview.postMessage(message);\n" +
-                    "} else if (window.hasOwnProperty(\"unoWebView\")) {\n" +
-                        "// Android\n" +
-                        "unoWebView.postMessage(JSON.stringify(message));\n" +
-                    "} else if (window.hasOwnProperty(\"webkit\") && typeof webkit.messageHandlers !== undefined) {\n" +
-                        "// iOS and macOS\n" +
-                        "webkit.messageHandlers.unoWebView.postMessage(JSON.stringify(message));\n" +
-                    "}\n" +
-                "}\n" +
-                "catch (ex){\n" +
-                    "alert(\"Error occurred: \" + ex);\n" +
-                "}\n" +
-            "}";
-
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptMessageFunction);
-        await Task.Delay(100);
-
         LoadCompleted = true;
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
 
     }
@@ -261,7 +242,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
         // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { console.log(\"Editor content changed.\"); postWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
 }

@@ -49,10 +49,6 @@
                     Content="Select All"
                     Click="SelectAllButton_Click" />
 
-            <Button Style="{ThemeResource ModeButtonStyle}"
-                    Content="Open Developer DevTools (F12)"
-                    Click="OpenDevToolsButton_Click" />
-
             <StackPanel Margin="0,16">
                 <TextBlock Text="Theme" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <ComboBox x:Name="ThemeSelectionComboBox"
@@ -87,6 +83,10 @@
                       HorizontalAlignment="Stretch" />
             </StackPanel>
 
+            <Button Style="{ThemeResource ModeButtonStyle}"
+                    Content="Open DevTools (F12)"
+                    Click="OpenDevToolsButton_Click" />
+
         </StackPanel>
 
         <monaco:MonacoEditor Grid.Column="1"
@@ -100,7 +100,8 @@
                  Grid.ColumnSpan="2"
                  Grid.Row="1"
                  x:Name="LoggingTextBox"
-                 AcceptsReturn="True" />
+                 AcceptsReturn="True"
+                 IsReadOnly="True" />
 
     </Grid>
 

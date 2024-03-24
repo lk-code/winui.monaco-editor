@@ -5,9 +5,12 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using System.Linq;
+using System.Collections.Generic;
+using System.Reflection;
+using Monaco.MonacoHandler;
 
 namespace Monaco;
 
@@ -16,10 +19,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     private string _content = "";
-
-    public bool LoadCompleted { get; set; } = false;
+    public static IEnumerable<Type> AdditionalMonacoHandlerTypes = new List<Type>();
+    private List<IMonacoHandler> _registeredHandlers = new ();
 
     public event EventHandler? MonacoEditorLoaded = null;
+
+    public bool LoadCompleted { get; set; } = false;
 
 
     #region PropertyChanged Event
@@ -133,7 +138,34 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
     {
+        /*
+        // LOAD ALL FROM WHOLE APP
+        var internalMonacoHandlerTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(s => s.GetTypes());
+        /* */
+
+        // get all monaco handler types
+        var internalMonacoHandlerTypes = Assembly.GetAssembly(typeof(MonacoEditor))!
+            .GetTypes();
+        var additionalMonacoHandlerTypes = MonacoEditor.AdditionalMonacoHandlerTypes;
+        var monacoHandlerTypes = internalMonacoHandlerTypes.Concat(additionalMonacoHandlerTypes)
+            .Where(p => typeof(IMonacoHandler).IsAssignableFrom(p) && !p.IsInterface && !p.IsAbstract);
+
+        this._registeredHandlers = monacoHandlerTypes
+            .Select(x => (Activator.CreateInstance(x) as IMonacoHandler)!)
+            .ToList();
+
+
+
+        // first setup the parent instance (this control)
+        this._registeredHandlers.ForEach(handler => handler.WithParentInstance(this));
+
         await MonacoEditorWebView.EnsureCoreWebView2Async();
+
+        // then setup the webview after the EnsureCoreWebView2Async() call
+        this._registeredHandlers.ForEach(handler => handler.WithWebView(this.MonacoEditorWebView));
+
+
 
         MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
@@ -165,8 +197,21 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                 }
                 break;
 
-            // monaco events
+                // monaco events
         }
+    }
+
+    /// <inheritdoc />
+    public T GetHandler<T>() where T : IMonacoHandler
+    {
+        T handler = (T)this._registeredHandlers.First(x => x.GetType() == typeof(T));
+
+        if (handler is null)
+        {
+            throw new ArgumentNullException($"{nameof(handler)} is null. either because the handler was not registered or because the call was made too early.");
+        }
+
+        return handler;
     }
 
     private async void WebView_NavigationCompleted(object sender, object e)
@@ -243,27 +288,21 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     }
 
     /// <inheritdoc />
+    [Obsolete("use the MonacoEditorLanguageHandler instead (see documentation)")]
     public async Task<CodeLanguage[]> GetLanguagesAsync()
     {
-        string command = $"monaco.languages.getLanguages();";
+        MonacoEditorLanguageHandler handler = this.GetHandler<MonacoEditorLanguageHandler>();
 
-        string languagesJson = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-
-        CodeLanguage[] codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
-
-        return codeLanguages;
+        return await handler.GetLanguagesAsync();
     }
 
     /// <inheritdoc />
+    [Obsolete("use the MonacoEditorLanguageHandler instead (see documentation)")]
     public async Task SetLanguageAsync(string languageId)
     {
-        string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{languageId}'));";
+        MonacoEditorLanguageHandler handler = this.GetHandler<MonacoEditorLanguageHandler>();
 
-        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-
-        // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+        await handler.SetLanguageAsync(languageId);
     }
 
     /// <inheritdoc />

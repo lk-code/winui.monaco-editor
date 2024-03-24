@@ -11,6 +11,12 @@ public interface IMonacoEditor
     event EventHandler MonacoEditorLoaded;
 
     /// <summary>
+    /// returns the initialized monaco handler by the given type
+    /// </summary>
+    /// <returns></returns>
+    T GetHandler<T>() where T : IMonacoHandler;
+
+    /// <summary>
     /// sets the requested theme to the monaco editor view
     /// </summary>
     /// <param name="theme">the requested theme</param>
@@ -40,6 +46,7 @@ public interface IMonacoEditor
     /// returns all registered coding languages
     /// </summary>
     /// <returns></returns>
+    [Obsolete("use the MonacoEditorLanguageHandler instead (see documentation)")]
     Task<CodeLanguage[]> GetLanguagesAsync();
 
     /// <summary>
@@ -47,6 +54,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="languageId">the language id of the code language (csharp, plaintext, etc.)</param>
     /// <returns></returns>
+    [Obsolete("use the MonacoEditorLanguageHandler instead (see documentation)")]
     Task SetLanguageAsync(string languageId);
 
     /// <summary>

@@ -4,6 +4,9 @@ using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
 using System;
+using MonacoTestApp.Extensions;
+using System.Threading.Tasks;
+using Monaco.MonacoHandler;
 
 namespace MonacoTestApp;
 
@@ -18,6 +21,11 @@ public sealed partial class MainWindow : Window
 
     public MainWindow()
     {
+        // register own additional monaco-editor handlers
+        MonacoEditor.AdditionalMonacoHandlerTypes = new List<Type> {
+            typeof(MonacoVersionHandler)
+        };
+
         this.InitializeComponent();
 
         this.Activated += MainWindow_Activated;
@@ -66,7 +74,9 @@ public sealed partial class MainWindow : Window
 
     private async void LoadLanguagesButton_Click(object sender, RoutedEventArgs e)
     {
-        CodeLanguage[] languages = await MonacoEditor.GetLanguagesAsync();
+        MonacoEditorLanguageHandler handler = this.MonacoEditor.GetHandler<MonacoEditorLanguageHandler>();
+
+        CodeLanguage[] languages = await handler.GetLanguagesAsync();
         List<string> selectionLanguages = languages.Select(x => x.Id).ToList();
         this.EditorLanguageComboBox.ItemsSource = selectionLanguages;
     }
@@ -90,6 +100,7 @@ public sealed partial class MainWindow : Window
     private void MonacoEditor_MonacoEditorLoaded(object sender, EventArgs e)
     {
         this.LogMessage("Monaco Editor loaded");
+
     }
 
     private void OpenDevToolsButton_Click(object sender, RoutedEventArgs e)

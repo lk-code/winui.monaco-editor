@@ -23,7 +23,7 @@ import { EditorExtensionsRegistry } from '../../editorExtensions.js';
 import { ICodeEditorService } from '../../services/codeEditorService.js';
 import { StableEditorScrollState } from '../../stableEditorScroll.js';
 import { CodeEditorWidget } from '../codeEditorWidget.js';
-import { AccessibleDiffViewer } from './components/accessibleDiffViewer.js';
+import { AccessibleDiffViewer, AccessibleDiffViewerModelFromEditors } from './components/accessibleDiffViewer.js';
 import { DiffEditorDecorations } from './components/diffEditorDecorations.js';
 import { DiffEditorSash } from './components/diffEditorSash.js';
 import { HideUnchangedRegionsFeature } from './features/hideUnchangedRegionsFeature.js';
@@ -35,7 +35,7 @@ import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
 import { EditorType } from '../../../common/editorCommon.js';
 import { EditorContextKeys } from '../../../common/editorContextKeys.js';
-import { AudioCue, IAudioCueService } from '../../../../platform/audioCues/browser/audioCueService.js';
+import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
@@ -47,13 +47,13 @@ import { DiffEditorViewModel } from './diffEditorViewModel.js';
 import { RevertButtonsFeature } from './features/revertButtonsFeature.js';
 let DiffEditorWidget = class DiffEditorWidget extends DelegatingEditor {
     get onDidContentSizeChange() { return this._editors.onDidContentSizeChange; }
-    constructor(_domElement, options, codeEditorWidgetOptions, _parentContextKeyService, _parentInstantiationService, codeEditorService, _audioCueService, _editorProgressService) {
+    constructor(_domElement, options, codeEditorWidgetOptions, _parentContextKeyService, _parentInstantiationService, codeEditorService, _accessibilitySignalService, _editorProgressService) {
         var _a;
         super();
         this._domElement = _domElement;
         this._parentContextKeyService = _parentContextKeyService;
         this._parentInstantiationService = _parentInstantiationService;
-        this._audioCueService = _audioCueService;
+        this._accessibilitySignalService = _accessibilitySignalService;
         this._editorProgressService = _editorProgressService;
         this.elements = h('div.monaco-diff-editor.side-by-side', { style: { position: 'relative', height: '100%' } }, [
             h('div.noModificationsOverlay@overlay', { style: { position: 'absolute', height: '100%', visibility: 'hidden', } }, [$('span', {}, 'No Changes')]),
@@ -151,7 +151,7 @@ let DiffEditorWidget = class DiffEditorWidget extends DelegatingEditor {
                 scrollState = undefined;
             }
         }, modViewZoneIdsToIgnore));
-        this._accessibleDiffViewer = derivedDisposable(this, reader => this._instantiationService.createInstance(readHotReloadableExport(AccessibleDiffViewer, reader), this.elements.accessibleDiffViewer, this._accessibleDiffViewerVisible, (visible, tx) => this._accessibleDiffViewerShouldBeVisible.set(visible, tx), this._options.onlyShowAccessibleDiffViewer.map(v => !v), this._rootSizeObserver.width, this._rootSizeObserver.height, this._diffModel.map((m, r) => { var _a; return (_a = m === null || m === void 0 ? void 0 : m.diff.read(r)) === null || _a === void 0 ? void 0 : _a.mappings.map(m => m.lineRangeMapping); }), this._editors)).recomputeInitiallyAndOnChange(this._store);
+        this._accessibleDiffViewer = derivedDisposable(this, reader => this._instantiationService.createInstance(readHotReloadableExport(AccessibleDiffViewer, reader), this.elements.accessibleDiffViewer, this._accessibleDiffViewerVisible, (visible, tx) => this._accessibleDiffViewerShouldBeVisible.set(visible, tx), this._options.onlyShowAccessibleDiffViewer.map(v => !v), this._rootSizeObserver.width, this._rootSizeObserver.height, this._diffModel.map((m, r) => { var _a; return (_a = m === null || m === void 0 ? void 0 : m.diff.read(r)) === null || _a === void 0 ? void 0 : _a.mappings.map(m => m.lineRangeMapping); }), new AccessibleDiffViewerModelFromEditors(this._editors))).recomputeInitiallyAndOnChange(this._store);
         const visibility = this._accessibleDiffViewerVisible.map(v => v ? 'hidden' : 'visible');
         this._register(applyStyle(this.elements.modified, { visibility }));
         this._register(applyStyle(this.elements.original, { visibility }));
@@ -175,13 +175,13 @@ let DiffEditorWidget = class DiffEditorWidget extends DelegatingEditor {
             if ((e === null || e === void 0 ? void 0 : e.reason) === 3 /* CursorChangeReason.Explicit */) {
                 const diff = (_b = (_a = this._diffModel.get()) === null || _a === void 0 ? void 0 : _a.diff.get()) === null || _b === void 0 ? void 0 : _b.mappings.find(m => m.lineRangeMapping.modified.contains(e.position.lineNumber));
                 if (diff === null || diff === void 0 ? void 0 : diff.lineRangeMapping.modified.isEmpty) {
-                    this._audioCueService.playAudioCue(AudioCue.diffLineDeleted, { source: 'diffEditor.cursorPositionChanged' });
+                    this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted, { source: 'diffEditor.cursorPositionChanged' });
                 }
                 else if (diff === null || diff === void 0 ? void 0 : diff.lineRangeMapping.original.isEmpty) {
-                    this._audioCueService.playAudioCue(AudioCue.diffLineInserted, { source: 'diffEditor.cursorPositionChanged' });
+                    this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted, { source: 'diffEditor.cursorPositionChanged' });
                 }
                 else if (diff) {
-                    this._audioCueService.playAudioCue(AudioCue.diffLineModified, { source: 'diffEditor.cursorPositionChanged' });
+                    this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineModified, { source: 'diffEditor.cursorPositionChanged' });
                 }
             }
         }));
@@ -348,13 +348,13 @@ let DiffEditorWidget = class DiffEditorWidget extends DelegatingEditor {
         }
         this._goTo(diff);
         if (diff.lineRangeMapping.modified.isEmpty) {
-            this._audioCueService.playAudioCue(AudioCue.diffLineDeleted, { source: 'diffEditor.goToDiff' });
+            this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted, { source: 'diffEditor.goToDiff' });
         }
         else if (diff.lineRangeMapping.original.isEmpty) {
-            this._audioCueService.playAudioCue(AudioCue.diffLineInserted, { source: 'diffEditor.goToDiff' });
+            this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted, { source: 'diffEditor.goToDiff' });
         }
         else if (diff) {
-            this._audioCueService.playAudioCue(AudioCue.diffLineModified, { source: 'diffEditor.goToDiff' });
+            this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineModified, { source: 'diffEditor.goToDiff' });
         }
     }
     revealFirstDiff() {
@@ -441,7 +441,7 @@ DiffEditorWidget = __decorate([
     __param(3, IContextKeyService),
     __param(4, IInstantiationService),
     __param(5, ICodeEditorService),
-    __param(6, IAudioCueService),
+    __param(6, IAccessibilitySignalService),
     __param(7, IEditorProgressService)
 ], DiffEditorWidget);
 export { DiffEditorWidget };

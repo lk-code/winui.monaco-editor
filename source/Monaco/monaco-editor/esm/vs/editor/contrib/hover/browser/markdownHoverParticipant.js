@@ -63,7 +63,7 @@ let MarkdownHoverParticipant = class MarkdownHoverParticipant {
         let index = 1000;
         const lineLength = model.getLineLength(lineNumber);
         const languageId = model.getLanguageIdAtPosition(anchor.range.startLineNumber, anchor.range.startColumn);
-        const stopRenderingLineAfter = this._editor.getOption(116 /* EditorOption.stopRenderingLineAfter */);
+        const stopRenderingLineAfter = this._editor.getOption(117 /* EditorOption.stopRenderingLineAfter */);
         const maxTokenizationLineLength = this._configurationService.getValue('editor.maxTokenizationLineLength', {
             overrideIdentifier: languageId
         });

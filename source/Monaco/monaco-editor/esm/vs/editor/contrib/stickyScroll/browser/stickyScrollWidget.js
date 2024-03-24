@@ -44,7 +44,7 @@ export class StickyScrollWidget extends Disposable {
         this._lineNumbersDomNode = document.createElement('div');
         this._linesDomNodeScrollable = document.createElement('div');
         this._linesDomNode = document.createElement('div');
-        this._lineHeight = this._editor.getOption(66 /* EditorOption.lineHeight */);
+        this._lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
         this._renderedStickyLines = [];
         this._lineNumbers = [];
         this._lastLineRelativePosition = 0;
@@ -61,14 +61,14 @@ export class StickyScrollWidget extends Disposable {
         this._rootDomNode.appendChild(this._lineNumbersDomNode);
         this._rootDomNode.appendChild(this._linesDomNodeScrollable);
         const updateScrollLeftPosition = () => {
-            this._linesDomNode.style.left = this._editor.getOption(114 /* EditorOption.stickyScroll */).scrollWithEditor ? `-${this._editor.getScrollLeft()}px` : '0px';
+            this._linesDomNode.style.left = this._editor.getOption(115 /* EditorOption.stickyScroll */).scrollWithEditor ? `-${this._editor.getScrollLeft()}px` : '0px';
         };
         this._register(this._editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(114 /* EditorOption.stickyScroll */)) {
+            if (e.hasChanged(115 /* EditorOption.stickyScroll */)) {
                 updateScrollLeftPosition();
             }
-            if (e.hasChanged(66 /* EditorOption.lineHeight */)) {
-                this._lineHeight = this._editor.getOption(66 /* EditorOption.lineHeight */);
+            if (e.hasChanged(67 /* EditorOption.lineHeight */)) {
+                this._lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
             }
         }));
         this._register(this._editor.onDidScrollChange((e) => {
@@ -209,7 +209,7 @@ export class StickyScrollWidget extends Disposable {
         this._editor.layoutOverlayWidget(this);
     }
     _setFoldingHoverListeners() {
-        const showFoldingControls = this._editor.getOption(109 /* EditorOption.showFoldingControls */);
+        const showFoldingControls = this._editor.getOption(110 /* EditorOption.showFoldingControls */);
         if (showFoldingControls !== 'mouseover') {
             return;
         }
@@ -230,7 +230,7 @@ export class StickyScrollWidget extends Disposable {
         }
         const viewLineNumber = viewModel.coordinatesConverter.convertModelPositionToViewPosition(new Position(line, 1)).lineNumber;
         const lineRenderingData = viewModel.getViewLineRenderingData(viewLineNumber);
-        const lineNumberOption = this._editor.getOption(67 /* EditorOption.lineNumbers */);
+        const lineNumberOption = this._editor.getOption(68 /* EditorOption.lineNumbers */);
         let actualInlineDecorations;
         try {
             actualInlineDecorations = LineDecoration.filter(lineRenderingData.inlineDecorations, viewLineNumber, lineRenderingData.minColumn, lineRenderingData.maxColumn);
@@ -306,7 +306,7 @@ export class StickyScrollWidget extends Disposable {
         return stickyLine;
     }
     _renderFoldingIconForLine(foldingModel, line) {
-        const showFoldingControls = this._editor.getOption(109 /* EditorOption.showFoldingControls */);
+        const showFoldingControls = this._editor.getOption(110 /* EditorOption.showFoldingControls */);
         if (!foldingModel || showFoldingControls === 'never') {
             return;
         }

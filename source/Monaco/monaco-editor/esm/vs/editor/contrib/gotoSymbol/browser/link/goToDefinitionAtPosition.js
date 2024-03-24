@@ -240,7 +240,7 @@ let GotoDefinitionAtPositionEditorContribution = GotoDefinitionAtPositionEditorC
     gotoDefinition(position, openToSide) {
         this.editor.setPosition(position);
         return this.editor.invokeWithinContext((accessor) => {
-            const canPeek = !openToSide && this.editor.getOption(87 /* EditorOption.definitionLinkOpensInPeek */) && !this.isInPeekEditor(accessor);
+            const canPeek = !openToSide && this.editor.getOption(88 /* EditorOption.definitionLinkOpensInPeek */) && !this.isInPeekEditor(accessor);
             const action = new DefinitionAction({ openToSide, openInPeek: canPeek, muteMessage: true }, { title: { value: '', original: '' }, id: '', precondition: undefined });
             return action.run(accessor);
         });

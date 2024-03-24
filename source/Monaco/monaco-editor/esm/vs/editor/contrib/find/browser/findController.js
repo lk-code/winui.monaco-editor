@@ -190,8 +190,8 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
         }
         else {
             if (this._editor.hasModel()) {
-                const selections = this._editor.getSelections();
-                selections.map(selection => {
+                let selections = this._editor.getSelections();
+                selections = selections.map(selection => {
                     if (selection.endColumn === 1 && selection.endLineNumber > selection.startLineNumber) {
                         selection = selection.setEndPosition(selection.endLineNumber - 1, this._editor.getModel().getLineMaxColumn(selection.endLineNumber - 1));
                     }
@@ -199,7 +199,7 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
                         return selection;
                     }
                     return null;
-                }).filter(element => !!element);
+                }).filter((element) => !!element);
                 if (selections.length) {
                     this._state.change({ searchScope: selections }, true);
                 }
@@ -799,7 +799,7 @@ export const StartFindReplaceAction = registerMultiEditorAction(new MultiEditorA
     }
 }));
 StartFindReplaceAction.addImplementation(0, (accessor, editor, args) => {
-    if (!editor.hasModel() || editor.getOption(90 /* EditorOption.readOnly */)) {
+    if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */)) {
         return false;
     }
     const controller = CommonFindController.get(editor);

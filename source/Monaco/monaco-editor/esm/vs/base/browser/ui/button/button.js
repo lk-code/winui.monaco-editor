@@ -3,6 +3,8 @@ import { sanitize } from '../../dompurify/dompurify.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { renderMarkdown, renderStringAsPlaintext } from '../../markdownRenderer.js';
 import { Gesture, EventType as TouchEventType } from '../../touch.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
+import { setupCustomHover } from '../iconLabel/iconLabelHover.js';
 import { renderLabelWithIcons } from '../iconLabel/iconLabels.js';
 import { Color } from '../../../common/color.js';
 import { Emitter } from '../../../common/event.js';
@@ -26,6 +28,7 @@ export class Button extends Disposable {
         super();
         this._label = '';
         this._onDidClick = this._register(new Emitter());
+        this._onDidEscape = this._register(new Emitter());
         this.options = options;
         this._element = document.createElement('a');
         this._element.classList.add('monaco-button');
@@ -67,6 +70,7 @@ export class Button extends Disposable {
                 eventHandled = true;
             }
             else if (event.equals(9 /* KeyCode.Escape */)) {
+                this._onDidEscape.fire(e);
                 this._element.blur();
                 eventHandled = true;
             }
@@ -162,11 +166,18 @@ export class Button extends Disposable {
                 labelElement.textContent = value;
             }
         }
+        let title = '';
         if (typeof this.options.title === 'string') {
-            this._element.title = this.options.title;
+            title = this.options.title;
         }
         else if (this.options.title) {
-            this._element.title = renderStringAsPlaintext(value);
+            title = renderStringAsPlaintext(value);
+        }
+        if (!this._hover) {
+            this._hover = this._register(setupCustomHover(getDefaultHoverDelegate('mouse'), this._element, title));
+        }
+        else {
+            this._hover.update(title);
         }
         if (typeof this.options.ariaLabel === 'string') {
             this._element.setAttribute('aria-label', this.options.ariaLabel);

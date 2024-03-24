@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.46.0(21007360cad28648bdf46282a2592cb47c3a7a6f)
+ * Version: 0.47.0(69991d66135e4a1fc1cf0b1ac4ad25d429866a0d)
  * Released under the MIT license
  * https://github.com/microsoft/vscode/blob/main/LICENSE.txt
  *-----------------------------------------------------------*/
@@ -3705,9 +3705,12 @@ define(__m[12/*vs/base/common/assert*/], __M([0/*require*/,1/*exports*/,5/*vs/ba
         throw new Error(message);
     }
     exports.assertNever = assertNever;
+    /**
+     * Like assert, but doesn't throw.
+     */
     function softAssert(condition) {
         if (!condition) {
-            (0, errors_1.onUnexpectedError)(new errors_1.BugIndicatingError('Assertion Failed'));
+            (0, errors_1.onUnexpectedError)(new errors_1.BugIndicatingError('Soft Assertion Failed'));
         }
     }
     exports.softAssert = softAssert;
@@ -6518,13 +6521,17 @@ define(__m[9/*vs/base/common/event*/], __M([0/*require*/,1/*exports*/,5/*vs/base
             e.listener = e.event(r => this.emitter.fire(r));
         }
         unhook(e) {
-            if (e.listener) {
-                e.listener.dispose();
-            }
+            var _a;
+            (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
             e.listener = null;
         }
         dispose() {
+            var _a;
             this.emitter.dispose();
+            for (const e of this.events) {
+                (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
+            }
+            this.events = [];
         }
     }
     exports.EventMultiplexer = EventMultiplexer;
@@ -6736,7 +6743,7 @@ define(__m[6/*vs/base/common/strings*/], __M([0/*require*/,1/*exports*/,32/*vs/b
     "use strict";
     var _a;
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.InvisibleCharacters = exports.AmbiguousCharacters = exports.noBreakWhitespace = exports.getLeftDeleteOffset = exports.singleLetterHash = exports.containsUppercaseCharacter = exports.startsWithUTF8BOM = exports.UTF8_BOM_CHARACTER = exports.isEmojiImprecise = exports.isFullWidthCharacter = exports.containsUnusualLineTerminators = exports.UNUSUAL_LINE_TERMINATORS = exports.isBasicASCII = exports.containsRTL = exports.getCharContainingOffset = exports.prevCharLength = exports.nextCharLength = exports.GraphemeIterator = exports.CodePointIterator = exports.getNextCodePoint = exports.computeCodePoint = exports.isLowSurrogate = exports.isHighSurrogate = exports.commonSuffixLength = exports.commonPrefixLength = exports.startsWithIgnoreCase = exports.equalsIgnoreCase = exports.isUpperAsciiLetter = exports.isLowerAsciiLetter = exports.isAsciiDigit = exports.compareSubstringIgnoreCase = exports.compareIgnoreCase = exports.compareSubstring = exports.compare = exports.lastNonWhitespaceIndex = exports.getLeadingWhitespace = exports.firstNonWhitespaceIndex = exports.splitLines = exports.regExpLeadsToEndlessLoop = exports.createRegExp = exports.stripWildcards = exports.convertSimple2RegExpPattern = exports.rtrim = exports.ltrim = exports.trim = exports.escapeRegExpCharacters = exports.escape = exports.htmlAttributeEncodeValue = exports.format = exports.isFalsyOrWhitespace = void 0;
+    exports.InvisibleCharacters = exports.AmbiguousCharacters = exports.noBreakWhitespace = exports.getLeftDeleteOffset = exports.singleLetterHash = exports.containsUppercaseCharacter = exports.startsWithUTF8BOM = exports.UTF8_BOM_CHARACTER = exports.isEmojiImprecise = exports.isFullWidthCharacter = exports.containsUnusualLineTerminators = exports.UNUSUAL_LINE_TERMINATORS = exports.isBasicASCII = exports.containsRTL = exports.getCharContainingOffset = exports.prevCharLength = exports.nextCharLength = exports.GraphemeIterator = exports.CodePointIterator = exports.getNextCodePoint = exports.computeCodePoint = exports.isLowSurrogate = exports.isHighSurrogate = exports.commonSuffixLength = exports.commonPrefixLength = exports.startsWithIgnoreCase = exports.equalsIgnoreCase = exports.isUpperAsciiLetter = exports.isLowerAsciiLetter = exports.isAsciiDigit = exports.compareSubstringIgnoreCase = exports.compareIgnoreCase = exports.compareSubstring = exports.compare = exports.lastNonWhitespaceIndex = exports.getLeadingWhitespace = exports.firstNonWhitespaceIndex = exports.splitLinesIncludeSeparators = exports.splitLines = exports.regExpLeadsToEndlessLoop = exports.createRegExp = exports.stripWildcards = exports.convertSimple2RegExpPattern = exports.rtrim = exports.ltrim = exports.trim = exports.escapeRegExpCharacters = exports.escape = exports.htmlAttributeEncodeValue = exports.format = exports.isFalsyOrWhitespace = void 0;
     function isFalsyOrWhitespace(str) {
         if (!str || typeof str !== 'string') {
             return true;
@@ -6916,6 +6923,16 @@ define(__m[6/*vs/base/common/strings*/], __M([0/*require*/,1/*exports*/,32/*vs/b
         return str.split(/\r\n|\r|\n/);
     }
     exports.splitLines = splitLines;
+    function splitLinesIncludeSeparators(str) {
+        var _b;
+        const linesWithSeparators = [];
+        const splitLinesAndSeparators = str.split(/(\r\n|\r|\n)/);
+        for (let i = 0; i < Math.ceil(splitLinesAndSeparators.length / 2); i++) {
+            linesWithSeparators.push(splitLinesAndSeparators[2 * i] + ((_b = splitLinesAndSeparators[2 * i + 1]) !== null && _b !== void 0 ? _b : ''));
+        }
+        return linesWithSeparators;
+    }
+    exports.splitLinesIncludeSeparators = splitLinesIncludeSeparators;
     /**
      * Returns first index of the string that is not whitespace.
      * If string is empty or contains only whitespaces, returns -1
@@ -9507,7 +9524,12 @@ define(__m[40/*vs/base/common/codicons*/], __M([0/*require*/,1/*exports*/,25/*vs
         gitStash: register('git-stash', 0xec26),
         gitStashApply: register('git-stash-apply', 0xec27),
         gitStashPop: register('git-stash-pop', 0xec28),
+        runAllCoverage: register('run-all-coverage', 0xec2d),
+        runCoverage: register('run-all-coverage', 0xec2c),
+        coverage: register('coverage', 0xec2e),
+        githubProject: register('github-project', 0xec2f),
         // derived icons, that could become separate icons
+        // TODO: These mappings should go in the vscode-codicons mapping file
         dialogError: register('dialog-error', 'error'),
         dialogWarning: register('dialog-warning', 'warning'),
         dialogInfo: register('dialog-info', 'info'),
@@ -14962,7 +14984,7 @@ define(__m[57/*vs/editor/common/services/unicodeTextModelHighlighter*/], __M([0/
 define(__m[58/*vs/editor/common/standalone/standaloneEnums*/], __M([0/*require*/,1/*exports*/]), function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.WrappingIndent = exports.TrackedRangeStickiness = exports.TextEditorCursorStyle = exports.TextEditorCursorBlinkingStyle = exports.SymbolTag = exports.SymbolKind = exports.SignatureHelpTriggerKind = exports.ShowLightbulbIconMode = exports.SelectionDirection = exports.ScrollbarVisibility = exports.ScrollType = exports.RenderMinimap = exports.RenderLineNumbersType = exports.PositionAffinity = exports.OverviewRulerLane = exports.OverlayWidgetPositionPreference = exports.MouseTargetType = exports.MinimapPosition = exports.MarkerTag = exports.MarkerSeverity = exports.KeyCode = exports.InlineCompletionTriggerKind = exports.InlayHintKind = exports.InjectedTextCursorStops = exports.IndentAction = exports.GlyphMarginLane = exports.EndOfLineSequence = exports.EndOfLinePreference = exports.EditorOption = exports.EditorAutoIndentStrategy = exports.DocumentHighlightKind = exports.DefaultEndOfLine = exports.CursorChangeReason = exports.ContentWidgetPositionPreference = exports.CompletionTriggerKind = exports.CompletionItemTag = exports.CompletionItemKind = exports.CompletionItemInsertTextRule = exports.CodeActionTriggerType = exports.AccessibilitySupport = void 0;
+    exports.WrappingIndent = exports.TrackedRangeStickiness = exports.TextEditorCursorStyle = exports.TextEditorCursorBlinkingStyle = exports.SymbolTag = exports.SymbolKind = exports.SignatureHelpTriggerKind = exports.ShowLightbulbIconMode = exports.SelectionDirection = exports.ScrollbarVisibility = exports.ScrollType = exports.RenderMinimap = exports.RenderLineNumbersType = exports.PositionAffinity = exports.OverviewRulerLane = exports.OverlayWidgetPositionPreference = exports.NewSymbolNameTag = exports.MouseTargetType = exports.MinimapPosition = exports.MarkerTag = exports.MarkerSeverity = exports.KeyCode = exports.InlineEditTriggerKind = exports.InlineCompletionTriggerKind = exports.InlayHintKind = exports.InjectedTextCursorStops = exports.IndentAction = exports.GlyphMarginLane = exports.EndOfLineSequence = exports.EndOfLinePreference = exports.EditorOption = exports.EditorAutoIndentStrategy = exports.DocumentHighlightKind = exports.DefaultEndOfLine = exports.CursorChangeReason = exports.ContentWidgetPositionPreference = exports.CompletionTriggerKind = exports.CompletionItemTag = exports.CompletionItemKind = exports.CompletionItemInsertTextRule = exports.CodeActionTriggerType = exports.AccessibilitySupport = void 0;
     // THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY.
     var AccessibilitySupport;
     (function (AccessibilitySupport) {
@@ -15195,91 +15217,92 @@ define(__m[58/*vs/editor/common/standalone/standaloneEnums*/], __M([0/*require*/
         EditorOption[EditorOption["hover"] = 60] = "hover";
         EditorOption[EditorOption["inDiffEditor"] = 61] = "inDiffEditor";
         EditorOption[EditorOption["inlineSuggest"] = 62] = "inlineSuggest";
-        EditorOption[EditorOption["letterSpacing"] = 63] = "letterSpacing";
-        EditorOption[EditorOption["lightbulb"] = 64] = "lightbulb";
-        EditorOption[EditorOption["lineDecorationsWidth"] = 65] = "lineDecorationsWidth";
-        EditorOption[EditorOption["lineHeight"] = 66] = "lineHeight";
-        EditorOption[EditorOption["lineNumbers"] = 67] = "lineNumbers";
-        EditorOption[EditorOption["lineNumbersMinChars"] = 68] = "lineNumbersMinChars";
-        EditorOption[EditorOption["linkedEditing"] = 69] = "linkedEditing";
-        EditorOption[EditorOption["links"] = 70] = "links";
-        EditorOption[EditorOption["matchBrackets"] = 71] = "matchBrackets";
-        EditorOption[EditorOption["minimap"] = 72] = "minimap";
-        EditorOption[EditorOption["mouseStyle"] = 73] = "mouseStyle";
-        EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 74] = "mouseWheelScrollSensitivity";
-        EditorOption[EditorOption["mouseWheelZoom"] = 75] = "mouseWheelZoom";
-        EditorOption[EditorOption["multiCursorMergeOverlapping"] = 76] = "multiCursorMergeOverlapping";
-        EditorOption[EditorOption["multiCursorModifier"] = 77] = "multiCursorModifier";
-        EditorOption[EditorOption["multiCursorPaste"] = 78] = "multiCursorPaste";
-        EditorOption[EditorOption["multiCursorLimit"] = 79] = "multiCursorLimit";
-        EditorOption[EditorOption["occurrencesHighlight"] = 80] = "occurrencesHighlight";
-        EditorOption[EditorOption["overviewRulerBorder"] = 81] = "overviewRulerBorder";
-        EditorOption[EditorOption["overviewRulerLanes"] = 82] = "overviewRulerLanes";
-        EditorOption[EditorOption["padding"] = 83] = "padding";
-        EditorOption[EditorOption["pasteAs"] = 84] = "pasteAs";
-        EditorOption[EditorOption["parameterHints"] = 85] = "parameterHints";
-        EditorOption[EditorOption["peekWidgetDefaultFocus"] = 86] = "peekWidgetDefaultFocus";
-        EditorOption[EditorOption["definitionLinkOpensInPeek"] = 87] = "definitionLinkOpensInPeek";
-        EditorOption[EditorOption["quickSuggestions"] = 88] = "quickSuggestions";
-        EditorOption[EditorOption["quickSuggestionsDelay"] = 89] = "quickSuggestionsDelay";
-        EditorOption[EditorOption["readOnly"] = 90] = "readOnly";
-        EditorOption[EditorOption["readOnlyMessage"] = 91] = "readOnlyMessage";
-        EditorOption[EditorOption["renameOnType"] = 92] = "renameOnType";
-        EditorOption[EditorOption["renderControlCharacters"] = 93] = "renderControlCharacters";
-        EditorOption[EditorOption["renderFinalNewline"] = 94] = "renderFinalNewline";
-        EditorOption[EditorOption["renderLineHighlight"] = 95] = "renderLineHighlight";
-        EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 96] = "renderLineHighlightOnlyWhenFocus";
-        EditorOption[EditorOption["renderValidationDecorations"] = 97] = "renderValidationDecorations";
-        EditorOption[EditorOption["renderWhitespace"] = 98] = "renderWhitespace";
-        EditorOption[EditorOption["revealHorizontalRightPadding"] = 99] = "revealHorizontalRightPadding";
-        EditorOption[EditorOption["roundedSelection"] = 100] = "roundedSelection";
-        EditorOption[EditorOption["rulers"] = 101] = "rulers";
-        EditorOption[EditorOption["scrollbar"] = 102] = "scrollbar";
-        EditorOption[EditorOption["scrollBeyondLastColumn"] = 103] = "scrollBeyondLastColumn";
-        EditorOption[EditorOption["scrollBeyondLastLine"] = 104] = "scrollBeyondLastLine";
-        EditorOption[EditorOption["scrollPredominantAxis"] = 105] = "scrollPredominantAxis";
-        EditorOption[EditorOption["selectionClipboard"] = 106] = "selectionClipboard";
-        EditorOption[EditorOption["selectionHighlight"] = 107] = "selectionHighlight";
-        EditorOption[EditorOption["selectOnLineNumbers"] = 108] = "selectOnLineNumbers";
-        EditorOption[EditorOption["showFoldingControls"] = 109] = "showFoldingControls";
-        EditorOption[EditorOption["showUnused"] = 110] = "showUnused";
-        EditorOption[EditorOption["snippetSuggestions"] = 111] = "snippetSuggestions";
-        EditorOption[EditorOption["smartSelect"] = 112] = "smartSelect";
-        EditorOption[EditorOption["smoothScrolling"] = 113] = "smoothScrolling";
-        EditorOption[EditorOption["stickyScroll"] = 114] = "stickyScroll";
-        EditorOption[EditorOption["stickyTabStops"] = 115] = "stickyTabStops";
-        EditorOption[EditorOption["stopRenderingLineAfter"] = 116] = "stopRenderingLineAfter";
-        EditorOption[EditorOption["suggest"] = 117] = "suggest";
-        EditorOption[EditorOption["suggestFontSize"] = 118] = "suggestFontSize";
-        EditorOption[EditorOption["suggestLineHeight"] = 119] = "suggestLineHeight";
-        EditorOption[EditorOption["suggestOnTriggerCharacters"] = 120] = "suggestOnTriggerCharacters";
-        EditorOption[EditorOption["suggestSelection"] = 121] = "suggestSelection";
-        EditorOption[EditorOption["tabCompletion"] = 122] = "tabCompletion";
-        EditorOption[EditorOption["tabIndex"] = 123] = "tabIndex";
-        EditorOption[EditorOption["unicodeHighlighting"] = 124] = "unicodeHighlighting";
-        EditorOption[EditorOption["unusualLineTerminators"] = 125] = "unusualLineTerminators";
-        EditorOption[EditorOption["useShadowDOM"] = 126] = "useShadowDOM";
-        EditorOption[EditorOption["useTabStops"] = 127] = "useTabStops";
-        EditorOption[EditorOption["wordBreak"] = 128] = "wordBreak";
-        EditorOption[EditorOption["wordSeparators"] = 129] = "wordSeparators";
-        EditorOption[EditorOption["wordWrap"] = 130] = "wordWrap";
-        EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 131] = "wordWrapBreakAfterCharacters";
-        EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 132] = "wordWrapBreakBeforeCharacters";
-        EditorOption[EditorOption["wordWrapColumn"] = 133] = "wordWrapColumn";
-        EditorOption[EditorOption["wordWrapOverride1"] = 134] = "wordWrapOverride1";
-        EditorOption[EditorOption["wordWrapOverride2"] = 135] = "wordWrapOverride2";
-        EditorOption[EditorOption["wrappingIndent"] = 136] = "wrappingIndent";
-        EditorOption[EditorOption["wrappingStrategy"] = 137] = "wrappingStrategy";
-        EditorOption[EditorOption["showDeprecated"] = 138] = "showDeprecated";
-        EditorOption[EditorOption["inlayHints"] = 139] = "inlayHints";
-        EditorOption[EditorOption["editorClassName"] = 140] = "editorClassName";
-        EditorOption[EditorOption["pixelRatio"] = 141] = "pixelRatio";
-        EditorOption[EditorOption["tabFocusMode"] = 142] = "tabFocusMode";
-        EditorOption[EditorOption["layoutInfo"] = 143] = "layoutInfo";
-        EditorOption[EditorOption["wrappingInfo"] = 144] = "wrappingInfo";
-        EditorOption[EditorOption["defaultColorDecorators"] = 145] = "defaultColorDecorators";
-        EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 146] = "colorDecoratorsActivatedOn";
-        EditorOption[EditorOption["inlineCompletionsAccessibilityVerbose"] = 147] = "inlineCompletionsAccessibilityVerbose";
+        EditorOption[EditorOption["inlineEdit"] = 63] = "inlineEdit";
+        EditorOption[EditorOption["letterSpacing"] = 64] = "letterSpacing";
+        EditorOption[EditorOption["lightbulb"] = 65] = "lightbulb";
+        EditorOption[EditorOption["lineDecorationsWidth"] = 66] = "lineDecorationsWidth";
+        EditorOption[EditorOption["lineHeight"] = 67] = "lineHeight";
+        EditorOption[EditorOption["lineNumbers"] = 68] = "lineNumbers";
+        EditorOption[EditorOption["lineNumbersMinChars"] = 69] = "lineNumbersMinChars";
+        EditorOption[EditorOption["linkedEditing"] = 70] = "linkedEditing";
+        EditorOption[EditorOption["links"] = 71] = "links";
+        EditorOption[EditorOption["matchBrackets"] = 72] = "matchBrackets";
+        EditorOption[EditorOption["minimap"] = 73] = "minimap";
+        EditorOption[EditorOption["mouseStyle"] = 74] = "mouseStyle";
+        EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 75] = "mouseWheelScrollSensitivity";
+        EditorOption[EditorOption["mouseWheelZoom"] = 76] = "mouseWheelZoom";
+        EditorOption[EditorOption["multiCursorMergeOverlapping"] = 77] = "multiCursorMergeOverlapping";
+        EditorOption[EditorOption["multiCursorModifier"] = 78] = "multiCursorModifier";
+        EditorOption[EditorOption["multiCursorPaste"] = 79] = "multiCursorPaste";
+        EditorOption[EditorOption["multiCursorLimit"] = 80] = "multiCursorLimit";
+        EditorOption[EditorOption["occurrencesHighlight"] = 81] = "occurrencesHighlight";
+        EditorOption[EditorOption["overviewRulerBorder"] = 82] = "overviewRulerBorder";
+        EditorOption[EditorOption["overviewRulerLanes"] = 83] = "overviewRulerLanes";
+        EditorOption[EditorOption["padding"] = 84] = "padding";
+        EditorOption[EditorOption["pasteAs"] = 85] = "pasteAs";
+        EditorOption[EditorOption["parameterHints"] = 86] = "parameterHints";
+        EditorOption[EditorOption["peekWidgetDefaultFocus"] = 87] = "peekWidgetDefaultFocus";
+        EditorOption[EditorOption["definitionLinkOpensInPeek"] = 88] = "definitionLinkOpensInPeek";
+        EditorOption[EditorOption["quickSuggestions"] = 89] = "quickSuggestions";
+        EditorOption[EditorOption["quickSuggestionsDelay"] = 90] = "quickSuggestionsDelay";
+        EditorOption[EditorOption["readOnly"] = 91] = "readOnly";
+        EditorOption[EditorOption["readOnlyMessage"] = 92] = "readOnlyMessage";
+        EditorOption[EditorOption["renameOnType"] = 93] = "renameOnType";
+        EditorOption[EditorOption["renderControlCharacters"] = 94] = "renderControlCharacters";
+        EditorOption[EditorOption["renderFinalNewline"] = 95] = "renderFinalNewline";
+        EditorOption[EditorOption["renderLineHighlight"] = 96] = "renderLineHighlight";
+        EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 97] = "renderLineHighlightOnlyWhenFocus";
+        EditorOption[EditorOption["renderValidationDecorations"] = 98] = "renderValidationDecorations";
+        EditorOption[EditorOption["renderWhitespace"] = 99] = "renderWhitespace";
+        EditorOption[EditorOption["revealHorizontalRightPadding"] = 100] = "revealHorizontalRightPadding";
+        EditorOption[EditorOption["roundedSelection"] = 101] = "roundedSelection";
+        EditorOption[EditorOption["rulers"] = 102] = "rulers";
+        EditorOption[EditorOption["scrollbar"] = 103] = "scrollbar";
+        EditorOption[EditorOption["scrollBeyondLastColumn"] = 104] = "scrollBeyondLastColumn";
+        EditorOption[EditorOption["scrollBeyondLastLine"] = 105] = "scrollBeyondLastLine";
+        EditorOption[EditorOption["scrollPredominantAxis"] = 106] = "scrollPredominantAxis";
+        EditorOption[EditorOption["selectionClipboard"] = 107] = "selectionClipboard";
+        EditorOption[EditorOption["selectionHighlight"] = 108] = "selectionHighlight";
+        EditorOption[EditorOption["selectOnLineNumbers"] = 109] = "selectOnLineNumbers";
+        EditorOption[EditorOption["showFoldingControls"] = 110] = "showFoldingControls";
+        EditorOption[EditorOption["showUnused"] = 111] = "showUnused";
+        EditorOption[EditorOption["snippetSuggestions"] = 112] = "snippetSuggestions";
+        EditorOption[EditorOption["smartSelect"] = 113] = "smartSelect";
+        EditorOption[EditorOption["smoothScrolling"] = 114] = "smoothScrolling";
+        EditorOption[EditorOption["stickyScroll"] = 115] = "stickyScroll";
+        EditorOption[EditorOption["stickyTabStops"] = 116] = "stickyTabStops";
+        EditorOption[EditorOption["stopRenderingLineAfter"] = 117] = "stopRenderingLineAfter";
+        EditorOption[EditorOption["suggest"] = 118] = "suggest";
+        EditorOption[EditorOption["suggestFontSize"] = 119] = "suggestFontSize";
+        EditorOption[EditorOption["suggestLineHeight"] = 120] = "suggestLineHeight";
+        EditorOption[EditorOption["suggestOnTriggerCharacters"] = 121] = "suggestOnTriggerCharacters";
+        EditorOption[EditorOption["suggestSelection"] = 122] = "suggestSelection";
+        EditorOption[EditorOption["tabCompletion"] = 123] = "tabCompletion";
+        EditorOption[EditorOption["tabIndex"] = 124] = "tabIndex";
+        EditorOption[EditorOption["unicodeHighlighting"] = 125] = "unicodeHighlighting";
+        EditorOption[EditorOption["unusualLineTerminators"] = 126] = "unusualLineTerminators";
+        EditorOption[EditorOption["useShadowDOM"] = 127] = "useShadowDOM";
+        EditorOption[EditorOption["useTabStops"] = 128] = "useTabStops";
+        EditorOption[EditorOption["wordBreak"] = 129] = "wordBreak";
+        EditorOption[EditorOption["wordSeparators"] = 130] = "wordSeparators";
+        EditorOption[EditorOption["wordWrap"] = 131] = "wordWrap";
+        EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 132] = "wordWrapBreakAfterCharacters";
+        EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 133] = "wordWrapBreakBeforeCharacters";
+        EditorOption[EditorOption["wordWrapColumn"] = 134] = "wordWrapColumn";
+        EditorOption[EditorOption["wordWrapOverride1"] = 135] = "wordWrapOverride1";
+        EditorOption[EditorOption["wordWrapOverride2"] = 136] = "wordWrapOverride2";
+        EditorOption[EditorOption["wrappingIndent"] = 137] = "wrappingIndent";
+        EditorOption[EditorOption["wrappingStrategy"] = 138] = "wrappingStrategy";
+        EditorOption[EditorOption["showDeprecated"] = 139] = "showDeprecated";
+        EditorOption[EditorOption["inlayHints"] = 140] = "inlayHints";
+        EditorOption[EditorOption["editorClassName"] = 141] = "editorClassName";
+        EditorOption[EditorOption["pixelRatio"] = 142] = "pixelRatio";
+        EditorOption[EditorOption["tabFocusMode"] = 143] = "tabFocusMode";
+        EditorOption[EditorOption["layoutInfo"] = 144] = "layoutInfo";
+        EditorOption[EditorOption["wrappingInfo"] = 145] = "wrappingInfo";
+        EditorOption[EditorOption["defaultColorDecorators"] = 146] = "defaultColorDecorators";
+        EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 147] = "colorDecoratorsActivatedOn";
+        EditorOption[EditorOption["inlineCompletionsAccessibilityVerbose"] = 148] = "inlineCompletionsAccessibilityVerbose";
     })(EditorOption || (exports.EditorOption = EditorOption = {}));
     /**
      * End of line character preference.
@@ -15374,6 +15397,11 @@ define(__m[58/*vs/editor/common/standalone/standaloneEnums*/], __M([0/*require*/
          */
         InlineCompletionTriggerKind[InlineCompletionTriggerKind["Explicit"] = 1] = "Explicit";
     })(InlineCompletionTriggerKind || (exports.InlineCompletionTriggerKind = InlineCompletionTriggerKind = {}));
+    var InlineEditTriggerKind;
+    (function (InlineEditTriggerKind) {
+        InlineEditTriggerKind[InlineEditTriggerKind["Invoke"] = 0] = "Invoke";
+        InlineEditTriggerKind[InlineEditTriggerKind["Automatic"] = 1] = "Automatic";
+    })(InlineEditTriggerKind || (exports.InlineEditTriggerKind = InlineEditTriggerKind = {}));
     /**
      * Virtual Key Codes, the value does not hold any inherent meaning.
      * Inspired somewhat from https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
@@ -15661,6 +15689,10 @@ define(__m[58/*vs/editor/common/standalone/standaloneEnums*/], __M([0/*require*/
          */
         MouseTargetType[MouseTargetType["OUTSIDE_EDITOR"] = 13] = "OUTSIDE_EDITOR";
     })(MouseTargetType || (exports.MouseTargetType = MouseTargetType = {}));
+    var NewSymbolNameTag;
+    (function (NewSymbolNameTag) {
+        NewSymbolNameTag[NewSymbolNameTag["AIGenerated"] = 1] = "AIGenerated";
+    })(NewSymbolNameTag || (exports.NewSymbolNameTag = NewSymbolNameTag = {}));
     /**
      * A positioning preference for rendering overlay widgets.
      */
@@ -18680,7 +18712,7 @@ define(__m[64/*vs/nls!vs/editor/common/languages*/], __M([19/*vs/nls*/,61/*vs/nl
 define(__m[65/*vs/editor/common/languages*/], __M([0/*require*/,1/*exports*/,40/*vs/base/common/codicons*/,18/*vs/base/common/uri*/,2/*vs/editor/common/core/range*/,59/*vs/editor/common/tokenizationRegistry*/,64/*vs/nls!vs/editor/common/languages*/]), function (require, exports, codicons_1, uri_1, range_1, tokenizationRegistry_1, nls_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TokenizationRegistry = exports.LazyTokenizationSupport = exports.InlayHintKind = exports.Command = exports.FoldingRangeKind = exports.TextEdit = exports.SymbolKinds = exports.getAriaLabelForSymbol = exports.symbolKindNames = exports.isLocationLink = exports.DocumentHighlightKind = exports.SignatureHelpTriggerKind = exports.SelectedSuggestionInfo = exports.InlineCompletionTriggerKind = exports.CompletionItemKinds = exports.EncodedTokenizationResult = exports.TokenizationResult = exports.Token = void 0;
+    exports.InlineEditTriggerKind = exports.TokenizationRegistry = exports.LazyTokenizationSupport = exports.InlayHintKind = exports.Command = exports.NewSymbolNameTag = exports.FoldingRangeKind = exports.TextEdit = exports.SymbolKinds = exports.getAriaLabelForSymbol = exports.symbolKindNames = exports.isLocationLink = exports.DocumentHighlightKind = exports.SignatureHelpTriggerKind = exports.SelectedSuggestionInfo = exports.InlineCompletionTriggerKind = exports.CompletionItemKinds = exports.EncodedTokenizationResult = exports.TokenizationResult = exports.Token = void 0;
     class Token {
         constructor(offset, type, language) {
             this.offset = offset;
@@ -19001,6 +19033,10 @@ define(__m[65/*vs/editor/common/languages*/], __M([0/*require*/,1/*exports*/,40/
      * The value of the kind is 'region'.
      */
     FoldingRangeKind.Region = new FoldingRangeKind('region');
+    var NewSymbolNameTag;
+    (function (NewSymbolNameTag) {
+        NewSymbolNameTag[NewSymbolNameTag["AIGenerated"] = 1] = "AIGenerated";
+    })(NewSymbolNameTag || (exports.NewSymbolNameTag = NewSymbolNameTag = {}));
     /**
      * @internal
      */
@@ -19052,6 +19088,11 @@ define(__m[65/*vs/editor/common/languages*/], __M([0/*require*/,1/*exports*/,40/
      * @internal
      */
     exports.TokenizationRegistry = new tokenizationRegistry_1.TokenizationRegistry();
+    var InlineEditTriggerKind;
+    (function (InlineEditTriggerKind) {
+        InlineEditTriggerKind[InlineEditTriggerKind["Invoke"] = 0] = "Invoke";
+        InlineEditTriggerKind[InlineEditTriggerKind["Automatic"] = 1] = "Automatic";
+    })(InlineEditTriggerKind || (exports.InlineEditTriggerKind = InlineEditTriggerKind = {}));
 });
 
 /*---------------------------------------------------------------------------------------------

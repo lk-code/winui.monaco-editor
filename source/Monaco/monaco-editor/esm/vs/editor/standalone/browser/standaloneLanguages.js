@@ -309,6 +309,13 @@ export function registerRenameProvider(languageSelector, provider) {
     return languageFeaturesService.renameProvider.register(languageSelector, provider);
 }
 /**
+ * Register a new symbol-name provider (e.g., when a symbol is being renamed, show new possible symbol-names)
+ */
+export function registerNewSymbolNameProvider(languageSelector, provider) {
+    const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
+    return languageFeaturesService.newSymbolNamesProvider.register(languageSelector, provider);
+}
+/**
  * Register a signature help provider (used by e.g. parameter hints).
  */
 export function registerSignatureHelpProvider(languageSelector, provider) {
@@ -497,6 +504,10 @@ export function registerInlineCompletionsProvider(languageSelector, provider) {
     const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
     return languageFeaturesService.inlineCompletionsProvider.register(languageSelector, provider);
 }
+export function registerInlineEditProvider(languageSelector, provider) {
+    const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
+    return languageFeaturesService.inlineEditProvider.register(languageSelector, provider);
+}
 /**
  * Register an inlay hints provider.
  */
@@ -522,6 +533,7 @@ export function createMonacoLanguagesAPI() {
         setMonarchTokensProvider: setMonarchTokensProvider,
         registerReferenceProvider: registerReferenceProvider,
         registerRenameProvider: registerRenameProvider,
+        registerNewSymbolNameProvider: registerNewSymbolNameProvider,
         registerCompletionItemProvider: registerCompletionItemProvider,
         registerSignatureHelpProvider: registerSignatureHelpProvider,
         registerHoverProvider: registerHoverProvider,
@@ -544,6 +556,7 @@ export function createMonacoLanguagesAPI() {
         registerDocumentSemanticTokensProvider: registerDocumentSemanticTokensProvider,
         registerDocumentRangeSemanticTokensProvider: registerDocumentRangeSemanticTokensProvider,
         registerInlineCompletionsProvider: registerInlineCompletionsProvider,
+        registerInlineEditProvider: registerInlineEditProvider,
         registerInlayHintsProvider: registerInlayHintsProvider,
         // enums
         DocumentHighlightKind: standaloneEnums.DocumentHighlightKind,
@@ -557,7 +570,9 @@ export function createMonacoLanguagesAPI() {
         SignatureHelpTriggerKind: standaloneEnums.SignatureHelpTriggerKind,
         InlayHintKind: standaloneEnums.InlayHintKind,
         InlineCompletionTriggerKind: standaloneEnums.InlineCompletionTriggerKind,
+        InlineEditTriggerKind: standaloneEnums.InlineEditTriggerKind,
         CodeActionTriggerType: standaloneEnums.CodeActionTriggerType,
+        NewSymbolNameTag: standaloneEnums.NewSymbolNameTag,
         // classes
         FoldingRangeKind: languages.FoldingRangeKind,
         SelectedSuggestionInfo: languages.SelectedSuggestionInfo,

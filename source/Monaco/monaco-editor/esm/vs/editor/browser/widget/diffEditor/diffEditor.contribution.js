@@ -90,10 +90,7 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
     group: '1_diff',
     when: ContextKeyExpr.has('isInDiffEditor'),
 });
-const diffEditorCategory = {
-    value: localize('diffEditor', 'Diff Editor'),
-    original: 'Diff Editor',
-};
+const diffEditorCategory = localize2('diffEditor', "Diff Editor");
 export class SwitchSide extends EditorAction2 {
     constructor() {
         super({
@@ -180,10 +177,7 @@ export class ShowAllUnchangedRegions extends EditorAction2 {
     }
 }
 registerAction2(ShowAllUnchangedRegions);
-const accessibleDiffViewerCategory = {
-    value: localize('accessibleDiffViewer', 'Accessible Diff Viewer'),
-    original: 'Accessible Diff Viewer',
-};
+const accessibleDiffViewerCategory = localize2('accessibleDiffViewer', "Accessible Diff Viewer");
 export class AccessibleDiffViewerNext extends Action2 {
     constructor() {
         super({

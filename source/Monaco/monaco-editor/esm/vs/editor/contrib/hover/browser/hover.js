@@ -206,7 +206,7 @@ let HoverController = HoverController_1 = class HoverController extends Disposab
         }
         const target = mouseEvent.target;
         const mouseOnDecorator = (_a = target.element) === null || _a === void 0 ? void 0 : _a.classList.contains('colorpicker-color-decoration');
-        const decoratorActivatedOn = this._editor.getOption(146 /* EditorOption.colorDecoratorsActivatedOn */);
+        const decoratorActivatedOn = this._editor.getOption(147 /* EditorOption.colorDecoratorsActivatedOn */);
         const enabled = this._hoverSettings.enabled;
         const activatedByDecoratorClick = this._hoverState.activatedByDecoratorClick;
         if ((mouseOnDecorator && ((decoratorActivatedOn === 'click' && !activatedByDecoratorClick) ||

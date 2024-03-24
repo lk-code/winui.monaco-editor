@@ -123,8 +123,8 @@ let SuggestController = SuggestController_1 = class SuggestController {
         });
         // context key: update insert/replace mode
         const ctxInsertMode = SuggestContext.InsertMode.bindTo(_contextKeyService);
-        ctxInsertMode.set(editor.getOption(117 /* EditorOption.suggest */).insertMode);
-        this._toDispose.add(this.model.onDidTrigger(() => ctxInsertMode.set(editor.getOption(117 /* EditorOption.suggest */).insertMode)));
+        ctxInsertMode.set(editor.getOption(118 /* EditorOption.suggest */).insertMode);
+        this._toDispose.add(this.model.onDidTrigger(() => ctxInsertMode.set(editor.getOption(118 /* EditorOption.suggest */).insertMode)));
         this.widget = this._toDispose.add(new WindowIdleValue(getWindow(editor.getDomNode()), () => {
             const widget = this._instantiationService.createInstance(SuggestWidget, this.editor);
             this._toDispose.add(widget);
@@ -214,7 +214,7 @@ let SuggestController = SuggestController_1 = class SuggestController {
             let noFocus = false;
             if (e.triggerOptions.auto) {
                 // don't "focus" item when configured to do
-                const options = this.editor.getOption(117 /* EditorOption.suggest */);
+                const options = this.editor.getOption(118 /* EditorOption.suggest */);
                 if (options.selectionMode === 'never' || options.selectionMode === 'always') {
                     // simple: always or never
                     noFocus = options.selectionMode === 'never';
@@ -445,7 +445,7 @@ let SuggestController = SuggestController_1 = class SuggestController {
     }
     getOverwriteInfo(item, toggleMode) {
         assertType(this.editor.hasModel());
-        let replace = this.editor.getOption(117 /* EditorOption.suggest */).insertMode === 'replace';
+        let replace = this.editor.getOption(118 /* EditorOption.suggest */).insertMode === 'replace';
         if (toggleMode) {
             replace = !replace;
         }

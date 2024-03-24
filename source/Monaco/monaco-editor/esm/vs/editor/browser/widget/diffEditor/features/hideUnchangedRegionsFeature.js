@@ -234,6 +234,7 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
             reset(this._nodes.first);
         }
         this._register(autorun(reader => {
+            /** @description Update CollapsedCodeOverlayWidget canMove* css classes */
             const isFullyRevealed = this._unchangedRegion.visibleLineCountTop.read(reader) + this._unchangedRegion.visibleLineCountBottom.read(reader) === this._unchangedRegion.lineCount;
             this._nodes.bottom.classList.toggle('canMoveTop', !isFullyRevealed);
             this._nodes.bottom.classList.toggle('canMoveBottom', this._unchangedRegion.visibleLineCountBottom.read(reader) > 0);
@@ -274,7 +275,7 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
                 const currentTop = e.clientY;
                 const delta = currentTop - startTop;
                 didMove = didMove || Math.abs(delta) > 2;
-                const lineDelta = Math.round(delta / editor.getOption(66 /* EditorOption.lineHeight */));
+                const lineDelta = Math.round(delta / editor.getOption(67 /* EditorOption.lineHeight */));
                 const newVal = Math.max(0, Math.min(cur + lineDelta, this._unchangedRegion.getMaxVisibleLineCountTop()));
                 this._unchangedRegion.visibleLineCountTop.set(newVal, undefined);
             });
@@ -305,7 +306,7 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
                 const currentTop = e.clientY;
                 const delta = currentTop - startTop;
                 didMove = didMove || Math.abs(delta) > 2;
-                const lineDelta = Math.round(delta / editor.getOption(66 /* EditorOption.lineHeight */));
+                const lineDelta = Math.round(delta / editor.getOption(67 /* EditorOption.lineHeight */));
                 const newVal = Math.max(0, Math.min(cur - lineDelta, this._unchangedRegion.getMaxVisibleLineCountBottom()));
                 const top = editor.getTopForLineNumber(this._unchangedRegionRange.endLineNumberExclusive);
                 this._unchangedRegion.visibleLineCountBottom.set(newVal, undefined);

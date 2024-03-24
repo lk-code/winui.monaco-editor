@@ -48,7 +48,7 @@ let InlineCompletionsHintsWidget = class InlineCompletionsHintsWidget extends Di
         this.sessionPosition = undefined;
         this.position = derived(this, reader => {
             var _a, _b, _c;
-            const ghostText = (_a = this.model.read(reader)) === null || _a === void 0 ? void 0 : _a.ghostText.read(reader);
+            const ghostText = (_a = this.model.read(reader)) === null || _a === void 0 ? void 0 : _a.primaryGhostText.read(reader);
             if (!this.alwaysShowToolbar.read(reader) || !ghostText || ghostText.parts.length === 0) {
                 this.sessionPosition = undefined;
                 return null;

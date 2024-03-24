@@ -63,7 +63,7 @@ let CodeLensContribution = class CodeLensContribution {
         (_a = this._currentCodeLensModel) === null || _a === void 0 ? void 0 : _a.dispose();
     }
     _getLayoutInfo() {
-        const lineHeightFactor = Math.max(1.3, this._editor.getOption(66 /* EditorOption.lineHeight */) / this._editor.getOption(52 /* EditorOption.fontSize */));
+        const lineHeightFactor = Math.max(1.3, this._editor.getOption(67 /* EditorOption.lineHeight */) / this._editor.getOption(52 /* EditorOption.fontSize */));
         let fontSize = this._editor.getOption(19 /* EditorOption.codeLensFontSize */);
         if (!fontSize || fontSize < 5) {
             fontSize = (this._editor.getOption(52 /* EditorOption.fontSize */) * .9) | 0;

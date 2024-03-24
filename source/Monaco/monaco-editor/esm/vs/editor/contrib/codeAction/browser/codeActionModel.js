@@ -50,7 +50,7 @@ class CodeActionOracle extends Disposable {
         if (trigger.type === 1 /* CodeActionTriggerType.Invoke */) {
             return selection;
         }
-        const enabled = this._editor.getOption(64 /* EditorOption.lightbulb */).enabled;
+        const enabled = this._editor.getOption(65 /* EditorOption.lightbulb */).enabled;
         if (enabled === ShowLightbulbIconMode.Off) {
             return undefined;
         }
@@ -140,7 +140,7 @@ export class CodeActionModel extends Disposable {
         this._register(this._editor.onDidChangeModelLanguage(() => this._update()));
         this._register(this._registry.onDidChange(() => this._update()));
         this._register(this._editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(64 /* EditorOption.lightbulb */)) {
+            if (e.hasChanged(65 /* EditorOption.lightbulb */)) {
                 this._update();
             }
         }));
@@ -168,7 +168,7 @@ export class CodeActionModel extends Disposable {
         const model = this._editor.getModel();
         if (model
             && this._registry.has(model)
-            && !this._editor.getOption(90 /* EditorOption.readOnly */)) {
+            && !this._editor.getOption(91 /* EditorOption.readOnly */)) {
             const supportedActions = this._registry.all(model).flatMap(provider => { var _a; return (_a = provider.providedCodeActionKinds) !== null && _a !== void 0 ? _a : []; });
             this._supportedCodeActions.set(supportedActions.join(' '));
             this._codeActionOracle.value = new CodeActionOracle(this._editor, this._markerService, trigger => {

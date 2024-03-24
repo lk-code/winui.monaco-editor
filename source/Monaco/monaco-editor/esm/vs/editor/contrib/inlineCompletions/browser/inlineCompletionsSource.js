@@ -21,7 +21,6 @@ import { ILanguageConfigurationService } from '../../../common/languages/languag
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
 import { provideInlineCompletions } from './provideInlineCompletions.js';
 import { SingleTextEdit } from './singleTextEdit.js';
-/* hot-reload:patch-prototype-methods */
 let InlineCompletionsSource = class InlineCompletionsSource extends Disposable {
     constructor(textModel, versionId, _debounceValue, languageFeaturesService, languageConfigurationService) {
         super();
@@ -54,7 +53,7 @@ let InlineCompletionsSource = class InlineCompletionsSource extends Disposable {
             const shouldDebounce = updateOngoing || context.triggerKind === InlineCompletionTriggerKind.Automatic;
             if (shouldDebounce) {
                 // This debounces the operation
-                await wait(this._debounceValue.get(this.textModel));
+                await wait(this._debounceValue.get(this.textModel), source.token);
             }
             if (source.token.isCancellationRequested || this.textModel.getVersionId() !== request.versionId) {
                 return false;

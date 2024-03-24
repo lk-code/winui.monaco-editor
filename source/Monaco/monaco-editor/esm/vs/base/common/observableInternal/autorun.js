@@ -4,21 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 import { assertFn } from '../assert.js';
 import { DisposableStore, markAsDisposed, toDisposable, trackDisposable } from '../lifecycle.js';
-import { getFunctionName } from './base.js';
+import { DebugNameData } from './debugName.js';
 import { getLogger } from './logging.js';
 /**
  * Runs immediately and whenever a transaction ends and an observed observable changed.
  * {@link fn} should start with a JS Doc using `@description` to name the autorun.
  */
 export function autorun(fn) {
-    return new AutorunObserver(undefined, fn, undefined, undefined);
+    return new AutorunObserver(new DebugNameData(undefined, undefined, fn), fn, undefined, undefined);
 }
 /**
  * Runs immediately and whenever a transaction ends and an observed observable changed.
  * {@link fn} should start with a JS Doc using `@description` to name the autorun.
  */
 export function autorunOpts(options, fn) {
-    return new AutorunObserver(options.debugName, fn, undefined, undefined);
+    var _a;
+    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, (_a = options.debugReferenceFn) !== null && _a !== void 0 ? _a : fn), fn, undefined, undefined);
 }
 /**
  * Runs immediately and whenever a transaction ends and an observed observable changed.
@@ -32,7 +33,8 @@ export function autorunOpts(options, fn) {
  * @see autorun
  */
 export function autorunHandleChanges(options, fn) {
-    return new AutorunObserver(options.debugName, fn, options.createEmptyChangeSummary, options.handleChange);
+    var _a;
+    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, (_a = options.debugReferenceFn) !== null && _a !== void 0 ? _a : fn), fn, options.createEmptyChangeSummary, options.handleChange);
 }
 /**
  * @see autorun (but with a disposable store that is cleared before the next run or on dispose)
@@ -40,7 +42,9 @@ export function autorunHandleChanges(options, fn) {
 export function autorunWithStore(fn) {
     const store = new DisposableStore();
     const disposable = autorunOpts({
-        debugName: () => getFunctionName(fn) || '(anonymous)',
+        owner: undefined,
+        debugName: undefined,
+        debugReferenceFn: fn,
     }, reader => {
         store.clear();
         fn(reader, store);
@@ -52,24 +56,12 @@ export function autorunWithStore(fn) {
 }
 export class AutorunObserver {
     get debugName() {
-        if (typeof this._debugName === 'string') {
-            return this._debugName;
-        }
-        if (typeof this._debugName === 'function') {
-            const name = this._debugName();
-            if (name !== undefined) {
-                return name;
-            }
-        }
-        const name = getFunctionName(this._runFn);
-        if (name !== undefined) {
-            return name;
-        }
-        return '(anonymous)';
+        var _a;
+        return (_a = this._debugNameData.getDebugName(this)) !== null && _a !== void 0 ? _a : '(anonymous)';
     }
-    constructor(_debugName, _runFn, createChangeSummary, _handleChange) {
+    constructor(_debugNameData, _runFn, createChangeSummary, _handleChange) {
         var _a, _b;
-        this._debugName = _debugName;
+        this._debugNameData = _debugNameData;
         this._runFn = _runFn;
         this.createChangeSummary = createChangeSummary;
         this._handleChange = _handleChange;

@@ -58,13 +58,14 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._register(this._stickyScrollWidget);
         this._register(this._stickyLineCandidateProvider);
         this._widgetState = new StickyScrollWidgetState([], [], 0);
+        this._onDidResize();
         this._readConfiguration();
         const stickyScrollDomNode = this._stickyScrollWidget.getDomNode();
         this._register(this._editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(114 /* EditorOption.stickyScroll */)
-                || e.hasChanged(72 /* EditorOption.minimap */)
-                || e.hasChanged(66 /* EditorOption.lineHeight */)
-                || e.hasChanged(109 /* EditorOption.showFoldingControls */)) {
+            if (e.hasChanged(115 /* EditorOption.stickyScroll */)
+                || e.hasChanged(73 /* EditorOption.minimap */)
+                || e.hasChanged(67 /* EditorOption.lineHeight */)
+                || e.hasChanged(110 /* EditorOption.showFoldingControls */)) {
                 this._readConfiguration();
             }
         }));
@@ -347,12 +348,12 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         const scrollTop = (foldingIcon.isCollapsed ?
             this._editor.getTopForLineNumber(foldingIcon.foldingEndLine)
             : this._editor.getTopForLineNumber(foldingIcon.foldingStartLine))
-            - this._editor.getOption(66 /* EditorOption.lineHeight */) * stickyLine.index + 1;
+            - this._editor.getOption(67 /* EditorOption.lineHeight */) * stickyLine.index + 1;
         this._editor.setScrollTop(scrollTop);
         this._renderStickyScroll(line);
     }
     _readConfiguration() {
-        const options = this._editor.getOption(114 /* EditorOption.stickyScroll */);
+        const options = this._editor.getOption(115 /* EditorOption.stickyScroll */);
         if (options.enabled === false) {
             this._editor.removeOverlayWidget(this._stickyScrollWidget);
             this._sessionStore.clear();
@@ -376,7 +377,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
             }));
             this._enabled = true;
         }
-        const lineNumberOption = this._editor.getOption(67 /* EditorOption.lineNumbers */);
+        const lineNumberOption = this._editor.getOption(68 /* EditorOption.lineNumbers */);
         if (lineNumberOption.renderType === 2 /* RenderLineNumbersType.Relative */) {
             this._sessionStore.add(this._editor.onDidChangeCursorPosition(() => {
                 this._showEndForLine = null;
@@ -404,7 +405,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
     _onDidResize() {
         const layoutInfo = this._editor.getLayoutInfo();
         // Make sure sticky scroll doesn't take up more than 25% of the editor
-        const theoreticalLines = layoutInfo.height / this._editor.getOption(66 /* EditorOption.lineHeight */);
+        const theoreticalLines = layoutInfo.height / this._editor.getOption(67 /* EditorOption.lineHeight */);
         this._maxStickyLines = Math.round(theoreticalLines * .25);
     }
     async _renderStickyScroll(rebuildFromLine) {
@@ -453,8 +454,8 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         }
     }
     findScrollWidgetState() {
-        const lineHeight = this._editor.getOption(66 /* EditorOption.lineHeight */);
-        const maxNumberStickyLines = Math.min(this._maxStickyLines, this._editor.getOption(114 /* EditorOption.stickyScroll */).maxLineCount);
+        const lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
+        const maxNumberStickyLines = Math.min(this._maxStickyLines, this._editor.getOption(115 /* EditorOption.stickyScroll */).maxLineCount);
         const scrollTop = this._editor.getScrollTop();
         let lastLineRelativePosition = 0;
         const startLineNumbers = [];

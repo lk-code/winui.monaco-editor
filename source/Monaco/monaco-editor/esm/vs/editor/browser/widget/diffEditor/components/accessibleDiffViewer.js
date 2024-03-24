@@ -34,7 +34,7 @@ import { LineTokens } from '../../../../common/tokens/lineTokens.js';
 import { RenderLineInput, renderViewLine2 } from '../../../../common/viewLayout/viewLineRenderer.js';
 import { ViewLineRenderingData } from '../../../../common/viewModel.js';
 import { localize } from '../../../../../nls.js';
-import { AudioCue, IAudioCueService } from '../../../../../platform/audioCues/browser/audioCueService.js';
+import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { registerIcon } from '../../../../../platform/theme/common/iconRegistry.js';
 import './accessibleDiffViewer.css';
@@ -42,7 +42,7 @@ const accessibleDiffViewerInsertIcon = registerIcon('diff-review-insert', Codico
 const accessibleDiffViewerRemoveIcon = registerIcon('diff-review-remove', Codicon.remove, localize('accessibleDiffViewerRemoveIcon', 'Icon for \'Remove\' in accessible diff viewer.'));
 const accessibleDiffViewerCloseIcon = registerIcon('diff-review-close', Codicon.close, localize('accessibleDiffViewerCloseIcon', 'Icon for \'Close\' in accessible diff viewer.'));
 let AccessibleDiffViewer = class AccessibleDiffViewer extends Disposable {
-    constructor(_parentNode, _visible, _setVisible, _canClose, _width, _height, _diffs, _editors, _instantiationService) {
+    constructor(_parentNode, _visible, _setVisible, _canClose, _width, _height, _diffs, _models, _instantiationService) {
         super();
         this._parentNode = _parentNode;
         this._visible = _visible;
@@ -51,7 +51,7 @@ let AccessibleDiffViewer = class AccessibleDiffViewer extends Disposable {
         this._width = _width;
         this._height = _height;
         this._diffs = _diffs;
-        this._editors = _editors;
+        this._models = _models;
         this._instantiationService = _instantiationService;
         this._state = derivedWithStore(this, (reader, store) => {
             const visible = this._visible.read(reader);
@@ -59,8 +59,8 @@ let AccessibleDiffViewer = class AccessibleDiffViewer extends Disposable {
             if (!visible) {
                 return null;
             }
-            const model = store.add(this._instantiationService.createInstance(ViewModel, this._diffs, this._editors, this._setVisible, this._canClose));
-            const view = store.add(this._instantiationService.createInstance(View, this._parentNode, model, this._width, this._height, this._editors));
+            const model = store.add(this._instantiationService.createInstance(ViewModel, this._diffs, this._models, this._setVisible, this._canClose));
+            const view = store.add(this._instantiationService.createInstance(View, this._parentNode, model, this._width, this._height, this._models));
             return { model, view, };
         }).recomputeInitiallyAndOnChange(this._store);
     }
@@ -91,13 +91,13 @@ AccessibleDiffViewer = __decorate([
 ], AccessibleDiffViewer);
 export { AccessibleDiffViewer };
 let ViewModel = class ViewModel extends Disposable {
-    constructor(_diffs, _editors, _setVisible, canClose, _audioCueService) {
+    constructor(_diffs, _models, _setVisible, canClose, _accessibilitySignalService) {
         super();
         this._diffs = _diffs;
-        this._editors = _editors;
+        this._models = _models;
         this._setVisible = _setVisible;
         this.canClose = canClose;
-        this._audioCueService = _audioCueService;
+        this._accessibilitySignalService = _accessibilitySignalService;
         this._groups = observableValue(this, []);
         this._currentGroupIdx = observableValue(this, 0);
         this._currentElementIdx = observableValue(this, 0);
@@ -112,9 +112,9 @@ let ViewModel = class ViewModel extends Disposable {
                 this._groups.set([], undefined);
                 return;
             }
-            const groups = computeViewElementGroups(diffs, this._editors.original.getModel().getLineCount(), this._editors.modified.getModel().getLineCount());
+            const groups = computeViewElementGroups(diffs, this._models.getOriginalModel().getLineCount(), this._models.getModifiedModel().getLineCount());
             transaction(tx => {
-                const p = this._editors.modified.getPosition();
+                const p = this._models.getModifiedPosition();
                 if (p) {
                     const nextGroup = groups.findIndex(g => (p === null || p === void 0 ? void 0 : p.lineNumber) < g.range.modified.endLineNumberExclusive);
                     if (nextGroup !== -1) {
@@ -128,10 +128,10 @@ let ViewModel = class ViewModel extends Disposable {
             /** @description play audio-cue for diff */
             const currentViewItem = this.currentElement.read(reader);
             if ((currentViewItem === null || currentViewItem === void 0 ? void 0 : currentViewItem.type) === LineType.Deleted) {
-                this._audioCueService.playAudioCue(AudioCue.diffLineDeleted, { source: 'accessibleDiffViewer.currentElementChanged' });
+                this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted, { source: 'accessibleDiffViewer.currentElementChanged' });
             }
             else if ((currentViewItem === null || currentViewItem === void 0 ? void 0 : currentViewItem.type) === LineType.Added) {
-                this._audioCueService.playAudioCue(AudioCue.diffLineInserted, { source: 'accessibleDiffViewer.currentElementChanged' });
+                this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted, { source: 'accessibleDiffViewer.currentElementChanged' });
             }
         }));
         this._register(autorun(reader => {
@@ -141,7 +141,7 @@ let ViewModel = class ViewModel extends Disposable {
             const currentViewItem = this.currentElement.read(reader);
             if (currentViewItem && currentViewItem.type !== LineType.Header) {
                 const lineNumber = (_a = currentViewItem.modifiedLineNumber) !== null && _a !== void 0 ? _a : currentViewItem.diff.modified.startLineNumber;
-                this._editors.modified.setSelection(Range.fromPositions(new Position(lineNumber, 1)));
+                this._models.modifiedSetSelection(Range.fromPositions(new Position(lineNumber, 1)));
             }
         }));
     }
@@ -182,30 +182,32 @@ let ViewModel = class ViewModel extends Disposable {
         });
     }
     revealCurrentElementInEditor() {
+        if (!this.canClose.get()) {
+            return;
+        }
         this._setVisible(false, undefined);
         const curElem = this.currentElement.get();
         if (curElem) {
             if (curElem.type === LineType.Deleted) {
-                this._editors.original.setSelection(Range.fromPositions(new Position(curElem.originalLineNumber, 1)));
-                this._editors.original.revealLine(curElem.originalLineNumber);
-                this._editors.original.focus();
+                this._models.originalReveal(Range.fromPositions(new Position(curElem.originalLineNumber, 1)));
             }
             else {
-                if (curElem.type !== LineType.Header) {
-                    this._editors.modified.setSelection(Range.fromPositions(new Position(curElem.modifiedLineNumber, 1)));
-                    this._editors.modified.revealLine(curElem.modifiedLineNumber);
-                }
-                this._editors.modified.focus();
+                this._models.modifiedReveal(curElem.type !== LineType.Header
+                    ? Range.fromPositions(new Position(curElem.modifiedLineNumber, 1))
+                    : undefined);
             }
         }
     }
     close() {
+        if (!this.canClose.get()) {
+            return;
+        }
         this._setVisible(false, undefined);
-        this._editors.modified.focus();
+        this._models.modifiedFocus();
     }
 };
 ViewModel = __decorate([
-    __param(4, IAudioCueService)
+    __param(4, IAccessibilitySignalService)
 ], ViewModel);
 const viewElementGroupLineMargin = 3;
 function computeViewElementGroups(diffs, originalLineCount, modifiedLineCount) {
@@ -278,16 +280,16 @@ class UnchangedLineViewElement {
     }
 }
 let View = class View extends Disposable {
-    constructor(_element, _model, _width, _height, _editors, _languageService) {
+    constructor(_element, _model, _width, _height, _models, _languageService) {
         super();
         this._element = _element;
         this._model = _model;
         this._width = _width;
         this._height = _height;
-        this._editors = _editors;
+        this._models = _models;
         this._languageService = _languageService;
         this.domNode = this._element;
-        this.domNode.className = 'diff-review monaco-editor-background';
+        this.domNode.className = 'monaco-component diff-review monaco-editor-background';
         const actionBarContainer = document.createElement('div');
         actionBarContainer.className = 'diff-review-actions';
         this._actionBar = this._register(new ActionBar(actionBarContainer));
@@ -303,6 +305,11 @@ let View = class View extends Disposable {
         this._content.setAttribute('role', 'code');
         this._scrollbar = this._register(new DomScrollableElement(this._content, {}));
         reset(this.domNode, this._scrollbar.getDomNode(), actionBarContainer);
+        this._register(autorun(r => {
+            this._height.read(r);
+            this._width.read(r);
+            this._scrollbar.scanDomNode();
+        }));
         this._register(toDisposable(() => { reset(this.domNode); }));
         this._register(applyStyle(this.domNode, { width: this._width, height: this._height }));
         this._register(applyStyle(this._content, { width: this._width, height: this._height }));
@@ -340,22 +347,22 @@ let View = class View extends Disposable {
         }));
     }
     _render(store) {
-        const originalOptions = this._editors.original.getOptions();
-        const modifiedOptions = this._editors.modified.getOptions();
+        const originalOptions = this._models.getOriginalOptions();
+        const modifiedOptions = this._models.getModifiedOptions();
         const container = document.createElement('div');
         container.className = 'diff-review-table';
         container.setAttribute('role', 'list');
         container.setAttribute('aria-label', localize('ariaLabel', 'Accessible Diff Viewer. Use arrow up and down to navigate.'));
         applyFontInfo(container, modifiedOptions.get(50 /* EditorOption.fontInfo */));
         reset(this._content, container);
-        const originalModel = this._editors.original.getModel();
-        const modifiedModel = this._editors.modified.getModel();
+        const originalModel = this._models.getOriginalModel();
+        const modifiedModel = this._models.getModifiedModel();
         if (!originalModel || !modifiedModel) {
             return;
         }
         const originalModelOpts = originalModel.getOptions();
         const modifiedModelOpts = modifiedModel.getOptions();
-        const lineHeight = modifiedOptions.get(66 /* EditorOption.lineHeight */);
+        const lineHeight = modifiedOptions.get(67 /* EditorOption.lineHeight */);
         const group = this._model.currentGroup.get();
         for (const viewItem of (group === null || group === void 0 ? void 0 : group.lines) || []) {
             if (!group) {
@@ -412,9 +419,9 @@ let View = class View extends Disposable {
         this._scrollbar.scanDomNode();
     }
     _createRow(item, lineHeight, width, originalOptions, originalModel, originalModelOpts, modifiedOptions, modifiedModel, modifiedModelOpts) {
-        const originalLayoutInfo = originalOptions.get(143 /* EditorOption.layoutInfo */);
+        const originalLayoutInfo = originalOptions.get(144 /* EditorOption.layoutInfo */);
         const originalLineNumbersWidth = originalLayoutInfo.glyphMarginWidth + originalLayoutInfo.lineNumbersWidth;
-        const modifiedLayoutInfo = modifiedOptions.get(143 /* EditorOption.layoutInfo */);
+        const modifiedLayoutInfo = modifiedOptions.get(144 /* EditorOption.layoutInfo */);
         const modifiedLineNumbersWidth = 10 + modifiedLayoutInfo.glyphMarginWidth + modifiedLayoutInfo.lineNumbersWidth;
         let rowClassName = 'diff-review-row';
         let lineNumbersExtraClassName = '';
@@ -522,10 +529,49 @@ let View = class View extends Disposable {
         const lineTokens = LineTokens.createEmpty(lineContent, languageIdCodec);
         const isBasicASCII = ViewLineRenderingData.isBasicASCII(lineContent, model.mightContainNonBasicASCII());
         const containsRTL = ViewLineRenderingData.containsRTL(lineContent, isBasicASCII, model.mightContainRTL());
-        const r = renderViewLine2(new RenderLineInput((fontInfo.isMonospace && !options.get(33 /* EditorOption.disableMonospaceOptimizations */)), fontInfo.canUseHalfwidthRightwardsArrow, lineContent, false, isBasicASCII, containsRTL, 0, lineTokens, [], tabSize, 0, fontInfo.spaceWidth, fontInfo.middotWidth, fontInfo.wsmiddotWidth, options.get(116 /* EditorOption.stopRenderingLineAfter */), options.get(98 /* EditorOption.renderWhitespace */), options.get(93 /* EditorOption.renderControlCharacters */), options.get(51 /* EditorOption.fontLigatures */) !== EditorFontLigatures.OFF, null));
+        const r = renderViewLine2(new RenderLineInput((fontInfo.isMonospace && !options.get(33 /* EditorOption.disableMonospaceOptimizations */)), fontInfo.canUseHalfwidthRightwardsArrow, lineContent, false, isBasicASCII, containsRTL, 0, lineTokens, [], tabSize, 0, fontInfo.spaceWidth, fontInfo.middotWidth, fontInfo.wsmiddotWidth, options.get(117 /* EditorOption.stopRenderingLineAfter */), options.get(99 /* EditorOption.renderWhitespace */), options.get(94 /* EditorOption.renderControlCharacters */), options.get(51 /* EditorOption.fontLigatures */) !== EditorFontLigatures.OFF, null));
         return r.html;
     }
 };
 View = __decorate([
     __param(5, ILanguageService)
 ], View);
+export class AccessibleDiffViewerModelFromEditors {
+    constructor(editors) {
+        this.editors = editors;
+    }
+    getOriginalModel() {
+        return this.editors.original.getModel();
+    }
+    getOriginalOptions() {
+        return this.editors.original.getOptions();
+    }
+    originalReveal(range) {
+        this.editors.original.revealRange(range);
+        this.editors.original.setSelection(range);
+        this.editors.original.focus();
+    }
+    getModifiedModel() {
+        return this.editors.modified.getModel();
+    }
+    getModifiedOptions() {
+        return this.editors.modified.getOptions();
+    }
+    modifiedReveal(range) {
+        if (range) {
+            this.editors.modified.revealRange(range);
+            this.editors.modified.setSelection(range);
+        }
+        this.editors.modified.focus();
+    }
+    modifiedSetSelection(range) {
+        this.editors.modified.setSelection(range);
+    }
+    modifiedFocus() {
+        this.editors.modified.focus();
+    }
+    getModifiedPosition() {
+        var _a;
+        return (_a = this.editors.modified.getPosition()) !== null && _a !== void 0 ? _a : undefined;
+    }
+}

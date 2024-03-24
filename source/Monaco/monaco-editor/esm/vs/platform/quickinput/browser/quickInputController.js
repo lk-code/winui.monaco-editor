@@ -19,6 +19,7 @@ import { QuickPick, backButton, InputBox } from './quickInput.js';
 import { mainWindow } from '../../../base/browser/window.js';
 const $ = dom.$;
 export class QuickInputController extends Disposable {
+    get container() { return this._container; }
     constructor(options, themeService, layoutService) {
         super();
         this.options = options;
@@ -35,7 +36,7 @@ export class QuickInputController extends Disposable {
         this.onHideEmitter = this._register(new Emitter());
         this.onHide = this.onHideEmitter.event;
         this.idPrefix = options.idPrefix;
-        this.parentElement = options.container;
+        this._container = options.container;
         this.styles = options.styles;
         this._register(Event.runAndSubscribe(dom.onDidRegisterWindow, ({ window, disposables }) => this.registerKeyModsListeners(window, disposables), { window: mainWindow, disposables: this._store }));
         this._register(dom.onWillUnregisterWindow(window => {
@@ -45,6 +46,7 @@ export class QuickInputController extends Disposable {
                 // existing parent to not loose functionality.
                 // (https://github.com/microsoft/vscode/issues/195870)
                 this.reparentUI(this.layoutService.mainContainer);
+                this.layout(this.layoutService.mainContainerDimension, this.layoutService.mainContainerOffset.quickPickTop);
             }
         }));
     }
@@ -62,13 +64,14 @@ export class QuickInputController extends Disposable {
             // In order to support aux windows, re-parent the controller
             // if the original event is from a different document
             if (showInActiveContainer) {
-                if (this.parentElement.ownerDocument !== this.layoutService.activeContainer.ownerDocument) {
+                if (dom.getWindow(this._container) !== dom.getWindow(this.layoutService.activeContainer)) {
                     this.reparentUI(this.layoutService.activeContainer);
+                    this.layout(this.layoutService.activeContainerDimension, this.layoutService.activeContainerOffset.quickPickTop);
                 }
             }
             return this.ui;
         }
-        const container = dom.append(this.parentElement, $('.quick-input-widget.show-file-icons'));
+        const container = dom.append(this._container, $('.quick-input-widget.show-file-icons'));
         container.tabIndex = -1;
         container.style.display = 'none';
         const styleSheet = dom.createStyleSheet(container);
@@ -139,7 +142,11 @@ export class QuickInputController extends Disposable {
         }));
         this._register(list.onLeave(() => {
             // Defer to avoid the input field reacting to the triggering key.
+            // TODO@TylerLeonhardt https://github.com/microsoft/vscode/issues/203675
             setTimeout(() => {
+                if (!this.controller) {
+                    return;
+                }
                 inputBox.setFocus();
                 if (this.controller instanceof QuickPick && this.controller.canSelectMany) {
                     list.clearFocus();
@@ -271,8 +278,8 @@ export class QuickInputController extends Disposable {
     }
     reparentUI(container) {
         if (this.ui) {
-            this.parentElement = container;
-            dom.append(this.parentElement, this.ui.container);
+            this._container = container;
+            dom.append(this._container, this.ui.container);
         }
     }
     pick(picks, options = {}, token = CancellationToken.None) {

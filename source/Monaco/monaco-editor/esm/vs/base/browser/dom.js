@@ -19,10 +19,15 @@ import { ensureCodeWindow, mainWindow } from './window.js';
 export const { registerWindow, getWindow, getDocument, getWindows, getWindowsCount, getWindowId, getWindowById, hasWindow, onDidRegisterWindow, onWillUnregisterWindow, onDidUnregisterWindow } = (function () {
     const windows = new Map();
     ensureCodeWindow(mainWindow, 1);
-    windows.set(mainWindow.vscodeWindowId, { window: mainWindow, disposables: new DisposableStore() });
+    const mainWindowRegistration = { window: mainWindow, disposables: new DisposableStore() };
+    windows.set(mainWindow.vscodeWindowId, mainWindowRegistration);
     const onDidRegisterWindow = new event.Emitter();
     const onDidUnregisterWindow = new event.Emitter();
     const onWillUnregisterWindow = new event.Emitter();
+    function getWindowById(windowId, fallbackToMain) {
+        const window = typeof windowId === 'number' ? windows.get(windowId) : undefined;
+        return window !== null && window !== void 0 ? window : (fallbackToMain ? mainWindowRegistration : undefined);
+    }
     return {
         onDidRegisterWindow: onDidRegisterWindow.event,
         onWillUnregisterWindow: onWillUnregisterWindow.event,
@@ -59,9 +64,7 @@ export const { registerWindow, getWindow, getDocument, getWindows, getWindowsCou
         hasWindow(windowId) {
             return windows.has(windowId);
         },
-        getWindowById(windowId) {
-            return windows.get(windowId);
-        },
+        getWindowById,
         getWindow(e) {
             var _a;
             const candidateNode = e;
@@ -610,7 +613,7 @@ class WrappedStyleElement {
     }
     dispose() {
         if (this._styleSheet) {
-            clearNode(this._styleSheet);
+            this._styleSheet.remove();
             this._styleSheet = undefined;
         }
     }

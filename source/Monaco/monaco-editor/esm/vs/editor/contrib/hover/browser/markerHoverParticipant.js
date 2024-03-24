@@ -147,18 +147,20 @@ let MarkerHoverParticipant = class MarkerHoverParticipant {
     }
     renderMarkerStatusbar(context, markerHover, disposables) {
         if (markerHover.marker.severity === MarkerSeverity.Error || markerHover.marker.severity === MarkerSeverity.Warning || markerHover.marker.severity === MarkerSeverity.Info) {
-            context.statusBar.addAction({
-                label: nls.localize('view problem', "View Problem"),
-                commandId: NextMarkerAction.ID,
-                run: () => {
-                    var _a;
-                    context.hide();
-                    (_a = MarkerController.get(this._editor)) === null || _a === void 0 ? void 0 : _a.showAtMarker(markerHover.marker);
-                    this._editor.focus();
-                }
-            });
+            const markerController = MarkerController.get(this._editor);
+            if (markerController) {
+                context.statusBar.addAction({
+                    label: nls.localize('view problem', "View Problem"),
+                    commandId: NextMarkerAction.ID,
+                    run: () => {
+                        context.hide();
+                        markerController.showAtMarker(markerHover.marker);
+                        this._editor.focus();
+                    }
+                });
+            }
         }
-        if (!this._editor.getOption(90 /* EditorOption.readOnly */)) {
+        if (!this._editor.getOption(91 /* EditorOption.readOnly */)) {
             const quickfixPlaceholderElement = context.statusBar.append($('div'));
             if (this.recentMarkerCodeActionsInfo) {
                 if (IMarkerData.makeKey(this.recentMarkerCodeActionsInfo.marker) === IMarkerData.makeKey(markerHover.marker)) {

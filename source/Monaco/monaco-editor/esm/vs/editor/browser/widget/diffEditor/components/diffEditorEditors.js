@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { autorunHandleChanges, observableFromEvent } from '../../../../../base/common/observable.js';
+import { autorunHandleChanges, derivedOpts, observableFromEvent } from '../../../../../base/common/observable.js';
 import { OverviewRulerFeature } from '../features/overviewRulerFeature.js';
 import { EditorOptions } from '../../../../common/config/editorOptions.js';
 import { localize } from '../../../../../nls.js';
@@ -37,7 +37,8 @@ let DiffEditorEditors = class DiffEditorEditors extends Disposable {
         this.modifiedScrollTop = observableFromEvent(this.modified.onDidScrollChange, () => /** @description modified.getScrollTop */ this.modified.getScrollTop());
         this.modifiedScrollHeight = observableFromEvent(this.modified.onDidScrollChange, () => /** @description modified.getScrollHeight */ this.modified.getScrollHeight());
         this.modifiedSelections = observableFromEvent(this.modified.onDidChangeCursorSelection, () => { var _a; return (_a = this.modified.getSelections()) !== null && _a !== void 0 ? _a : []; });
-        this.modifiedCursor = observableFromEvent(this.modified.onDidChangeCursorPosition, () => { var _a; return (_a = this.modified.getPosition()) !== null && _a !== void 0 ? _a : new Position(1, 1); });
+        this.modifiedCursor = derivedOpts({ owner: this, equalityComparer: Position.equals }, reader => { var _a, _b; return (_b = (_a = this.modifiedSelections.read(reader)[0]) === null || _a === void 0 ? void 0 : _a.getPosition()) !== null && _b !== void 0 ? _b : new Position(1, 1); });
+        this.originalCursor = observableFromEvent(this.original.onDidChangeCursorPosition, () => { var _a; return (_a = this.original.getPosition()) !== null && _a !== void 0 ? _a : new Position(1, 1); });
         this._register(autorunHandleChanges({
             createEmptyChangeSummary: () => ({}),
             handleChange: (ctx, changeSummary) => {

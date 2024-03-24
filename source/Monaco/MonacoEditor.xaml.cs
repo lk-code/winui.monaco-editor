@@ -16,6 +16,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     public bool LoadCompleted { get; set; } = false;
 
     private string _content = "";
+    private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     #region PropertyChanged Event
 
@@ -174,7 +175,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
     {
-        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, @"MonacoEditorSource\index.html");
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, HTML_LAUNCH_FILE);
         this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
     }
 

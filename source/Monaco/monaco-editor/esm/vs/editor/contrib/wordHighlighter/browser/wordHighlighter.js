@@ -215,7 +215,7 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
         this.codeEditorService = codeEditorService;
         this._hasWordHighlights = ctxHasWordHighlights.bindTo(contextKeyService);
         this._ignorePositionChangeEvent = false;
-        this.occurrencesHighlight = this.editor.getOption(80 /* EditorOption.occurrencesHighlight */);
+        this.occurrencesHighlight = this.editor.getOption(81 /* EditorOption.occurrencesHighlight */);
         this.model = this.editor.getModel();
         this.toUnhook.add(editor.onDidChangeCursorPosition((e) => {
             if (this._ignorePositionChangeEvent) {
@@ -228,6 +228,15 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
                 return;
             }
             this._onPositionChanged(e);
+        }));
+        this.toUnhook.add(editor.onDidFocusEditorText((e) => {
+            if (this.occurrencesHighlight === 'off') {
+                // Early exit if nothing needs to be done
+                return;
+            }
+            if (!this.workerRequest) {
+                this._run();
+            }
         }));
         this.toUnhook.add(editor.onDidChangeModelContent((e) => {
             this._stopAll();
@@ -243,7 +252,7 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
             }
         }));
         this.toUnhook.add(editor.onDidChangeConfiguration((e) => {
-            const newValue = this.editor.getOption(80 /* EditorOption.occurrencesHighlight */);
+            const newValue = this.editor.getOption(81 /* EditorOption.occurrencesHighlight */);
             if (this.occurrencesHighlight !== newValue) {
                 this.occurrencesHighlight = newValue;
                 this._stopAll();
@@ -329,6 +338,7 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
     }
     _removeAllDecorations() {
         const currentEditors = this.codeEditorService.listCodeEditors();
+        const deleteURI = [];
         // iterate over editors and store models in currentModels
         for (const editor of currentEditors) {
             if (!editor.hasModel()) {
@@ -339,25 +349,29 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
                 continue;
             }
             editor.removeDecorations(currentDecorationIDs);
-            WordHighlighter_1.storedDecorations.delete(editor.getModel().uri);
+            deleteURI.push(editor.getModel().uri);
             const editorHighlighterContrib = WordHighlighterContribution.get(editor);
             if (!(editorHighlighterContrib === null || editorHighlighterContrib === void 0 ? void 0 : editorHighlighterContrib.wordHighlighter)) {
                 continue;
             }
             if (editorHighlighterContrib.wordHighlighter.decorations.length > 0) {
                 editorHighlighterContrib.wordHighlighter.decorations.clear();
+                editorHighlighterContrib.wordHighlighter.workerRequest = null;
                 editorHighlighterContrib.wordHighlighter._hasWordHighlights.set(false);
             }
+        }
+        for (const uri of deleteURI) {
+            WordHighlighter_1.storedDecorations.delete(uri);
         }
     }
     _stopSingular() {
         var _a, _b, _c, _d;
         // Remove any existing decorations + a possible query, and re - run to update decorations
         this._removeSingleDecorations();
-        if (this.editor.hasWidgetFocus()) {
+        if (this.editor.hasTextFocus()) {
             if (((_a = this.editor.getModel()) === null || _a === void 0 ? void 0 : _a.uri.scheme) !== Schemas.vscodeNotebookCell && ((_c = (_b = WordHighlighter_1.query) === null || _b === void 0 ? void 0 : _b.modelInfo) === null || _c === void 0 ? void 0 : _c.model.uri.scheme) !== Schemas.vscodeNotebookCell) { // clear query if focused non-nb editor
                 WordHighlighter_1.query = null;
-                this._run();
+                this._run(); // TODO: @Yoyokrazy -- investigate why we need a full rerun here. likely addressed a case/patch in the first iteration of this feature
             }
             else { // remove modelInfo to account for nb cell being disposed
                 if ((_d = WordHighlighter_1.query) === null || _d === void 0 ? void 0 : _d.modelInfo) {
@@ -383,6 +397,8 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
     }
     _stopAll() {
         // Remove any existing decorations
+        // TODO: @Yoyokrazy -- this triggers as notebooks scroll, causing highlights to disappear momentarily.
+        // maybe a nb type check?
         this._removeAllDecorations();
         // Cancel any renderDecorationsTimer
         if (this.renderDecorationsTimer !== -1) {
@@ -481,18 +497,19 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
         return currentModels;
     }
     _run() {
-        var _a, _b;
+        var _a;
         let workerRequestIsValid;
-        if (!this.editor.hasWidgetFocus()) { // no focus (new nb cell, etc)
-            if (WordHighlighter_1.query === null) {
-                // no previous query, nothing to highlight
+        const hasTextFocus = this.editor.hasTextFocus();
+        if (!hasTextFocus) { // new nb cell scrolled in, didChangeModel fires
+            if (!WordHighlighter_1.query) { // no previous query, nothing to highlight off of
                 return;
             }
         }
-        else {
+        else { // has text focus
             const editorSelection = this.editor.getSelection();
             // ignore multiline selection
             if (!editorSelection || editorSelection.startLineNumber !== editorSelection.endLineNumber) {
+                WordHighlighter_1.query = null;
                 this._stopAll();
                 return;
             }
@@ -543,20 +560,15 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
             const myRequestId = ++this.workerRequestTokenId;
             this.workerRequestCompleted = false;
             const otherModelsToHighlight = this.getOtherModelsToHighlight(this.editor.getModel());
-            // 2 cases where we want to send the word
-            // a) there is no stored query model, but there is a word. This signals the editor that drove the highlight is disposed (cell out of viewport, etc)
-            // b) the queried model is not the current model. This signals that the editor that drove the highlight is still in the viewport, but we are highlighting a different cell
-            // otherwise, we send null in place of the word, and the model and selection are used to compute the word
-            const sendWord = (!WordHighlighter_1.query.modelInfo && WordHighlighter_1.query.word) ||
-                (((_a = WordHighlighter_1.query.modelInfo) === null || _a === void 0 ? void 0 : _a.model.uri) !== this.model.uri)
-                ? true : false;
-            if (!WordHighlighter_1.query.modelInfo || (WordHighlighter_1.query.modelInfo.model.uri !== this.model.uri)) { // use this.model
-                this.workerRequest = this.computeWithModel(this.model, this.editor.getSelection(), sendWord ? WordHighlighter_1.query.word : null, otherModelsToHighlight);
+            // when reaching here, there are two possible states.
+            // 		1) we have text focus, and a valid query was updated.
+            // 		2) we do not have text focus, and a valid query is cached.
+            // the query will ALWAYS have the correct data for the current highlight request, so it can always be passed to the workerRequest safely
+            if (!WordHighlighter_1.query.modelInfo || WordHighlighter_1.query.modelInfo.model.isDisposed()) {
+                return;
             }
-            else { // use stored query model + selection
-                this.workerRequest = this.computeWithModel(WordHighlighter_1.query.modelInfo.model, WordHighlighter_1.query.modelInfo.selection, WordHighlighter_1.query.word, otherModelsToHighlight);
-            }
-            (_b = this.workerRequest) === null || _b === void 0 ? void 0 : _b.result.then(data => {
+            this.workerRequest = this.computeWithModel(WordHighlighter_1.query.modelInfo.model, WordHighlighter_1.query.modelInfo.selection, WordHighlighter_1.query.word, otherModelsToHighlight);
+            (_a = this.workerRequest) === null || _a === void 0 ? void 0 : _a.result.then(data => {
                 if (myRequestId === this.workerRequestTokenId) {
                     this.workerRequestCompleted = true;
                     this.workerRequestValue = data || [];
@@ -567,10 +579,10 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
     }
     computeWithModel(model, selection, word, otherModels) {
         if (!otherModels.length) {
-            return computeOccurencesAtPosition(this.providers, model, selection, word, this.editor.getOption(129 /* EditorOption.wordSeparators */));
+            return computeOccurencesAtPosition(this.providers, model, selection, word, this.editor.getOption(130 /* EditorOption.wordSeparators */));
         }
         else {
-            return computeOccurencesMultiModel(this.multiDocumentProviders, model, selection, word, this.editor.getOption(129 /* EditorOption.wordSeparators */), otherModels);
+            return computeOccurencesMultiModel(this.multiDocumentProviders, model, selection, word, this.editor.getOption(130 /* EditorOption.wordSeparators */), otherModels);
         }
     }
     _beginRenderDecorations() {
@@ -607,6 +619,9 @@ let WordHighlighter = WordHighlighter_1 = class WordHighlighter {
                 const newDocumentHighlights = this.workerRequestValue.get(uri);
                 if (newDocumentHighlights) {
                     for (const highlight of newDocumentHighlights) {
+                        if (!highlight.range) {
+                            continue;
+                        }
                         newDecorations.push({
                             range: highlight.range,
                             options: getHighlightDecorationOptions(highlight.kind)

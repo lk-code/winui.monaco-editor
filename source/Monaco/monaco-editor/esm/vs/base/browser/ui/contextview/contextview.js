@@ -136,6 +136,7 @@ export class ContextView extends Disposable {
         return this.view;
     }
     layout() {
+        var _a, _b;
         if (!this.isVisible()) {
             return;
         }
@@ -143,9 +144,7 @@ export class ContextView extends Disposable {
             this.hide();
             return;
         }
-        if (this.delegate.layout) {
-            this.delegate.layout();
-        }
+        (_b = (_a = this.delegate) === null || _a === void 0 ? void 0 : _a.layout) === null || _b === void 0 ? void 0 : _b.call(_a);
         this.doLayout();
     }
     doLayout() {

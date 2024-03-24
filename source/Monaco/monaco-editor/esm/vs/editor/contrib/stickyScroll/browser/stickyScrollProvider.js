@@ -41,7 +41,7 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
         this._sessionStore = this._register(new DisposableStore());
         this._updateSoon = this._register(new RunOnceScheduler(() => this.update(), 50));
         this._register(this._editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(114 /* EditorOption.stickyScroll */)) {
+            if (e.hasChanged(115 /* EditorOption.stickyScroll */)) {
                 this.readConfiguration();
             }
         }));
@@ -50,7 +50,7 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
     readConfiguration() {
         this._stickyModelProvider = null;
         this._sessionStore.clear();
-        this._options = this._editor.getOption(114 /* EditorOption.stickyScroll */);
+        this._options = this._editor.getOption(115 /* EditorOption.stickyScroll */);
         if (!this._options.enabled) {
             return;
         }

@@ -1,9 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Monaco;
 
 public interface IMonacoEditor
 {
+    /// <summary>
+    /// is called when the monaco editor is loaded
+    /// </summary>
+    event EventHandler MonacoEditorLoaded;
+
     /// <summary>
     /// sets the requested theme to the monaco editor view
     /// </summary>

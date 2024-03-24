@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
@@ -125,21 +125,51 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     public MonacoEditor()
     {
         this.InitializeComponent();
-        this.Loaded += MonacoEditor_Loaded;
+
+        this.Loaded += MonacoEditorParentView_Loaded;
+
         MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
-        MonacoEditorWebView.WebMessageReceived += WebMessageReceived;
     }
 
-    private void WebMessageReceived(WebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
+    private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
     {
+        await MonacoEditorWebView.EnsureCoreWebView2Async();
 
-        switch(args.WebMessageAsJson)
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(
+            @"document.addEventListener('monaco-editor-did-load', function() { handleWebViewMessage('EVENT_EDITOR_LOADED'); });"
+        );
+
+        MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+        // load launch html file
+        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, HTML_LAUNCH_FILE);
+        this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
+    }
+
+    private void CoreWebView2_WebMessageReceived(CoreWebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
+    {
+        string message = args.TryGetWebMessageAsString();
+
+        this.ProcessMonacoEvents(message);
+    }
+
+    private void ProcessMonacoEvents(string monacoEvent)
+    {
+        switch (monacoEvent)
         {
-            case "\"EVENT_EDITOR_CONTENT_CHANGED\"":
-                OnContentChanged();
+            // own events
+            case "EVENT_EDITOR_LOADED":
+                {
+                    MonacoEditorLoaded?.Invoke(this, EventArgs.Empty);
+                }
                 break;
-            default:
-                throw new ArgumentOutOfRangeException();
+
+            // monaco events
+            case "EVENT_EDITOR_CONTENT_CHANGED":
+                {
+                    OnContentChanged();
+                }
+                break;
         }
     }
 
@@ -152,12 +182,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
 
-    }
-
-    private void MonacoEditor_Loaded(object sender, RoutedEventArgs e)
-    {
-        string monacoHtmlFile = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, HTML_LAUNCH_FILE);
-        this.MonacoEditorWebView.Source = new Uri(monacoHtmlFile);
     }
 
     /// <inheritdoc />

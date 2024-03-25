@@ -20,7 +20,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private string _content = "";
     public static IEnumerable<Type> AdditionalMonacoHandlerTypes = new List<Type>();
-    private List<IMonacoHandler> _registeredHandlers = new ();
+    private List<IMonacoHandler> _registeredHandlers = new();
 
     public event EventHandler? MonacoEditorLoaded = null;
 
@@ -251,35 +251,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     }
 
     /// <inheritdoc />
-    public async Task SetThemeAsync(EditorThemes theme)
-    {
-        string themeValue = "vs-dark";
-
-        switch (theme)
-        {
-            case EditorThemes.VisualStudioLight:
-                {
-                    themeValue = "vs-light";
-                }
-                break;
-            case EditorThemes.VisualStudioDark:
-                {
-                    themeValue = "vs-dark";
-                }
-                break;
-            case EditorThemes.HighContrastDark:
-                {
-                    themeValue = "hc-black";
-                }
-                break;
-        }
-
-        string command = $"editor._themeService.setTheme('{themeValue}');";
-
-        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
-
-    /// <inheritdoc />
     public async Task SelectAllAsync()
     {
         string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
@@ -314,6 +285,32 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         MonacoWebViewDevToolsHandler handler = this.GetHandler<MonacoWebViewDevToolsHandler>();
 
         handler.OpenDebugWebViewDeveloperTools();
+    }
+
+    /// <inheritdoc />
+    [Obsolete("use the MonacoEditorThemeHandler instead (see documentation)")]
+    public async Task SetThemeAsync(EditorThemes theme)
+    {
+        MonacoEditorThemeHandler handler = this.GetHandler<MonacoEditorThemeHandler>();
+
+        switch (theme)
+        {
+            case EditorThemes.VisualStudioLight:
+                {
+                    await handler.SetThemeAsync("vs-light");
+                }
+                break;
+            case EditorThemes.VisualStudioDark:
+                {
+                    await handler.SetThemeAsync("vs-dark");
+                }
+                break;
+            case EditorThemes.HighContrastDark:
+                {
+                    await handler.SetThemeAsync("hc-black");
+                }
+                break;
+        }
     }
 
     #endregion

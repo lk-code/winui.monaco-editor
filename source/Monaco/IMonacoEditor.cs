@@ -17,13 +17,6 @@ public interface IMonacoEditor
     T GetHandler<T>() where T : IMonacoHandler;
 
     /// <summary>
-    /// sets the requested theme to the monaco editor view
-    /// </summary>
-    /// <param name="theme">the requested theme</param>
-    /// <returns></returns>
-    Task SetThemeAsync(EditorThemes theme);
-
-    /// <summary>
     /// loads the given content to the monaco editor view
     /// </summary>
     /// <param name="content">the new content</param>
@@ -63,4 +56,12 @@ public interface IMonacoEditor
     /// <returns></returns>
     [Obsolete("use the MonacoWebViewDevToolsHandler instead (see documentation)")]
     void OpenDebugWebViewDeveloperTools();
+
+    /// <summary>
+    /// sets the requested theme to the monaco editor view
+    /// </summary>
+    /// <param name="theme">the requested theme</param>
+    /// <returns></returns>
+    [Obsolete("use the MonacoEditorThemeHandler instead (see documentation)")]
+    Task SetThemeAsync(EditorThemes theme);
 }

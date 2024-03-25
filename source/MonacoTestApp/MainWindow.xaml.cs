@@ -5,18 +5,17 @@ using Monaco;
 using System.Linq;
 using System;
 using MonacoTestApp.Extensions;
-using System.Threading.Tasks;
 using Monaco.MonacoHandler;
 
 namespace MonacoTestApp;
 
 public sealed partial class MainWindow : Window
 {
-    private readonly Dictionary<string, EditorThemes> _themes = new()
+    private readonly Dictionary<string, string> _themes = new()
     {
-        { "Visual Studio Light", EditorThemes.VisualStudioLight },
-        { "Visual Studio Dark", EditorThemes.VisualStudioDark },
-        { "High Contast Dark", EditorThemes.HighContrastDark }
+        { "Visual Studio Light", "vs-light" },
+        { "Visual Studio Dark", "vs-dark" },
+        { "High Contast Dark", "hc-black" }
     };
 
     public MainWindow()
@@ -58,8 +57,11 @@ public sealed partial class MainWindow : Window
 
     private void SetEditorTheme(string themeName)
     {
-        EditorThemes theme = _themes.First(x => x.Key == themeName).Value;
-        _ = this.MonacoEditor.SetThemeAsync(theme);
+        string theme = _themes.First(x => x.Key == themeName).Value;
+
+        MonacoEditorThemeHandler handler = this.MonacoEditor.GetHandler<MonacoEditorThemeHandler>();
+
+        _ = handler.SetThemeAsync(theme);
     }
 
     private void SetContentButton_Click(object sender, RoutedEventArgs e)

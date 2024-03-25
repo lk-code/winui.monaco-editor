@@ -33,7 +33,7 @@ public class MonacoEditorLanguageHandler : MonacoBaseHandler, IMonacoHandler
         await this.WebView!.ExecuteScriptAsync(command);
 
         // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
-        _ = await this.WebView!.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+        //string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
+        //_ = await this.WebView!.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
 }

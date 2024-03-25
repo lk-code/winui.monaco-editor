@@ -102,7 +102,6 @@ public sealed partial class MainWindow : Window
     private void MonacoEditor_MonacoEditorLoaded(object sender, EventArgs e)
     {
         this.LogMessage("Monaco Editor loaded");
-
     }
 
     private void OpenDevToolsButton_Click(object sender, RoutedEventArgs e)

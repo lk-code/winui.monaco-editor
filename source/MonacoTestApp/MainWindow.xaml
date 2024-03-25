@@ -93,6 +93,7 @@
                              x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
                              EditorLanguage="python"
+                             UseEditorContentStabilizedEvent="True"
                              EditorContentChanged="MonacoEditor_EditorContentChanged"
                              MonacoEditorLoaded="MonacoEditor_MonacoEditorLoaded" />
 

@@ -24,12 +24,6 @@ public interface IMonacoEditor
     Task LoadContentAsync(string content);
 
     /// <summary>
-    /// Gets the content form the monaco editor view
-    /// </summary>
-    /// <returns>The content of the editor</returns>
-    Task<string> GetEditorContentAsync();
-
-    /// <summary>
     /// select the whole content in the editor
     /// </summary>
     /// <returns></returns>
@@ -64,4 +58,11 @@ public interface IMonacoEditor
     /// <returns></returns>
     [Obsolete("use the MonacoEditorThemeHandler instead (see documentation)")]
     Task SetThemeAsync(EditorThemes theme);
+
+    /// <summary>
+    /// Gets the content form the monaco editor view
+    /// </summary>
+    /// <returns>The content of the editor</returns>
+    [Obsolete("use the MonacoEditorContentHandler instead (see documentation)")]
+    Task<string> GetEditorContentAsync();
 }

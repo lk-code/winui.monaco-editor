@@ -7,7 +7,7 @@ namespace Monaco;
 public abstract class MonacoBaseHandler
 {
     protected WebView2? WebView;
-    protected MonacoEditor? ParentInstance;
+    protected IMonacoCore? ParentInstance;
 
     protected MonacoBaseHandler()
     {
@@ -23,6 +23,7 @@ public abstract class MonacoBaseHandler
         if (this.WebView is not null)
         {
             this.WebView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
+            this.WebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
         }
     }
 
@@ -30,10 +31,20 @@ public abstract class MonacoBaseHandler
     {
         string message = args.TryGetWebMessageAsString();
 
-        await this.ProcessReceivedMessage(message);
+        await this.OnReceivedMessage(message);
     }
 
-    protected virtual async Task ProcessReceivedMessage(string message)
+    private async void CoreWebView2_NavigationCompleted(CoreWebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+    {
+        await this.OnEditorLoaded();
+    }
+
+    protected virtual async Task OnReceivedMessage(string message)
+    {
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task OnEditorLoaded()
     {
         await Task.CompletedTask;
     }
@@ -43,6 +54,7 @@ public abstract class MonacoBaseHandler
         this.WebView = webView;
 
         // events
+        this.WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
         this.WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
     }
 

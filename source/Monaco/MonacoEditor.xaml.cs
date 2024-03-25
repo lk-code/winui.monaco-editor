@@ -1,20 +1,20 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
+using Monaco.MonacoHandler;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
-using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
-using Monaco.MonacoHandler;
 
 namespace Monaco;
 
-public sealed partial class MonacoEditor : UserControl, IMonacoEditor
+public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCore
 {
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
@@ -42,10 +42,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     public event EventHandler? EditorContentChanged;
 
-    private async void OnContentChanged()
+    /// <inheritdoc />
+    public void SetEditorContent(string content)
     {
-        _content = await GetEditorContentAsync();
-        EditorContentChanged?.Invoke(this, new EventArgs());
+        this._content = content;
+    }
+
+    /// <inheritdoc />
+    public void TriggerEditorContentChanged()
+    {
+        this.EditorContentChanged?.Invoke(this, new EventArgs());
     }
 
     #endregion
@@ -97,6 +103,27 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             OnPropertyChanged();
 
             _ = this.LoadContentAsync(value);
+        }
+    }
+
+    #endregion
+
+    #region EditorContent Property
+
+    public static readonly DependencyProperty UseEditorContentStabilizedEventProperty =
+    DependencyProperty.Register(
+        "UseEditorContentStabilizedEvent",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(false));
+
+    public bool UseEditorContentStabilizedEvent
+    {
+        get => (bool)GetValue(UseEditorContentStabilizedEventProperty);
+        set
+        {
+            SetValue(UseEditorContentStabilizedEventProperty, value);
+            OnPropertyChanged();
         }
     }
 
@@ -165,8 +192,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         // then setup the webview after the EnsureCoreWebView2Async() call
         this._registeredHandlers.ForEach(handler => handler.WithWebView(this.MonacoEditorWebView));
 
-
-
         MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
         // load launch html file
@@ -189,11 +214,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             case "EVENT_EDITOR_LOADED":
                 {
                     MonacoEditorLoaded?.Invoke(this, EventArgs.Empty);
-                }
-                break;
-            case "EVENT_EDITOR_CONTENT_CHANGED":
-                {
-                    OnContentChanged();
                 }
                 break;
 
@@ -220,9 +240,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
-
     }
 
     /// <inheritdoc />
@@ -236,18 +253,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
         await this.MonacoEditorWebView
             .ExecuteScriptAsync(command);
-    }
-
-    /// <inheritdoc />
-    public async Task<string> GetEditorContentAsync()
-    {
-        string command = $"editor.getValue();";
-
-        string contentAsJsRepresentation = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
-        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
-
-        return content;
     }
 
     /// <inheritdoc />
@@ -311,6 +316,17 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                 }
                 break;
         }
+    }
+
+    /// <inheritdoc />
+    [Obsolete("use the MonacoEditorContentHandler instead (see documentation)")]
+    public async Task<string> GetEditorContentAsync()
+    {
+        MonacoEditorContentHandler handler = this.GetHandler<MonacoEditorContentHandler>();
+
+        string content = await handler.GetEditorContentAsync();
+
+        return content;
     }
 
     #endregion

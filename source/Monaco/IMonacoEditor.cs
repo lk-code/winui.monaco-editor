@@ -61,5 +61,6 @@ public interface IMonacoEditor
     /// open the webview developer tools (if available)
     /// </summary>
     /// <returns></returns>
+    [Obsolete("use the MonacoWebViewDevToolsHandler instead (see documentation)")]
     void OpenDebugWebViewDeveloperTools();
 }

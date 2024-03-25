@@ -287,6 +287,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
+    #region obsolete methods
+
     /// <inheritdoc />
     [Obsolete("use the MonacoEditorLanguageHandler instead (see documentation)")]
     public async Task<CodeLanguage[]> GetLanguagesAsync()
@@ -306,8 +308,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     }
 
     /// <inheritdoc />
+    [Obsolete("use the MonacoWebViewDevToolsHandler instead (see documentation)")]
     public void OpenDebugWebViewDeveloperTools()
     {
-        MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
+        MonacoWebViewDevToolsHandler handler = this.GetHandler<MonacoWebViewDevToolsHandler>();
+
+        handler.OpenDebugWebViewDeveloperTools();
     }
+
+    #endregion
 }

@@ -107,7 +107,9 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            this.MonacoEditor.OpenDebugWebViewDeveloperTools();
+            MonacoWebViewDevToolsHandler handler = this.MonacoEditor.GetHandler<MonacoWebViewDevToolsHandler>();
+
+            handler.OpenDebugWebViewDeveloperTools();
         }
         catch (Exception err)
         {

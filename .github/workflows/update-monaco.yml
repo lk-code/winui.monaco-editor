@@ -33,8 +33,19 @@ jobs:
         id: get-version
         run: |
           echo "::set-output name=version::$(jq -r '.version' node_modules/monaco-editor/package.json)"
+
+      - name: Check if branch exists
+        run: |
+          if git rev-parse --verify MONACO-UPDATE-${{ steps.get-version.outputs.version }}; then
+            echo "Branch exists"
+            export BRANCH_EXISTS=true
+          else
+            echo "Branch does not exist"
+            export BRANCH_EXISTS=false
+          fi
       
       - name: Delete Existing Branch
+        if: env.BRANCH_EXISTS == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

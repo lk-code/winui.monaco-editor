@@ -44,17 +44,21 @@ jobs:
             export BRANCH_EXISTS=false
           fi
       
-      - name: Delete Existing Branch
+      - name: Delete Existing Monaco-Branch
         if: env.BRANCH_EXISTS == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git push origin --delete MONACO-UPDATE-${{ steps.get-version.outputs.version }}
       
-      - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          message: "Update Monaco NPM Package to version ${{ steps.get-version.outputs.version }}"
-          branch: "MONACO-UPDATE-${{ steps.get-version.outputs.version }}"
-          force: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Monaco-Branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git branch MONACO-UPDATE-${{ steps.get-version.outputs.version }}
+      
+      - name: Push Monaco-Branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin MONACO-UPDATE-${{ steps.get-version.outputs.version }}

@@ -78,8 +78,8 @@ jobs:
           git commit -m "added monaco changes"
 
       - name: Push Monaco-Branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           

@@ -11,23 +11,33 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+
       - name: Git Checkout
         uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Git Checkout
+        run: |
+          dotnet tool install -g Microsoft.Web.LibraryManager.Cli
           
       - name: Setup Node.js environment
         uses: actions/setup-node@v4.0.2
         with:
           node-version: 21.x
 
-      - name: Install latest Monaco NPM Package
+      - name: Remove Monaco Source Files
         run: |
-          npm install monaco-editor
+            rm -rf source/Monaco/*
 
-      - name: Copy Monaco Files to WinUI-Editor
+      - name: Install latest Monaco Editor via Microsoft LibMan
         run: |
-         cp -r node_modules/monaco-editor/ source/Monaco
+            libman install monaco-editor --provider npm --destination /source/Monaco
 
       - name: Read package.json and get version
         id: get-version

@@ -34,7 +34,7 @@ jobs:
       - name: Install latest Monaco Editor via Microsoft LibMan
         run: |
             cd ./source/Monaco
-            libman update monaco-editor --destination ./monaco-editor
+            libman update monaco-editor
             
       - name: Extract and format version from loader.js
         id: extract-version

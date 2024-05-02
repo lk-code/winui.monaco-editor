@@ -34,16 +34,14 @@ jobs:
       - name: Install latest Monaco Editor via Microsoft LibMan
         run: |
             cd ./source/Monaco
-          
-      - name: Install latest Monaco Editor via Microsoft LibMan
-        run: |
             libman install monaco-editor --destination ./monaco-editor
-
-      - name: Read package.json and get version
-        id: get-version
+            
+      - name: Extract and format version from loader.js
+        id: extract-version
         run: |
-          echo "::set-output name=version::$(jq -r '.version' node_modules/monaco-editor/package.json)"
-
+            version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
+            echo "::set-output name=version::$version"
+            
       - name: Check if branch exists
         run: |
           if git rev-parse --verify MONACO-UPDATE-${{ steps.get-version.outputs.version }}; then

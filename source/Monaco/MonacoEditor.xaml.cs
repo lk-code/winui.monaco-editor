@@ -16,7 +16,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     private string _content = "";
-
+    private bool _hideminimap = false;
+    private bool _readonly = false;
     public bool LoadCompleted { get; set; } = false;
 
     public event EventHandler? MonacoEditorLoaded = null;
@@ -92,6 +93,87 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             OnPropertyChanged();
 
             _ = this.LoadContentAsync(value);
+        }
+    }
+
+    #endregion
+
+    #region HideMiniMap Property
+
+    public static readonly DependencyProperty HideMiniMapProperty = DependencyProperty.Register("HideMiniMap",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Hides/shows the mini code map
+    /// </summary>
+    public bool EditorHideMiniMap
+    {
+        get
+        {
+            return _hideminimap;
+        }
+        set
+        {
+            SetValue(HideMiniMapProperty, value);
+            OnPropertyChanged();
+
+            this.HideMiniMap(value);
+        }
+    }
+
+    #endregion
+
+    #region ReadOnly Property
+
+    public static readonly DependencyProperty ReadOnlyProperty = DependencyProperty.Register("ReadOnly",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public bool EditorReadOnly
+    {
+        get
+        {
+            return _readonly;
+        }
+        set
+        {
+            SetValue(ReadOnlyProperty, value);
+            OnPropertyChanged();
+
+            this.ReadOnly(value);
+        }
+    }
+
+    #endregion
+
+    #region SetReadOnlyMessage Property
+
+    public static readonly DependencyProperty SetReadOnlyMessageProperty = DependencyProperty.Register("SetReadOnlyMessage",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set a custom message to tell user that the editor is in read only mode.
+    /// </summary>
+    public string EditorReadOnlyMessage
+    {
+        get
+        {
+            return _content;
+        }
+        set
+        {
+            SetValue(SetReadOnlyMessageProperty, value);
+            OnPropertyChanged();
+
+            this.SetReadOnlyMessage(value);
         }
     }
 
@@ -178,6 +260,35 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
 
+    }
+
+    public void HideMiniMap(bool status=false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void ReadOnly(bool status = false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{readOnly: true}});";
+        else
+            command = $"editor.updateOptions({{readOnly: false}});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void SetReadOnlyMessage(string content)
+    {
+        string command = "";
+        this._content = content;
+        command = $"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});";
+        
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
     /// <inheritdoc />

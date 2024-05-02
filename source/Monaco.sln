@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{BC
 		..\.gitignore = ..\.gitignore
 		..\.github\FUNDING.yml = ..\.github\FUNDING.yml
 		..\icon_128.png = ..\icon_128.png
+		Monaco\libman.json = Monaco\libman.json
 		..\LICENSE = ..\LICENSE
 		Monaco.sln = Monaco.sln
 		..\README.md = ..\README.md

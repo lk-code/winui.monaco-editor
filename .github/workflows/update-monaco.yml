@@ -39,7 +39,7 @@ jobs:
       - name: Extract and format version from loader.js
         id: extract-version
         run: |
-            version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js)
+            version=$(sed -n 's/.*Version: \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p' source/Monaco/monaco-editor/min/vs/loader.js)
             echo "version=$version" >> $GITHUB_OUTPUT
             
       - name: Check if branch exists

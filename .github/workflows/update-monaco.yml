@@ -56,6 +56,8 @@ jobs:
         run: |
           version=$(echo "${{ steps.get-version.outputs.version }}" | awk -F'.' '{print $2}')
           sed -i "s/VERSION: [0-9]\+\.\([0-9]\+\)\.[0-9]\+\.\${{ github.run_number }}/VERSION: $version/" .github/workflows/dotnet.yml
+          cat .github/workflows/dotnet.yml
+          echo "Extracted version: $version"
       
       - name: Delete Existing Monaco-Branch
         if: env.BRANCH_EXISTS == 'true'

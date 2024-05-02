@@ -55,7 +55,7 @@ jobs:
       - name: Update version in dotnet.yml
         run: |
           version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
-          sed -i "s/VERSION: [0-9]\+\.\([0-9]\+\)\.[0-9]\+\.\${{ github.run_number }}/VERSION: $version/" .github/workflows/dotnet.yml
+          sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: $version/" .github/workflows/dotnet.yml
           cat .github/workflows/dotnet.yml
           echo "Extracted version: $version"
       

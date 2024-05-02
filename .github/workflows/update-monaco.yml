@@ -44,7 +44,7 @@ jobs:
             
       - name: Check if branch exists
         run: |
-          if git rev-parse --verify MONACO-UPDATE-${{ steps.get-version.outputs.version }}; then
+          if git rev-parse --verify MONACO-UPDATE-${{ steps.extract-version.outputs.version }}; then
             echo "Branch exists"
             export BRANCH_EXISTS=true
           else
@@ -57,16 +57,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin --delete MONACO-UPDATE-${{ steps.get-version.outputs.version }}
+          git push origin --delete MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
       
       - name: Create Monaco-Branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git branch MONACO-UPDATE-${{ steps.get-version.outputs.version }}
+          git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
       
       - name: Push Monaco-Branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin MONACO-UPDATE-${{ steps.get-version.outputs.version }}
+          git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}

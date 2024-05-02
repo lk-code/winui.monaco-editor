@@ -51,11 +51,6 @@ jobs:
             echo "Branch does not exist"
             export BRANCH_EXISTS=false
           fi
-
-      - name: Update version in dotnet.yml
-        run: |
-          version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
-          sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: 1.1.$version/" .github/workflows/dotnet.yml
       
       - name: Delete Existing Monaco-Branch
         if: env.BRANCH_EXISTS == 'true'
@@ -69,6 +64,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+
+      - name: Update version in dotnet.yml
+        run: |
+          version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
+          sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: 1.1.$version/" .github/workflows/dotnet.yml
       
       - name: Push Monaco-Branch
         env:

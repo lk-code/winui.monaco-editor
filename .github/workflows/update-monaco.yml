@@ -30,14 +30,14 @@ jobs:
         uses: actions/setup-node@v4.0.2
         with:
           node-version: 21.x
-
-      - name: Remove Monaco Source Files
-        run: |
-            rm -rf source/Monaco/*
-
+          
       - name: Install latest Monaco Editor via Microsoft LibMan
         run: |
-            libman install monaco-editor --provider npm --destination /source/Monaco
+            cd ./source/Monaco
+          
+      - name: Install latest Monaco Editor via Microsoft LibMan
+        run: |
+            libman install monaco-editor --destination ./monaco-editor
 
       - name: Read package.json and get version
         id: get-version

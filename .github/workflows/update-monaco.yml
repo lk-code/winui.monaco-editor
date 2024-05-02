@@ -51,6 +51,11 @@ jobs:
             echo "Branch does not exist"
             export BRANCH_EXISTS=false
           fi
+
+      - name: Update version in dotnet.yml
+        run: |
+          version=$(echo "${{ steps.get-version.outputs.version }}" | awk -F'.' '{print $2}')
+          sed -i "s/VERSION: [0-9]\+\.\([0-9]\+\)\.[0-9]\+\.\${{ github.run_number }}/VERSION: $version/" .github/workflows/dotnet.yml
       
       - name: Delete Existing Monaco-Branch
         if: env.BRANCH_EXISTS == 'true'

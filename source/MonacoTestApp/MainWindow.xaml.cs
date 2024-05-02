@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
 using System;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace MonacoTestApp;
 
@@ -30,6 +31,7 @@ public sealed partial class MainWindow : Window
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
+        
     }
 
     private void LogMessage(string message)
@@ -102,5 +104,26 @@ public sealed partial class MainWindow : Window
         {
             this.LogMessage("failed to open dev tools: " + err.Message);
         }
+    }
+
+    private void ToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool DoHide = (bool)(sender as ToggleButton).IsChecked;
+        if ((bool)(sender as ToggleButton).IsChecked)
+            (sender as ToggleButton).Content = "Show Minimap";
+        else
+            (sender as ToggleButton).Content = "Hide Minimap";
+        MonacoEditor.HideMiniMap(DoHide);
+    }
+
+    private void CheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.SetReadOnlyMessage("This is a custom read only message");
+        MonacoEditor.ReadOnly(true);
+    }
+
+    private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.ReadOnly(false);
     }
 }

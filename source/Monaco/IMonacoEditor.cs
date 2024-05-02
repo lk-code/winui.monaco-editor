@@ -25,6 +25,27 @@ public interface IMonacoEditor
     Task LoadContentAsync(string content);
 
     /// <summary>
+    /// hides or shows the mini code map (default is FALSE)
+    /// </summary>
+    /// <param name="status">"true" hides the mini map, "false" shows the mini map</param>
+    /// <returns></returns>
+    void HideMiniMap(bool status);
+
+    /// <summary>
+    /// sets the editor to be read only or not (default is FALSE)
+    /// </summary>
+    /// <param name="status">"true" sets the editor as read only</param>
+    /// <returns></returns>
+    void ReadOnly(bool status);
+
+    /// <summary>
+    /// set a custom message to tell user that editor is in read only mode.
+    /// </summary>
+    /// <param name="content">the content of the message</param>
+    /// <returns></returns>
+    void SetReadOnlyMessage(string content);
+
+    /// <summary>
     /// Gets the content form the monaco editor view
     /// </summary>
     /// <returns>The content of the editor</returns>

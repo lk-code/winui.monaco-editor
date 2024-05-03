@@ -78,4 +78,4 @@ jobs:
           git config --global user.email 'lk-code@users.noreply.github.com'
           git add .
           git commit -m "added monaco changes"
-          git push origin/MONACO-UPDATE-${{ steps.extract-version.outputs.version }} MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          git push -u origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}

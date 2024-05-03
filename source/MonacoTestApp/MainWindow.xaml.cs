@@ -5,6 +5,9 @@ using Monaco;
 using System.Linq;
 using System;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Windows.Storage.Pickers;
+using Windows.Storage;
+using WinRT.Interop;
 
 namespace MonacoTestApp;
 
@@ -12,8 +15,8 @@ public sealed partial class MainWindow : Window
 {
     private readonly Dictionary<string, EditorThemes> _themes = new()
     {
-        { "Visual Studio Light", EditorThemes.VisualStudioLight },
         { "Visual Studio Dark", EditorThemes.VisualStudioDark },
+        { "Visual Studio Light", EditorThemes.VisualStudioLight },
         { "High Contast Dark", EditorThemes.HighContrastDark }
     };
 
@@ -54,6 +57,7 @@ public sealed partial class MainWindow : Window
     {
         EditorThemes theme = _themes.First(x => x.Key == themeName).Value;
         _ = this.MonacoEditor.SetThemeAsync(theme);
+        LogMessage("Theme set to " + themeName);
     }
 
     private void SetContentButton_Click(object sender, RoutedEventArgs e)
@@ -71,12 +75,15 @@ public sealed partial class MainWindow : Window
         CodeLanguage[] languages = await MonacoEditor.GetLanguagesAsync();
         List<string> selectionLanguages = languages.Select(x => x.Id).ToList();
         this.EditorLanguageComboBox.ItemsSource = selectionLanguages;
+        EditorLanguageComboBox.IsEnabled = (selectionLanguages.Count > 0);
+        LogMessage("Coding languages loaded.");
     }
 
     private void EditorLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         string lang = (e.AddedItems.FirstOrDefault() as string);
         _ = this.MonacoEditor.SetLanguageAsync(lang);
+        LogMessage($"Set language to {lang}");
     }
 
     private void SelectAllButton_Click(object sender, RoutedEventArgs e)
@@ -106,24 +113,64 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void ToggleButton_Click(object sender, RoutedEventArgs e)
-    {
-        bool DoHide = (bool)(sender as ToggleButton).IsChecked;
-        if ((bool)(sender as ToggleButton).IsChecked)
-            (sender as ToggleButton).Content = "Show Minimap";
-        else
-            (sender as ToggleButton).Content = "Hide Minimap";
-        MonacoEditor.HideMiniMap(DoHide);
-    }
-
     private void CheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage("This is a custom read only message");
+        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
         MonacoEditor.ReadOnly(true);
     }
 
     private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.ReadOnly(false);
+    }
+
+    private void cbMinimapVisible_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.IsMiniMapVisible(true);
+    }
+
+    private void cbMinimapVisible_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.IsMiniMapVisible(false);
+    }
+
+    private async void btnOpenFromFile_Click(object sender, RoutedEventArgs e)
+    {
+        FileOpenPicker fileOpenPicker = new()
+        {
+            ViewMode = PickerViewMode.Thumbnail,
+            FileTypeFilter = { "*" },
+        };
+
+        nint windowHandle = WindowNative.GetWindowHandle(App.Window);
+        InitializeWithWindow.Initialize(fileOpenPicker, windowHandle);
+
+        StorageFile file = await fileOpenPicker.PickSingleFileAsync();
+        if (file != null)
+        {
+            await MonacoEditor.LoadFromFileAsync(file, true);
+            /// Remarks: LoadFromFileAsync method relies on LoadContentAsync but it
+            /// helps to make easier loading a file and it tries to guess what is
+            /// the correct coding language to be set for a proper visualization.
+            /// In next commits, I will implement also LoadFromStreamAsync method
+            /// in order to give multiple option to end user.
+            txtCodingLang.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
+            LogMessage("Loaded content into editor from " + file.Path);
+        }
+    }
+
+    private void cbStickyScroll_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.StickyScroll(true);
+    }
+
+    private void cbStickyScroll_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.StickyScroll(false);
+    }
+
+    private void txtReadOnlyMessage_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
     }
 }

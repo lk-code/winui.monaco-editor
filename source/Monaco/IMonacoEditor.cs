@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace Monaco;
 
@@ -25,11 +26,20 @@ public interface IMonacoEditor
     Task LoadContentAsync(string content);
 
     /// <summary>
-    /// hides or shows the mini code map (default is FALSE)
+    /// loads content from a given StorageFile; you can also make MonacoEditor guess the code language by its file extension
     /// </summary>
-    /// <param name="status">"true" hides the mini map, "false" shows the mini map</param>
+    /// <param name="file">the StorageFile that will be loaded</param>
+    /// <param name="autodetect">if set to "TRUE", Monaco Editor will try to guess the code language by file extension - default is FALSE</param>
     /// <returns></returns>
-    void HideMiniMap(bool status);
+    Task LoadFromFileAsync(StorageFile file, bool autodetect=false);
+
+
+    /// <summary>
+    /// hides or shows the mini code map (default is TRUE)
+    /// </summary>
+    /// <param name="status">"true" shows the mini map, "false" hides the mini map</param>
+    /// <returns></returns>
+    void IsMiniMapVisible(bool status);
 
     /// <summary>
     /// sets the editor to be read only or not (default is FALSE)
@@ -44,6 +54,14 @@ public interface IMonacoEditor
     /// <param name="content">the content of the message</param>
     /// <returns></returns>
     void SetReadOnlyMessage(string content);
+
+    /// <summary>
+    /// enables or disables the sticky scroll mode (default is TRUE)
+    /// </summary>
+    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <returns></returns>
+    void StickyScroll(bool status);
+
 
     /// <summary>
     /// Gets the content form the monaco editor view

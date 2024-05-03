@@ -35,6 +35,8 @@ namespace MonacoTestApp
             this.InitializeComponent();
         }
 
+        public static Window? Window { get; private set; }
+
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.
@@ -42,10 +44,9 @@ namespace MonacoTestApp
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            m_window = new MainWindow();
-            m_window.Activate();
+            Window = new MainWindow();
+            Window.Activate();
         }
 
-        private Window m_window;
     }
 }

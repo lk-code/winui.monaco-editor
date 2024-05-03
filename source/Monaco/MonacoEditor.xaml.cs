@@ -2,12 +2,14 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Windows.Storage;
 
 namespace Monaco;
 
@@ -16,11 +18,69 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
     private string _content = "";
-    private bool _hideminimap = false;
+    private bool _isminimapvisible = true;
     private bool _readonly = false;
+    private bool _stickyscroll = true;
     public bool LoadCompleted { get; set; } = false;
 
     public event EventHandler? MonacoEditorLoaded = null;
+
+
+    /// <summary>
+    /// This dictionary helps WinUI.Monaco to guess
+    /// the coding language of a file from its extension.
+    /// This list is not complete as monaco-editor holds
+    /// many more lesser languages and they will be added
+    /// in future commits.
+    /// </summary>
+    private Dictionary<string, string> _CodeLangs = new()
+    {
+        { ".txt","plaintext" },
+        { ".bat","bat" },
+        { ".c","c" },
+        { ".h","c" },
+        { ".mligo","cameligo" },
+        { ".cpp","cpp" },
+        { ".cs","csharp" },
+        { ".coffee","coffeescript" },
+        { ".css","css" },
+        { ".clj","clojure" },
+        { ".cql","cypher" },
+        { ".dart","dart" },
+        { ".ecl","ecl" },
+        { ".exs","elixir" },
+        { ".flow","flow9" },
+        { ".go","go" },
+        { ".htm","html" },
+        { ".html","html" },
+        { ".ini","ini" },
+        { ".java","java" },
+        { ".js","javascript" },
+        { ".jl","julia" },
+        { ".kt","kotlin" },
+        { ".kts","kotlin" },
+        { ".ktm","kotlin" },
+        { ".md","markdown" },
+        { ".lua","lua" },
+        { ".pas","pascal" },
+        { ".perl","perl" },
+        { ".php","php" },
+        { ".ps1","powershell" },
+        { ".py","python" },
+        { ".r","r" },
+        { ".rb","ruby" },
+        { ".rs","rust" },
+        { ".sh","shell" },
+        { ".sql","sql" },
+        { ".ts","typescript" },
+        { ".vb","vb" },
+        { ".xml","xml" },
+        { ".axml","xml" },
+        { ".xaml","xml" },
+        { ".json","json" },
+        { ".yml","yaml" },
+        { ".yaml","yaml" }
+    };
 
 
     #region PropertyChanged Event
@@ -98,9 +158,9 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #endregion
 
-    #region HideMiniMap Property
+    #region IsMiniMapVisible Property
 
-    public static readonly DependencyProperty HideMiniMapProperty = DependencyProperty.Register("HideMiniMap",
+    public static readonly DependencyProperty IsMiniMapVisibleProperty = DependencyProperty.Register("IsMiniMapVisible",
         typeof(bool),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -108,18 +168,18 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     /// <summary>
     /// Hides/shows the mini code map
     /// </summary>
-    public bool EditorHideMiniMap
+    public bool EditorToggleMiniMap
     {
         get
         {
-            return _hideminimap;
+            return _isminimapvisible;
         }
         set
         {
-            SetValue(HideMiniMapProperty, value);
+            SetValue(IsMiniMapVisibleProperty, value);
             OnPropertyChanged();
 
-            this.HideMiniMap(value);
+            this.IsMiniMapVisible(value);
         }
     }
 
@@ -178,6 +238,37 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     }
 
     #endregion
+
+    #region StickyScroll Property
+
+    public static readonly DependencyProperty StickyScrollProperty = DependencyProperty.Register("StickyScroll",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to StickyScroll mode or not.
+    /// </summary>
+    public bool EditorStickyScroll
+    {
+        get
+        {
+            return _stickyscroll;
+        }
+        set
+        {
+            SetValue(StickyScrollProperty, value);
+            OnPropertyChanged();
+
+            this.StickyScroll(value);
+        }
+    }
+
+    
+
+    #endregion
+
+    public string CurrentCodeLanguage { get; set; }
 
     #region Theme Property
 
@@ -262,13 +353,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     }
 
-    public void HideMiniMap(bool status=false)
+    public void IsMiniMapVisible(bool status=true)
     {
         string command = "";
         if (status)
-            command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
-        else
             command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
@@ -291,6 +382,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
+    public void StickyScroll(bool status = true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});";
+        else
+            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
     /// <inheritdoc />
     public async Task LoadContentAsync(string content)
     {
@@ -302,6 +403,27 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
         await this.MonacoEditorWebView
             .ExecuteScriptAsync(command);
+    }
+
+    public async Task LoadFromFileAsync(StorageFile file, bool autodetect=false)
+    {
+        if (file == null) throw new ArgumentNullException("file not specified");
+        string fContent = await FileIO.ReadTextAsync(file);
+        if (autodetect)
+        {
+            string fExt = Path.GetExtension(file.Path).ToLower();
+            if (_CodeLangs.TryGetValue(fExt, out var codeLangs))
+            {
+                await SetLanguageAsync(codeLangs);
+                CurrentCodeLanguage = codeLangs;
+            }
+            else
+            {
+                await SetLanguageAsync("plaintext");
+                CurrentCodeLanguage="plaintext";
+            }
+        }
+        await LoadContentAsync(fContent);
     }
 
     /// <inheritdoc />
@@ -368,6 +490,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     /// <inheritdoc />
     public async Task SetLanguageAsync(string languageId)
     {
+        CurrentCodeLanguage = languageId;
         string command = $"editor.setModel(monaco.editor.createModel(editor.getValue(), '{languageId}'));";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);

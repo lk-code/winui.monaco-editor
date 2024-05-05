@@ -101,6 +101,27 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
     /// <returns></returns>
+    void ScrollToLine(int lineNumber);
+
+    /// <summary>
+    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// </summary>
+    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <returns></returns>
+    void ScrollToLineInCenter(int lineNumber);
+
+    /// <summary>
+    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// </summary>
+    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <returns></returns>
+    void ScrollToTop();
+
+    /// <summary>
+    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// </summary>
+    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <returns></returns>
     void StickyScroll(bool status);
 
     /// <summary>

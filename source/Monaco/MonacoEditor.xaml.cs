@@ -4,6 +4,7 @@ using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 //using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -33,13 +34,20 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private bool _codelens = false;
     private bool _folding = true;
     private bool _linenumbers = true;
+    private int _scrollline;
+    private int _countlines;
     private string _wordwrapmode = "off";
 
     public EditorThemes cTheme { get; set; } = EditorThemes.VisualStudioLight;
     public bool LoadCompleted { get; set; } = false;
 
     public event EventHandler? MonacoEditorLoaded = null;
-
+    /// <summary>
+    /// Enables or disables CodeLens (default is FALSE)
+    /// </summary>
+    /// <param name="status">"true" sets the editor as read only</param>
+    /// <returns></returns>
+    public int Lines { get; set; }
 
     /// <summary>
     /// This dictionary helps WinUI.Monaco to guess
@@ -450,6 +458,60 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #endregion
 
+    #region ScrollToLineProperty
+
+    public static readonly DependencyProperty ScrollToLineProperty = DependencyProperty.Register("ScrollToLine",
+        typeof(int),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to StickyScroll mode or not.
+    /// </summary>
+    public int EditorScrollToLine
+    {
+        get
+        {
+            return _scrollline;
+        }
+        set
+        {
+            SetValue(ScrollToLineProperty, value);
+            OnPropertyChanged();
+
+            this.ScrollToLine(value, false);
+        }
+    }
+
+    #endregion
+
+    #region ScrollToLineInCenterProperty
+
+    public static readonly DependencyProperty ScrollToLineInCenterProperty = DependencyProperty.Register("ScrollToLineInCenter",
+        typeof(int),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to StickyScroll mode or not.
+    /// </summary>
+    public int EditorScrollToLineInCenter
+    {
+        get
+        {
+            return _scrollline;
+        }
+        set
+        {
+            SetValue(ScrollToLineInCenterProperty, value);
+            OnPropertyChanged();
+
+            this.ScrollToLine(value, true);
+        }
+    }
+
+    #endregion
+
     #region StickyScroll Property
 
     public static readonly DependencyProperty StickyScrollProperty = DependencyProperty.Register("StickyScroll",
@@ -657,6 +719,15 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
+    public int CountLines()
+    {
+        string command = "";
+        command = "editor.getLineCount();";        
+        var result = this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        Debug.WriteLine("count: " + result);
+        return Convert.ToInt32(result);
+    }
+
     public void Folding(bool status = false)
     {
         string command = "";
@@ -693,6 +764,22 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this._content = content;
         command = $"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});";
         
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void ScrollToLine(int lineNumber, bool revealInCenter=false)
+    {
+        string command = "";
+        if (revealInCenter)
+            command = $"editor.revealLineInCenter({lineNumber});";
+        else
+            command = $"editor.revealLine({lineNumber});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void ScrollToTop()
+    {
+        string command = "editor.setScrollPosition({scrollTop: 0});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 

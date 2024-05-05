@@ -399,4 +399,14 @@ public sealed partial class MainWindow : Window
         else
             return false;        
     }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void btnScollToLine_Click(object sender, RoutedEventArgs e)
+    {
+        Debug.WriteLine("Lines: " + MonacoEditor.CountLines().ToString());
+    }
 }

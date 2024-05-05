@@ -91,6 +91,14 @@
                                     <Button HorizontalAlignment="Left" Style="{ThemeResource AccentButtonStyle}"
                                          Content="Load Languages"
                                          Click="LoadLanguagesButton_Click" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{ThemeResource AccentButtonStyle}"
+                                            Content="Scroll to line" 
+                                            x:Name="btnScollToLine"
+                                                Click="btnScollToLine_Click"/>
+                                        <NumberBox x:Name="nbLineEdit" Minimum="1" Value="1"/>
+                                        <CheckBox x:Name="cbCenterInEditor" Content="Center in editor"/>
+                                    </StackPanel>
                                     <Button Style="{ThemeResource AccentButtonStyle}"
                                          Content="Select All"
                                          Click="SelectAllButton_Click" />

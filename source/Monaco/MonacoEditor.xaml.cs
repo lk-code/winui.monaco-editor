@@ -9,7 +9,11 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Windows.ApplicationModel;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Globalization;
 using Windows.Storage;
+using WinRT;
 
 namespace Monaco;
 
@@ -21,6 +25,14 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private bool _isminimapvisible = true;
     private bool _readonly = false;
     private bool _stickyscroll = true;
+    private bool _ariarequired = false;
+    private string _arialabel = "";
+    private string _autoindentstrategy = "none";
+    private bool _codelens = false;
+    private bool _folding = true;
+    private bool _linenumbers = true;
+    private string _wordwrapmode = "off";
+
     public bool LoadCompleted { get; set; } = false;
 
     public event EventHandler? MonacoEditorLoaded = null;
@@ -33,7 +45,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     /// many more lesser languages and they will be added
     /// in future commits.
     /// </summary>
-    private Dictionary<string, string> _CodeLangs = new()
+    public Dictionary<string, string> _CodeLangs = new()
     {
         { ".txt","plaintext" },
         { ".bat","bat" },
@@ -102,6 +114,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         _content = await GetEditorContentAsync();
         EditorContentChanged?.Invoke(this, new EventArgs());
+    }
+
+    #endregion
+
+    #region TextSelected Event
+    /// <summary>
+    /// Added 20240504 - MR
+    /// This event is fired when text gets selected
+    /// into the editor view.
+    /// </summary>
+    public event EventHandler<TextSelectionArgs>? EditorTextSelected; 
+    
+    private async void OnTextSelected()
+    {
+        _content = await GetSelectedTextAsync();
+        TextSelectionArgs args = new TextSelectionArgs(_content);
+        EditorTextSelected?.Invoke(this, args);        
     }
 
     #endregion
@@ -180,6 +209,168 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             OnPropertyChanged();
 
             this.IsMiniMapVisible(value);
+        }
+    }
+
+    #endregion
+    
+    #region AriaRequired Property
+
+    public static readonly DependencyProperty AriaRequiredProperty = DependencyProperty.Register("AriaRequired",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Hides/shows the mini code map
+    /// </summary>
+    public bool EditorAriaRequired
+    {
+        get
+        {
+            return _ariarequired;
+        }
+        set
+        {
+            SetValue(AriaRequiredProperty, value);
+            OnPropertyChanged();
+
+            this.AriaRequired(value);
+        }
+    }
+
+    #endregion
+
+    #region AriaLabel Property
+
+    public static readonly DependencyProperty AriaLabelProperty = DependencyProperty.Register("AriaLabel",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set a custom message to tell user that the editor is in read only mode.
+    /// </summary>
+    public string EditorAriaLabel
+    {
+        get
+        {
+            return _arialabel;
+        }
+        set
+        {
+            SetValue(AriaLabelProperty, value);
+            OnPropertyChanged();
+
+            this.AriaLabel(value);
+        }
+    }
+
+    #endregion
+
+    #region AutoIndentStrategy Property
+
+    public static readonly DependencyProperty AutoIndentStrategyProperty = DependencyProperty.Register("AutoIndentStrategy",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set a custom message to tell user that the editor is in read only mode.
+    /// </summary>
+    public string EditorAutoIndentStartegy
+    {
+        get
+        {
+            return _autoindentstrategy;
+        }
+        set
+        {
+            SetValue(AutoIndentStrategyProperty, value);
+            OnPropertyChanged();
+
+            this.AutoIndentStrategy(value);
+        }
+    }
+
+    #endregion
+
+    #region CodeLens Property
+
+    public static readonly DependencyProperty CodeLensProperty = DependencyProperty.Register("CodeLens",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public bool EditorCodeLens
+    {
+        get
+        {
+            return _codelens;
+        }
+        set
+        {
+            SetValue(CodeLensProperty, value);
+            OnPropertyChanged();
+
+            this.CodeLens(value);
+        }
+    }
+
+    #endregion
+
+    #region Folding Property
+
+    public static readonly DependencyProperty FoldingProperty = DependencyProperty.Register("Folding",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public bool EditorFolding
+    {
+        get
+        {
+            return _folding;
+        }
+        set
+        {
+            SetValue(FoldingProperty, value);
+            OnPropertyChanged();
+
+            this.Folding(value);
+        }
+    }
+
+    #endregion
+
+    #region LineNumbers Property
+
+    public static readonly DependencyProperty LineNumbersProperty = DependencyProperty.Register("LineNumbers",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public bool EditorLineNumbers
+    {
+        get
+        {
+            return _linenumbers;
+        }
+        set
+        {
+            SetValue(LineNumbersProperty, value);
+            OnPropertyChanged();
+
+            this.LineNumbers(value);
         }
     }
 
@@ -264,9 +455,37 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         }
     }
 
-    
+
 
     #endregion
+
+    #region WordWrap Property
+
+    public static readonly DependencyProperty WordWrapProperty = DependencyProperty.Register("WordWrap",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set a custom message to tell user that the editor is in read only mode.
+    /// </summary>
+    public string EditorWordWrap
+    {
+        get
+        {
+            return _content;
+        }
+        set
+        {
+            SetValue(WordWrapProperty, value);
+            OnPropertyChanged();
+
+            this.WordWrap(value);
+        }
+    }
+
+    #endregion
+
 
     public string CurrentCodeLanguage { get; set; }
 
@@ -295,6 +514,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #endregion
 
+
     public MonacoEditor()
     {
         this.InitializeComponent();
@@ -302,6 +522,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.Loaded += MonacoEditorParentView_Loaded;
 
         MonacoEditorWebView.NavigationCompleted += WebView_NavigationCompleted;
+        
     }
 
     private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
@@ -318,7 +539,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private void CoreWebView2_WebMessageReceived(CoreWebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
         string message = args.TryGetWebMessageAsString();
-
         this.ProcessMonacoEvents(message);
     }
 
@@ -330,13 +550,19 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             case "EVENT_EDITOR_LOADED":
                 {
                     MonacoEditorLoaded?.Invoke(this, EventArgs.Empty);
+                    break;
                 }
-                break;
             case "EVENT_EDITOR_CONTENT_CHANGED":
                 {
                     OnContentChanged();
+                    break;
                 }
-                break;
+            case "EVENT_TEXT_SELECTED":
+                {
+                    OnTextSelected();
+                    break;
+                }
+                
 
             // monaco events
         }
@@ -344,13 +570,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private async void WebView_NavigationCompleted(object sender, object e)
     {
+        await MonacoEditorWebView.EnsureCoreWebView2Async();
+
         LoadCompleted = true;
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
-
+        string javaScriptTextSelectedEventHandlerWebMessage = "editor.onDidChangeCursorSelection((e) =>{handleWebViewMessage(\"EVENT_TEXT_SELECTED\");});";
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptTextSelectedEventHandlerWebMessage);
     }
 
     public void IsMiniMapVisible(bool status=true)
@@ -360,6 +589,64 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
         else
             command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void AriaRequired(bool status = false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ ariaRequired: true }});";
+        else
+            command = $"editor.updateOptions({{ ariaRequired: false }});";
+        MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void AriaLabel(string content)
+    {
+        string command = "";
+        this._arialabel = content;
+        command = $"editor.updateOptions({{ariaLabel: '{content}' }});";
+
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void AutoIndentStrategy(string content)
+    {
+        string command = "";
+        this._autoindentstrategy = content;
+        command = $"editor.updateOptions({{autoIndent: '{content}' }});";
+
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void CodeLens(bool status = false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ codeLens: true }});";
+        else
+            command = $"editor.updateOptions({{ codeLens: false }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void Folding(bool status = false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ folding: true }});";
+        else
+            command = $"editor.updateOptions({{ folding: false }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void LineNumbers(bool status = true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{lineNumbers: 'on'}});";
+        else
+            command = $"editor.updateOptions({{lineNumbers: 'off'}});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
@@ -391,6 +678,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             command = $"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
+
+    public void WordWrap(string mode="off")
+    {
+        string command = "";
+        this._content = mode;
+        command = $"editor.updateOptions({{wordWrap: {{value: '{mode}'}} }});";
+
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
 
     /// <inheritdoc />
     public async Task LoadContentAsync(string content)
@@ -438,10 +735,22 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         return content;
     }
 
+    public async Task<string> GetSelectedTextAsync()
+    {
+        await MonacoEditorWebView.EnsureCoreWebView2Async();
+        string command = "editor.getModel().getValueInRange(editor.getSelection());";
+        string contentAsJsRepresentation = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+
+        return content;
+    }
+
     /// <inheritdoc />
     public async Task SetThemeAsync(EditorThemes theme)
     {
-        string themeValue = "vs-dark";
+        await MonacoEditorWebView.EnsureCoreWebView2Async();
+        string themeValue = "vs-light"; // Changed by MR - 20240504
 
         switch (theme)
         {
@@ -504,5 +813,67 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     public void OpenDebugWebViewDeveloperTools()
     {
         MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
+    }
+
+    public async void CopyTextToClipBoard()
+    {
+        string rawText = await MonacoEditorWebView.ExecuteScriptAsync("editor.getModel().getValueInRange(editor.getSelection());");
+        string selectedText = System.Text.RegularExpressions.Regex.Unescape(rawText).TrimStart('"').TrimEnd('"');
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.SetText(selectedText);
+        Clipboard.SetContent(dataPackage);        
+    }
+
+    public async void CutTextToClipBoard()
+    {
+        
+        string rawText = await MonacoEditorWebView.ExecuteScriptAsync("editor.getModel().getValueInRange(editor.getSelection());");
+        string selectedText = System.Text.RegularExpressions.Regex.Unescape(rawText).TrimStart('"').TrimEnd('"');
+
+        string command = "var selection = editor.getSelection();";
+        command += "var id = { major: 1, minor: 1 }; ";
+        command += "var text=''; ";
+        command += "var op= {identifier:id, range: selection, text: text, forceMoveMarkers: true}; ";
+        command += "editor.executeEdits(\"my-source\", [op]);";
+
+        await MonacoEditorWebView.ExecuteScriptAsync(command);
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.SetText(selectedText);
+        Clipboard.SetContent(dataPackage);       
+    }
+
+    public async void PasteTextFromClipBoard(string cpbText)
+    {
+        if (string.IsNullOrEmpty(cpbText))
+            return;        
+        // Let's build the complex string holding
+        // the Javascript code to handle pasting into Monaco.
+        // The code checks if some text is selected in order
+        // to paste and replace text or just paste the new text
+        // in an empty position.
+        string inText = System.Text.RegularExpressions.Regex.Escape(cpbText);
+
+        string command = "var selection = editor.getSelection(); ";
+        command += "var id = { major: 1, minor: 1 }; ";
+        command += "var text='" + inText + "'; ";
+        command += "var op = {identifier: id, range: selection, text: text, forceMoveMarkers: true}; ";
+        command += "editor.executeEdits(\"my-source\", [op]);";
+        await MonacoEditorWebView.ExecuteScriptAsync(command);
+        
+    }
+}
+
+public class TextSelectionArgs: EventArgs
+{
+    /// <summary>
+    /// Added 20240504 - MR
+    /// This class allows to get the selected text through
+    /// the OntextSelected event. See usage in the TestApp project.
+    /// </summary>
+    public string SelectedText { get; private set; }
+
+    public TextSelectionArgs(string mText)
+    {
+        SelectedText = mText;
     }
 }

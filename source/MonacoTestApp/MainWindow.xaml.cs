@@ -1,6 +1,9 @@
 ﻿/***
  * IMPORTANT NOTES FROM MATTEO RISO (MR or ZipGenius on GitHub).
  * 
+ * 2024-05-05
+ * Added "OnCursorPositionChanged" event to retrieve current cursor position.
+ * 
  * 2024-05-04
  * Successfully added "CopyTextToClipboard", "CutTextToClipboard" and "PasteTextFromClipboard" methods.
  * These methods can be called in code directly or attached to a context menu. Monaco's own context menu
@@ -33,6 +36,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using System.Runtime.InteropServices.ComTypes;
+using System.Diagnostics;
 
 namespace MonacoTestApp;
 
@@ -66,31 +70,29 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
         this.Title = "WinUI.Monaco Test App - version: " + GetAppVersion();
         this.Activated += MainWindow_Activated;
-        
+        MonacoEditor.EditorTheme = EditorThemes.VisualStudioLight; // This line allows to set the initial theme without exotic tricks
     }
 
     private async void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
-    {
-        
+    {     
 
         // set languages
         // this.EditorLanguageComboBox.ItemsSource = (await MonacoEditor.GetLanguagesAsync()).Select(x => x.Id).ToList();
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
+        Clipboard.Clear(); // ONLY FOR DEBUGGING PURPOSES! Added 20240505 - MR
+    }
 
-        /// Added 20240504 - MR
-        /// The following lines were written to set Monaco theme at app startup
-        /// because WinUI.Monaco control loads by default using the dark theme.
-        /// Maybe in next commits there will be a property to set starting theme
-        /// at control creation.
-        while (!MonacoEditor.LoadCompleted)
-        {
-            await Task.Delay(25);
-        }
-        await MonacoEditor.SetThemeAsync(EditorThemes.VisualStudioLight);
-        
-        Clipboard.Clear(); // ONLY FOR DEBUGGING PURPOSES!
+    private void MonacoEditor_CursorPositionChanged(object sender, CursorPositionArgs e)
+    {
+        ///Added 20240505 - MR
+        ///Here we show cursor current position through the CursorPositionChanged event.
+        ///Please, have a look at WinUI.Monaco "MonacoEditor.xaml.cs"
+        ///where "OnCursorPositionChanged" has its main logic.
+        Debug.WriteLine("Cursors Position Changed "+e.mLine.ToString()+"-"+e.mColumn.ToString());
+        txtCurLine.Text = e.mLine.ToString();
+        txtCurCol.Text = e.mColumn.ToString();
     }
 
     private void MonacoEditor_EditorTextSelected(object sender, TextSelectionArgs e) 
@@ -166,6 +168,8 @@ public sealed partial class MainWindow : Window
     private void MonacoEditor_MonacoEditorLoaded(object sender, EventArgs e)
     {
         this.LogMessage("Monaco Editor loaded");
+        MonacoEditor.CursorPositionChanged += MonacoEditor_CursorPositionChanged; // Added 20240505 - MR
+
     }
 
     private void OpenDevToolsButton_Click(object sender, RoutedEventArgs e)
@@ -378,6 +382,7 @@ public sealed partial class MainWindow : Window
     private void ctxMenu_Opening(object sender, object e)
     {
         mnuPaste.IsEnabled = ClipboardHasText();
+        mnuSelctAll.IsEnabled = (MonacoEditor.EditorContent != string.Empty);
     }
 
     private bool ClipboardHasText()

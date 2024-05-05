@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+//using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Globalization;
 using Windows.Storage;
+using Windows.UI.WebUI;
 using WinRT;
 
 namespace Monaco;
@@ -33,6 +35,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private bool _linenumbers = true;
     private string _wordwrapmode = "off";
 
+    public EditorThemes cTheme { get; set; } = EditorThemes.VisualStudioLight;
     public bool LoadCompleted { get; set; } = false;
 
     public event EventHandler? MonacoEditorLoaded = null;
@@ -131,6 +134,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _content = await GetSelectedTextAsync();
         TextSelectionArgs args = new TextSelectionArgs(_content);
         EditorTextSelected?.Invoke(this, args);        
+    }
+
+    #endregion
+
+    #region CursorPositionChanged Event
+    /// <summary>
+    /// Added 20240506 - MR
+    /// This event is fired when cursor position changes.
+    /// </summary>
+    public event EventHandler<CursorPositionArgs>? CursorPositionChanged;
+
+    private async void OnCursorPositionChanged()
+    {
+        string jPosition = await MonacoEditorWebView.ExecuteScriptAsync("editor.getPosition();");
+        EditorCursorPosition cPosition = JsonSerializer.Deserialize<EditorCursorPosition>(jPosition);
+        CursorPositionArgs args = new CursorPositionArgs(cPosition);
+        CursorPositionChanged?.Invoke(this, args);        
     }
 
     #endregion
@@ -562,6 +582,11 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                     OnTextSelected();
                     break;
                 }
+            case "EVENT_CURSOR_MOVED":
+                {
+                    OnCursorPositionChanged();
+                    break;
+                }
                 
 
             // monaco events
@@ -580,6 +605,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
         string javaScriptTextSelectedEventHandlerWebMessage = "editor.onDidChangeCursorSelection((e) =>{handleWebViewMessage(\"EVENT_TEXT_SELECTED\");});";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptTextSelectedEventHandlerWebMessage);
+        string javaScriptCursorMovedEventHandlerWebMessage = "editor.onDidChangeCursorPosition((e) =>{handleWebViewMessage('EVENT_CURSOR_MOVED'); });";
+        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptCursorMovedEventHandlerWebMessage);
     }
 
     public void IsMiniMapVisible(bool status=true)
@@ -687,7 +714,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
-
 
     /// <inheritdoc />
     public async Task LoadContentAsync(string content)
@@ -875,5 +901,39 @@ public class TextSelectionArgs: EventArgs
     public TextSelectionArgs(string mText)
     {
         SelectedText = mText;
+    }
+}
+
+
+public class EditorCursorPosition
+{
+    /// Added 20240505 - MR
+    /// REMARKS: Do not change members names of CurPos
+    /// because they reflect the JSON object returned
+    /// by Monaco Editor.
+    public int lineNumber { get; set; } = 0;
+    public int column { get; set; } = 0;
+}
+
+public class CursorPositionArgs : EventArgs
+{
+    /// <summary>
+    /// Added 20240505 - MR
+    /// This class allows to get the selected text through
+    /// the OntextSelected event. See usage in the TestApp project.
+    /// Monaco Editor returns cursor position as a JSON object which
+    /// gets deserialized as two numeric values.
+    /// </summary>
+    public int mLine { get; private set; }
+    public int mColumn { get; private set; }
+
+    public CursorPositionArgs(EditorCursorPosition CurPos)
+    {
+        /// Added 20240505 - MR
+        /// REMARKS: Do not change members names of CurPos
+        /// because they reflect the JSON object returned
+        /// by Monaco Editor.
+        mLine = CurPos.lineNumber;
+        mColumn = CurPos.column;
     }
 }

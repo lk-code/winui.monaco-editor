@@ -10,7 +10,7 @@ public interface IMonacoEditor
     /// is called when the monaco editor is loaded
     /// </summary>
     event EventHandler MonacoEditorLoaded;
-    
+
     /// <summary>
     /// sets the requested theme to the monaco editor view
     /// </summary>

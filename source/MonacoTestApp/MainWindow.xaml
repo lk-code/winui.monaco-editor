@@ -37,15 +37,16 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Padding="8" Spacing="8">
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Padding="8" Spacing="8" Background="{ThemeResource AppBarBackgroundThemeBrush}" BorderBrush="{ThemeResource AppBarBorderThemeBrush}">
             <Button x:Name="btnOpenFromFile" Content="Load from file..." Style="{ThemeResource AccentButtonStyle}" Click="btnOpenFromFile_Click" />
             <ComboBox x:Name="EditorLanguageComboBox" PlaceholderText="Select language..." IsEnabled="False"
                   SelectionChanged="EditorLanguageComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" />
             <TextBlock x:Name="txtCodingLang" Text="" VerticalAlignment="Center"/>
         </StackPanel>
-        <monaco:MonacoEditor Grid.Row="1"
+            <monaco:MonacoEditor Grid.Row="1"
                              x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
                              EditorLanguage="python"
@@ -63,7 +64,17 @@
                 </MenuFlyout>
             </monaco:MonacoEditor.ContextFlyout>
         </monaco:MonacoEditor>
-        <TabView Grid.Row="2" IsAddTabButtonVisible="False"  VerticalAlignment="Stretch" Margin="4" >
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Padding="8"
+                    BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="0,1,0,1">
+            <TextBlock FontSize="13">
+                <Run Text="Line:"/>
+                <Run x:Name="txtCurLine" Text="0" FontWeight="SemiBold"/>
+                <Run Text="  "/>
+                <Run Text="Pos:"/>
+                <Run x:Name="txtCurCol" Text="0" FontWeight="SemiBold"/>                
+            </TextBlock>
+        </StackPanel>
+        <TabView Grid.Row="3" IsAddTabButtonVisible="False"  VerticalAlignment="Stretch" Margin="4" >
             <TabView.TabItems>
                 <TabViewItem Header="Content" IsClosable="False">
                     <ScrollViewer Background="#cdcdcd">

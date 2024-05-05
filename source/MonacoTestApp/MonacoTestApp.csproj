@@ -11,7 +11,7 @@
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <IncrementVersionOnBuild>1.yyyy.Mdd.Hmm</IncrementVersionOnBuild>
-    <Version>1.2024.505.1056</Version>
+    <Version>1.2024.505.1706</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -232,6 +232,7 @@ public sealed partial class MainWindow : Window
             txtCodingLang.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
             LogMessage("Loaded content into editor from " + file.Path);
             MonacoEditor.EditorTextSelected += MonacoEditor_EditorTextSelected;
+            nbLineEdit.Maximum = await MonacoEditor.CountLines();
         }
     }
 
@@ -405,8 +406,11 @@ public sealed partial class MainWindow : Window
 
     }
 
-    private void btnScollToLine_Click(object sender, RoutedEventArgs e)
+    private async void btnScollToLine_Click(object sender, RoutedEventArgs e)
     {
-        Debug.WriteLine("Lines: " + MonacoEditor.CountLines().ToString());
+        if (cbCenterInEditor.IsChecked == true) 
+            MonacoEditor.ScrollToLineInCenter(Convert.ToInt32(nbLineEdit.Value));
+        else
+            MonacoEditor.ScrollToLine(Convert.ToInt32(nbLineEdit.Value));
     }
 }

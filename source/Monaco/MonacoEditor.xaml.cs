@@ -479,7 +479,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(ScrollToLineProperty, value);
             OnPropertyChanged();
 
-            this.ScrollToLine(value, false);
+            this.ScrollToLine(value);
         }
     }
 
@@ -506,7 +506,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(ScrollToLineInCenterProperty, value);
             OnPropertyChanged();
 
-            this.ScrollToLine(value, true);
+            this.ScrollToLineInCenter(value);
         }
     }
 
@@ -719,13 +719,15 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public int CountLines()
+    public async Task<int> CountLines()
     {
         string command = "";
-        command = "editor.getLineCount();";        
-        var result = this.MonacoEditorWebView.ExecuteScriptAsync(command);
-        Debug.WriteLine("count: " + result);
-        return Convert.ToInt32(result);
+        command = "editor.getModel().getLineCount();";        
+        var result = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        //Debug.WriteLine(result);
+        int lineCount = int.Parse(result);
+        //Debug.WriteLine("count: " + lineCount);
+        return lineCount;
     }
 
     public void Folding(bool status = false)
@@ -767,13 +769,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void ScrollToLine(int lineNumber, bool revealInCenter=false)
+    public void ScrollToLine(int lineNumber)
     {
         string command = "";
-        if (revealInCenter)
-            command = $"editor.revealLineInCenter({lineNumber});";
-        else
-            command = $"editor.revealLine({lineNumber});";
+        command = $"editor.revealLine({lineNumber});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+    public void ScrollToLineInCenter(int lineNumber)
+    {
+        string command = "";
+        command = $"editor.revealLineInCenter({lineNumber});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 

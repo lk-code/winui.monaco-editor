@@ -413,4 +413,19 @@ public sealed partial class MainWindow : Window
         else
             MonacoEditor.ScrollToLine(Convert.ToInt32(nbLineEdit.Value));
     }
+
+
+    private void cbLineHighLight_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
+        if (selected != null)
+        {
+            var tag = selected.Tag; // This is the Tag property of the selected ComboBoxItem
+            if (tag != null)
+            {
+                Debug.WriteLine(tag);
+                MonacoEditor.LineHighlight(tag.ToString());
+            }
+        }
+    }
 }

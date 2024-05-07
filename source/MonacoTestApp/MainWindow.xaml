@@ -147,7 +147,17 @@
                             <CheckBox Content="Enable Folding" x:Name="cbFolding" Checked="cbFolding_Checked" Unchecked="cbFolding_Unchecked" IsChecked="True"/>
                             <CheckBox x:Name="cbStickyScroll" Content="Sticky Scroll" IsChecked="True" Checked="cbStickyScroll_Checked" Unchecked="cbStickyScroll_Unchecked"/>
                             <CheckBox x:Name="cbLineNumbers" Content="Line numbers" IsChecked="True" Checked="cbLineNumbers_Checked" Unchecked="cbLineNumbers_Unchecked"/>
-                            
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Line highlight mode" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="cbLineHighLight" SelectionChanged="cbLineHighLight_SelectionChanged" SelectedIndex="1">
+                                    <ComboBox.Items>
+                                        <ComboBoxItem Content="all" Tag="all" />
+                                        <ComboBoxItem Content="line" Tag="line" />
+                                        <ComboBoxItem Content="none" Tag="none" />
+                                        <ComboBoxItem Content="gutter" Tag="gutter" />
+                                    </ComboBox.Items>
+                                </ComboBox>
+                            </StackPanel>
                             <!-- Features still not working -->
                             <ComboBox x:Name="cbWordWrapMode" SelectedIndex="1" Visibility="Collapsed">
                                 <ComboBoxItem Content="on"/>

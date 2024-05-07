@@ -33,6 +33,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     private string _autoindentstrategy = "none";
     private bool _codelens = false;
     private bool _folding = true;
+    private string _linehighlight = "";
     private bool _linenumbers = true;
     private int _scrollline;
     private int _countlines;
@@ -376,6 +377,34 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     }
 
     #endregion
+
+    #region LineHighlight Property
+
+    public static readonly DependencyProperty LineHighlightProperty = DependencyProperty.Register("LineHighlight",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public string EditorLineHighlight
+    {
+        get
+        {
+            return _linehighlight;
+        }
+        set
+        {
+            SetValue(LineHighlightProperty, value);
+            OnPropertyChanged();
+
+            this.LineHighlight(value);
+        }
+    }
+
+    #endregion
+
 
     #region LineNumbers Property
 
@@ -740,6 +769,14 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
+    public void LineHighlight(string mode)
+    {
+        string command = "";
+        if (mode!="")
+            command = $"editor.updateOptions({{renderLineHighlight: '{mode}' }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
     public void LineNumbers(bool status = true)
     {
         string command = "";
@@ -772,13 +809,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     public void ScrollToLine(int lineNumber)
     {
         string command = "";
-        command = $"editor.revealLine({lineNumber});";
+        command = $"editor.revealLine({lineNumber}); editor.setPosition({{lineNumber: {lineNumber}, column: 0 }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
     public void ScrollToLineInCenter(int lineNumber)
     {
         string command = "";
-        command = $"editor.revealLineInCenter({lineNumber});";
+        command = $"editor.revealLineInCenter({lineNumber}); editor.setPosition({{lineNumber: {lineNumber}, column: 0 }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 

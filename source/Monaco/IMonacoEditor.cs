@@ -76,6 +76,14 @@ public interface IMonacoEditor
     void IsMiniMapVisible(bool status);
 
     /// <summary>
+    /// Enables / disables the highlight of selected line in editor.
+    /// This property relates to Monaco Editor "renderLineHighlight" option.
+    /// </summary>
+    /// <param name="status">"TRUE" turns on line highlighting</param>
+    /// <returns></returns>
+    void LineHighlight(string mode);
+
+    /// <summary>
     /// show or hides line numbers (default is TRUE)
     /// </summary>
     /// <param name="status">"TRUE" turns on line numbers</param>
@@ -97,28 +105,33 @@ public interface IMonacoEditor
     void SetReadOnlyMessage(string content);
 
     /// <summary>
-    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// Scrolls editor to specified line.
+    /// This property relates to Monaco Editor "revealLine" option.
     /// </summary>
-    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <param name="lineNumber">the line number to reach.</param>
     /// <returns></returns>
     void ScrollToLine(int lineNumber);
 
     /// <summary>
-    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// Scrolls editor to specified line but the editor will put that in the middle of the view.
     /// </summary>
-    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// This property relates to Monaco Editor "revealLineInCenter" option.
+    /// </summary>
+    /// <param name="lineNumber">the line number to reach.</param>
     /// <returns></returns>
     void ScrollToLineInCenter(int lineNumber);
 
     /// <summary>
-    /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// Scrolls editor view to top.
+    /// This property relates to Monaco Editor "setScrollPosition" option.
     /// </summary>
-    /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
+    /// <param></param>
     /// <returns></returns>
     void ScrollToTop();
 
     /// <summary>
     /// Enables or disables the sticky scroll mode (default is TRUE)
+    /// This property relates to Monaco Editor "stickyScroll" option.
     /// </summary>
     /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
     /// <returns></returns>

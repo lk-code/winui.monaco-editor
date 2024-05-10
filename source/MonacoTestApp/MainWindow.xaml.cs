@@ -199,12 +199,12 @@ public sealed partial class MainWindow : Window
 
     private void cbMinimapVisible_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(true);
+        MonacoEditor.MiniMapEnabled(true);
     }
 
     private void cbMinimapVisible_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(false);
+        MonacoEditor.MiniMapEnabled(false);
     }
 
     private async void btnOpenFromFile_Click(object sender, RoutedEventArgs e)
@@ -427,5 +427,99 @@ public sealed partial class MainWindow : Window
                 MonacoEditor.LineHighlight(tag.ToString());
             }
         }
+    }
+
+    private void cbMapRenderChars_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapRenderCharacters(true);
+    }
+
+    private void cbMapRenderChars_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapRenderCharacters(false);
+    }
+
+    private void cbMapAutoHide_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapAutohide(true);
+    }
+
+    private void cbMapAutoHide_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapAutohide(false);
+    }
+
+    private void cbMapSlider_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
+        if (selected != null)
+        {
+            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
+            if (item != null)
+            {
+                MonacoEditor.MiniMapShowSlider(item.ToString());
+            }
+        }
+    }
+
+    private void cbMapSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
+        if (selected != null)
+        {
+            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
+            if (item != null)
+            {
+                MonacoEditor.MiniMapSize(item.ToString());
+            }
+        }
+    }
+
+    private void cbMapSide_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
+        if (selected != null)
+        {
+            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
+            if (item != null)
+            {
+                MonacoEditor.MiniMapSide(item.ToString());
+            }
+        }
+    }
+
+    private void nbMapScale_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        MonacoEditor.MiniMapScale(Convert.ToInt32(nbMapScale.Value));
+    }
+
+    private void nbMapMaxWidth_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        MonacoEditor.MiniMapMaxColumn(Convert.ToInt32(nbMapMaxWidth.Value));
+    }
+
+    private void nbMapSectionHeaderFontSize_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        MonacoEditor.MiniMapSectionHeaderFontSize(Convert.ToInt32(nbMapSectionHeaderFontSize.Value));
+    }
+
+    private void cbMapShowMarkHeader_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapShowMarkSectionHeaders(true);
+    }
+
+    private void cbMapShowRegionHeader_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapShowRegionSectionHeaders(true);
+    }
+
+    private void cbMapShowMarkHeader_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapShowMarkSectionHeaders(false);
+    }
+
+    private void cbMapShowRegionHeader_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.MiniMapShowRegionSectionHeaders(false);
     }
 }

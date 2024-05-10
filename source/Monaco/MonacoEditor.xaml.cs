@@ -26,6 +26,16 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private string _content = "";
     private bool _isminimapvisible = true;
+    private bool _minimapautohide = false;
+    private string _minimapside = "right";
+    private string _minimapsize = "fit";
+    private string _minimapshowslider = "always";
+    private bool _minimaprendercharacters = true;
+    private int _minimapscale = 1;
+    private int _minimapsectionheaderfontsize = 9;
+    private bool _minimapshowmarksectionheaders = true;
+    private bool _minimapshowregionsectionheaders = true;
+    private int _minimapmaxcolumn = 120;
     private bool _readonly = false;
     private bool _stickyscroll = true;
     private bool _ariarequired = false;
@@ -237,12 +247,259 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(IsMiniMapVisibleProperty, value);
             OnPropertyChanged();
 
-            this.IsMiniMapVisible(value);
+            this.MiniMapEnabled(value);
         }
     }
 
     #endregion
-    
+
+    #region MiniMapAutoHide Property
+
+    public static readonly DependencyProperty MiniMapAutohideProperty = DependencyProperty.Register("MiniMapAutohide",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public bool EditorMiniMapAutohide
+    {
+        get
+        {
+            return _minimapautohide;
+        }
+        set
+        {
+            SetValue(MiniMapAutohideProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapAutohide(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapRenderCharacters Property
+
+    public static readonly DependencyProperty MiniMapRenderCharactersProperty = DependencyProperty.Register("MiniMapRenderCharacters",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public bool EditorMiniMapRenderCharacters
+    {
+        get
+        {
+            return _minimaprendercharacters;
+        }
+        set
+        {
+            SetValue(MiniMapRenderCharactersProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapRenderCharacters(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapShowSlider Property
+
+    public static readonly DependencyProperty MiniMapShowSliderProperty = DependencyProperty.Register("MiniMapShowSlider",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public string EditorMiniMapShowSlider
+    {
+        get
+        {
+            return _minimapshowslider;
+        }
+        set
+        {
+            SetValue(MiniMapShowSliderProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapShowSlider(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapSide Property
+
+    public static readonly DependencyProperty MiniMapSideProperty = DependencyProperty.Register("MiniMapSide",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public string EditorMiniMapSide
+    {
+        get
+        {
+            return _minimapside;
+        }
+        set
+        {
+            SetValue(MiniMapSideProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapSide(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapSize Property
+
+    public static readonly DependencyProperty MiniMapSizeProperty = DependencyProperty.Register("MiniMapSize",
+        typeof(string),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public string EditorMiniMapSize
+    {
+        get
+        {
+            return _minimapsize;
+        }
+        set
+        {
+            SetValue(MiniMapSizeProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapSize(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapScale Property
+
+    public static readonly DependencyProperty MiniMapScaleProperty = DependencyProperty.Register("MiniMapScale",
+        typeof(int),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public int EditorMiniMapScale
+    {
+        get
+        {
+            return _minimapscale;
+        }
+        set
+        {
+            SetValue(MiniMapScaleProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapScale(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapSectionHeaderFontSize Property
+
+    public static readonly DependencyProperty MiniMapSectionHeaderFontSizeProperty = DependencyProperty.Register("MiniMapSectionHeaderFontSize",
+        typeof(int),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public int EditorMiniMapSectionHeaderFontSize
+    {
+        get
+        {
+            return _minimapsectionheaderfontsize;
+        }
+        set
+        {
+            SetValue(MiniMapSectionHeaderFontSizeProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapSectionHeaderFontSize(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapShowMarkSectionHeaders Property
+
+    public static readonly DependencyProperty MiniMapShowMarkSectionHeadersProperty = DependencyProperty.Register("MiniMapShowMarkSectionHeaders",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Hides/shows the mini code map
+    /// </summary>
+    public bool EditorMiniMapShowMarkSectionHeaders
+    {
+        get
+        {
+            return _minimapshowmarksectionheaders;
+        }
+        set
+        {
+            SetValue(MiniMapShowMarkSectionHeadersProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapShowMarkSectionHeaders(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapShowRegionSectionHeaders Property
+
+    public static readonly DependencyProperty MiniMapShowRegionSectionHeadersProperty = DependencyProperty.Register("MiniMapShowRegionSectionHeaders",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Hides/shows the mini code map
+    /// </summary>
+    public bool EditorMiniMapShowRegionSectionHeaders
+    {
+        get
+        {
+            return _minimapshowregionsectionheaders;
+        }
+        set
+        {
+            SetValue(MiniMapShowRegionSectionHeadersProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapShowRegionSectionHeaders(value);
+        }
+    }
+
+    #endregion
+
+    #region MiniMapMaxColumn Property
+
+    public static readonly DependencyProperty MiniMapMaxColumnProperty = DependencyProperty.Register("MiniMapMaxColumn",
+        typeof(int),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    public int EditorMiniMapMaxColumnSize
+    {
+        get
+        {
+            return _minimapmaxcolumn;
+        }
+        set
+        {
+            SetValue(MiniMapMaxColumnProperty, value);
+            OnPropertyChanged();
+
+            this.MiniMapMaxColumn(value);
+        }
+    }
+
+    #endregion
+
+
     #region AriaRequired Property
 
     public static readonly DependencyProperty AriaRequiredProperty = DependencyProperty.Register("AriaRequired",
@@ -700,13 +957,106 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptCursorMovedEventHandlerWebMessage);
     }
 
-    public void IsMiniMapVisible(bool status=true)
+    public void MiniMapEnabled(bool status=true)
     {
         string command = "";
         if (status)
             command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
         else
             command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+    public void MiniMapAutohide(bool status = false)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ minimap: {{ autohide: true }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ autohide: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapSide(string mode = "right")
+    {
+        string command = "";
+        if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "right" && mode.ToLower() != "left"))
+            mode = "right";
+        command = $"editor.updateOptions({{ minimap: {{ side: '{mode}' }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapSize(string mode = "fit")
+    {
+        string command = "";
+        if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "fit" && mode.ToLower() != "fill" && mode.ToLower() != "proportional"))
+            mode = "fit";
+        command = $"editor.updateOptions({{ minimap: {{ size: '{mode}' }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapShowSlider(string mode = "mouseover")
+    {
+        string command = "";
+        if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "always" && mode.ToLower() != "mouseover"))
+            mode = "mouseover";
+        command = $"editor.updateOptions({{ minimap: {{ showSlider: '{mode}' }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapRenderCharacters(bool status = true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ minimap: {{ renderCharacters: true }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ renderCharacters: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapScale(int value = 1)
+    {
+        string command = "";
+        if (value < 1 && value > 5)
+            value = 1;
+        command = $"editor.updateOptions({{ minimap: {{ scale: {value} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapSectionHeaderFontSize(int value = 9)
+    {
+        string command = "";
+        if (value < 5 && value > 18)
+            value = 9;
+        command = $"editor.updateOptions({{ minimap: {{ sectionHeaderFontSize: {value} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapShowMarkSectionHeaders(bool status = true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ minimap: {{ showMarkSectionHeaders: true }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ showMarkSectionHeaders: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapShowRegionSectionHeaders(bool status = true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ minimap: {{ showRegionSectionHeaders: true }} }});";
+        else
+            command = $"editor.updateOptions({{ minimap: {{ showRegionSectionHeaders: false }} }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    public void MiniMapMaxColumn(int value = 120)
+    {
+        string command = "";
+        if (value < 80 && value > 300)
+            value = 120;
+        command = $"editor.updateOptions({{ minimap: {{ maxColumn: {value} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
@@ -1016,6 +1366,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await MonacoEditorWebView.ExecuteScriptAsync(command);
         
     }
+
+   
 }
 
 public class TextSelectionArgs: EventArgs
@@ -1032,7 +1384,6 @@ public class TextSelectionArgs: EventArgs
         SelectedText = mText;
     }
 }
-
 
 public class EditorCursorPosition
 {
@@ -1065,4 +1416,19 @@ public class CursorPositionArgs : EventArgs
         mLine = CurPos.lineNumber;
         mColumn = CurPos.column;
     }
+}
+
+public class MiniMapOptions
+{
+    public string showSlider { get; set; } = "always";
+    public bool autoHide { get; set; } = false;
+    public bool enabled { get; set; } = true;
+    public string side { get; set; } = "right";
+    public string size { get; set; } = "fit";
+    public bool renderCharacters { get; set; } = true;
+    public int scale { get; set; } = 1;
+    public bool showMarkSectionHeaders { get; set; } = false;
+    public bool showRegionSectionHeaders { get; set; } = false;
+    public int sectionHeaderFontSize { get; set; } = 9;
+    public int maxColumn { get; set; } = 120;
 }

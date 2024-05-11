@@ -76,3 +76,4 @@ jobs:
         with:
           branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           commit_message: "added monaco changes"
+          pull_args: --rebase --continue

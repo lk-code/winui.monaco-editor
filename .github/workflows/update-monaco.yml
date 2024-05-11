@@ -75,6 +75,8 @@ jobs:
 
       - name: Commit Changes
         uses: mgrybyk-org/git-commit-pull-push-action@v1.2.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           commit_message: "added monaco changes"

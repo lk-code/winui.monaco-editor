@@ -79,4 +79,4 @@ jobs:
         with:
           commit_message: "added monaco changes"
           target_branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          access_token: ${{ secrets.GITHUB_TOKEN }}
+          access_token: ${{ secrets.REPO_TOKEN }}

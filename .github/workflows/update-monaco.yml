@@ -66,6 +66,7 @@ jobs:
           git pull --force
           git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           git branch --set-upstream-to=origin/MONACO-UPDATE-${{ steps.extract-version.outputs.version }} MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
 
       - name: Update version in dotnet.yml
         run: |

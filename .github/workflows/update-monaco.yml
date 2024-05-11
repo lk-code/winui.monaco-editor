@@ -67,6 +67,7 @@ jobs:
           git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           git branch --set-upstream-to=origin/MONACO-UPDATE-${{ steps.extract-version.outputs.version }} MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          git pull --rebase
 
       - name: Update version in dotnet.yml
         run: |
@@ -79,7 +80,6 @@ jobs:
         run: |
           git config --global user.name 'Lars Krämer'
           git config --global user.email 'lars.kraemer@live.de'
-          git pull --rebase
           git add .
           git commit -m "added monaco changes"
           git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}

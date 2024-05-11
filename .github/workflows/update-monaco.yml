@@ -71,13 +71,7 @@ jobs:
           sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: 1.1.$version/" .github/workflows/dotnet.yml
 
       - name: Commit Changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name 'Lars Krämer'
-          git config --global user.email 'lars.kraemer@live.de'
-          git add .
-          git status
-          git commit -m "added monaco changes"
-          git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          git log -n 5
+        uses: mgrybyk-org/git-commit-pull-push-action@v1.2.4
+        with:
+          branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          commit_message: "added monaco changes"

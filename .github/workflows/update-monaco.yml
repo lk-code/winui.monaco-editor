@@ -79,5 +79,5 @@ jobs:
           git add .
           git status
           git commit -m "added monaco changes"
-          git log -n 5
           git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          git log -n 5

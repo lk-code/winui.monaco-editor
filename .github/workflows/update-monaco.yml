@@ -55,13 +55,13 @@ jobs:
       - name: Delete Existing Monaco-Branch
         if: env.BRANCH_EXISTS == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
           git push origin --delete MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
       
       - name: Create Monaco-Branch
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
           git pull --force
           git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
@@ -76,6 +76,8 @@ jobs:
 
       - name: Git Commit Push Action
         uses: GuillaumeFalourd/git-commit-push@v1.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         with:
           commit_message: "added monaco changes"
           target_branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}

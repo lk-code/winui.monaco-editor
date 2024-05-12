@@ -74,11 +74,13 @@ jobs:
           version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
           sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: 1.1.$version/" .github/workflows/dotnet.yml
 
-      - name: Git Commit Push Action
-        uses: GuillaumeFalourd/git-commit-push@v1.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      - name: Git Commit/Push Changes
+        # You may pin to the exact commit or the version.
+        # uses: actions-x/commit@803b20e5b72c0425eb7919c42c321e67c5bc5d2d
+        uses: actions-x/commit@v6
         with:
-          commit_message: "added monaco changes"
-          target_branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          access_token: ${{ secrets.REPO_TOKEN }}
+          email: ${{ github.actor }}@users.noreply.github.com
+          name: ${{ github.actor }}
+          message: "added monaco changes"
+          branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          token: ${{ secrets.REPO_TOKEN }}

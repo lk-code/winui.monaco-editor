@@ -46,7 +46,8 @@ jobs:
         run: |
           git fetch
           git pull --force
-          if git rev-parse --verify MONACO-UPDATE-${{ steps.extract-version.outputs.version }} then
+          echo "check branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }} exists"
+          if git rev-parse --verify MONACO-UPDATE-${{ steps.extract-version.outputs.version }}; then
             echo "Branch exists"
             export BRANCH_EXISTS=true
           else
@@ -61,15 +62,18 @@ jobs:
         run: |
           git push origin --delete MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
       
-      - name: Create Monaco-Branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      - name: Check if branch exists
         run: |
+          git fetch
           git pull --force
-          git branch MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          git branch --set-upstream-to=origin/MONACO-UPDATE-${{ steps.extract-version.outputs.version }} MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          git push origin MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-          git pull --force
+          if git checkout MONACO-UPDATE-${{ steps.extract-version.outputs.version }} 2>/dev/null; then
+            echo "Branch exists"
+            export BRANCH_EXISTS=true
+            git checkout -
+          else
+            echo "Branch does not exist"
+            export BRANCH_EXISTS=false
+          fi
 
       # - name: Update version in dotnet.yml
       #   run: |

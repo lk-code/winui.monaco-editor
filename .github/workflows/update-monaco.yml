@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
-          git push origin --delete MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          git push origin --delete update/MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
 
       - name: Git Commit/Push Changes
         uses: actions-x/commit@v6
@@ -55,5 +55,5 @@ jobs:
           email: ${{ github.actor }}@users.noreply.github.com
           name: ${{ github.actor }}
           message: "added monaco changes"
-          branch: MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
+          branch: update/MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
           token: ${{ secrets.REPO_TOKEN }}

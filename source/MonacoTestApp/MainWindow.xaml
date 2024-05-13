@@ -38,101 +38,190 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="300" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Padding="8" Spacing="8">
-            <Button x:Name="btnOpenFromFile" Content="Load from file..." Style="{ThemeResource AccentButtonStyle}" Click="btnOpenFromFile_Click" />
-            <ComboBox x:Name="EditorLanguageComboBox" PlaceholderText="Select language..." IsEnabled="False"
-                  SelectionChanged="EditorLanguageComboBox_SelectionChanged"
-                  HorizontalAlignment="Stretch" />
-            <TextBlock x:Name="txtCodingLang" Text="" VerticalAlignment="Center"/>
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="0"
+                    Padding="8"
+                    Spacing="8">
+            
+            <Button Content="Load from file..."
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Click="OpenFileButton_Click" />
+            
+            <ComboBox x:Name="EditorLanguageComboBox"
+                      PlaceholderText="Select language..."
+                      IsEnabled="False"
+                      SelectionChanged="EditorLanguageComboBox_SelectionChanged"
+                      HorizontalAlignment="Stretch" />
+            
+            <TextBlock x:Name="CodingLanguageTextBlock"
+                       Text=""
+                       VerticalAlignment="Center"/>
+            
         </StackPanel>
+
         <monaco:MonacoEditor Grid.Row="1"
                              x:Name="MonacoEditor"
                              EditorTheme="VisualStudioDark"
                              EditorLanguage="python"
                              EditorContentChanged="MonacoEditor_EditorContentChanged"
                              MonacoEditorLoaded="MonacoEditor_MonacoEditorLoaded" />
-        <TabView Grid.Row="2" IsAddTabButtonVisible="False"  VerticalAlignment="Stretch" Margin="4" >
+
+        <TabView Grid.Row="2"
+                 IsAddTabButtonVisible="False"
+                 VerticalAlignment="Stretch"
+                 Margin="4" >
+            
             <TabView.TabItems>
-                <TabViewItem Header="Content" IsClosable="False">
+                
+                <TabViewItem Header="Content"
+                             IsClosable="False">
+                    
                     <ScrollViewer>
+
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Orientation="Vertical">
+                            
+                            <StackPanel Grid.Column="0"
+                                        Orientation="Vertical">
                                 <StackPanel Spacing="16">
-                                    <ComboBox Header="Choose Theme" x:Name="ThemeSelectionComboBox"
+                                    
+                                    <ComboBox Header="Choose Theme"
+                                              x:Name="ThemeSelectionComboBox"
                                               SelectionChanged="ThemeSelectionComboBox_OnSelectionChanged"
-                                              HorizontalAlignment="Left" Width="300" SelectedIndex="0" />
-                                    <Button HorizontalAlignment="Left" Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Load Languages"
-                                         Click="LoadLanguagesButton_Click" />
+                                              HorizontalAlignment="Left"
+                                              Width="300"
+                                              SelectedIndex="0" />
+                                    
+                                    <Button HorizontalAlignment="Left"
+                                            Style="{ThemeResource AccentButtonStyle}"
+                                            Content="Load Languages"
+                                            Click="LoadLanguagesButton_Click" />
+                                    
                                     <Button Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Select All"
-                                         Click="SelectAllButton_Click" />
+                                            Content="Select All"
+                                            Click="SelectAllButton_Click" />
+                                    
                                     <Button Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Open DevTools (F12)"
-                                         Click="OpenDevToolsButton_Click" />
+                                            Content="Open DevTools (F12)"
+                                            Click="OpenDevToolsButton_Click" />
+                                    
                                 </StackPanel>
                                 
                             </StackPanel>
-                            <StackPanel Padding="12" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1" CornerRadius="8" Orientation="Vertical" Grid.Column="1">
-                                <TextBlock Text="Content" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            
+                            <StackPanel Padding="12"
+                                        BorderBrush="{ThemeResource SystemAccentColor}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Orientation="Vertical"
+                                        Grid.Column="1">
+                                
+                                <TextBlock Text="Content"
+                                           Style="{StaticResource SubtitleTextBlockStyle}" />
 
                                 <TextBox Style="{ThemeResource InputTextBoxStyle}"
-                                     PlaceholderText="Editor Content"
-                                     Height="120"
-                                     x:Name="EditorContentTextBox" />
+                                         PlaceholderText="Editor Content"
+                                         Height="120"
+                                         x:Name="EditorContentTextBox" />
+
                                 <Grid ColumnSpacing="6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition />
                                         <ColumnDefinition />
                                     </Grid.ColumnDefinitions>
-                                <Button Style="{ThemeResource AccentButtonStyle}"
-                                    Content="Set Content" Grid.Column="0" HorizontalAlignment="Stretch"
-                                    Click="SetContentButton_Click" />
+                                    
+                                    <Button Style="{ThemeResource AccentButtonStyle}"
+                                            Content="Set Content"
+                                            Grid.Column="0"
+                                            HorizontalAlignment="Stretch"
+                                            Click="SetContentButton_Click" />
 
-                                <Button Style="{ThemeResource AccentButtonStyle}"
-                                    Content="Get Content" Grid.Column="1" HorizontalAlignment="Stretch"
-                                    Click="GetContentButton_Click" />
+                                    <Button Style="{ThemeResource AccentButtonStyle}"
+                                            Content="Get Content"
+                                            Grid.Column="1"
+                                            HorizontalAlignment="Stretch"
+                                            Click="GetContentButton_Click" />
                                 </Grid>
+                                
                             </StackPanel>
+                            
                         </Grid>
+                        
                     </ScrollViewer>
+                    
                 </TabViewItem>
-                <TabViewItem Header="Options" IsClosable="False">
+                
+                <TabViewItem Header="Options"
+                             IsClosable="False">
+
                     <ScrollViewer>
-                        <StackPanel Orientation="Vertical" Spacing="6">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
-                                <CheckBox x:Name="cbReadOnly" Content="Read only" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked" HorizontalAlignment="Stretch"/>
-                                <TextBox IsEnabled="{Binding ElementName=cbReadOnly,Path=IsChecked}" PlaceholderText="ReadOnly Custom Message" x:Name="txtReadOnlyMessage" Width="500" HorizontalAlignment="Stretch" TextChanged="txtReadOnlyMessage_TextChanged"/>
+
+                        <StackPanel Orientation="Vertical"
+                                    Spacing="6">
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Stretch"
+                                        Spacing="8">
+                                
+                                <CheckBox x:Name="ContentIsReadOnlyCheckBox"
+                                          Content="Read only"
+                                          Checked="ContentIsReadOnlyCheckBox_Checked"
+                                          Unchecked="ContentIsReadOnlyCheckBox_Unchecked"
+                                          HorizontalAlignment="Stretch"/>
+                                
+                                <TextBox IsEnabled="{Binding ElementName=ContentIsReadOnlyCheckBox, Path=IsChecked}"
+                                         PlaceholderText="ReadOnly Custom Message"
+                                         x:Name="ReadOnlyMessageTextBox"
+                                         Width="500"
+                                         HorizontalAlignment="Stretch"
+                                         TextChanged="ReadOnlyMessageTextBox_TextChanged"/>
+                                
                             </StackPanel>
-                            <CheckBox Content="Minimap Visible" IsChecked="True" x:Name="cbMinimapVisible" Checked="cbMinimapVisible_Checked" Unchecked="cbMinimapVisible_Unchecked"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8" Visibility="Collapsed">
-                                <CheckBox x:Name="cbAriaLabelRequire" Content="AriaLabel Required" />
-                                <TextBox x:Name="txtAriaLabel" Width="500" PlaceholderText="Aria Label Text" HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-                            <ComboBox Header="AutoIndent Strategy" SelectedIndex="0" Visibility="Collapsed">
+
+                            <CheckBox Content="Minimap Visible"
+                                      IsChecked="True"
+                                      x:Name="MinimapVisibleCheckBox"
+                                      Checked="MinimapVisibleCheckBox_Checked"
+                                      Unchecked="MinimapVisibleCheckBox_Unchecked"/>
+
+                            <ComboBox Header="AutoIndent Strategy"
+                                      SelectedIndex="0"
+                                      Visibility="Collapsed">
                                 <ComboBoxItem Content="None"/>
                                 <ComboBoxItem Content="Keep"/>
                                 <ComboBoxItem Content="Brackets"/>
                                 <ComboBoxItem Content="Advanced"/>
                                 <ComboBoxItem Content="Full"/>
                             </ComboBox>
-                            <CheckBox x:Name="cbStickyScroll" Content="Sticky Scroll" IsChecked="True" Checked="cbStickyScroll_Checked" Unchecked="cbStickyScroll_Unchecked"/>
+
+                            <CheckBox x:Name="StickyScrollCheckBox"
+                                      Content="Sticky Scroll"
+                                      IsChecked="True"
+                                      Checked="StickyScrollCheckBox_Checked"
+                                      Unchecked="StickyScrollCheckBox_Unchecked"/>
+                            
                         </StackPanel>
+                        
                     </ScrollViewer>
+
                 </TabViewItem>
-                <TabViewItem Header="Log" IsClosable="False">
+                
+                <TabViewItem Header="Log"
+                             IsClosable="False">
                     <TextBox Grid.Column="0"
-                         x:Name="LoggingTextBox"
-                         AcceptsReturn="True"
-                         IsReadOnly="True" />
+                             x:Name="LoggingTextBox"
+                             AcceptsReturn="True"
+                             IsReadOnly="True" />
                 </TabViewItem>
+                
             </TabView.TabItems>
+            
         </TabView>
-        
+
 
     </Grid>
 

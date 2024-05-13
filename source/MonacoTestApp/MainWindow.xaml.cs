@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
 using System;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
@@ -113,33 +112,34 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void CheckBox_Checked(object sender, RoutedEventArgs e)
+    private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
+        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
         MonacoEditor.ReadOnly(true);
     }
 
-    private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+    private void ContentIsReadOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.ReadOnly(false);
     }
 
-    private void cbMinimapVisible_Checked(object sender, RoutedEventArgs e)
+    private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.IsMiniMapVisible(true);
     }
 
-    private void cbMinimapVisible_Unchecked(object sender, RoutedEventArgs e)
+    private void MinimapVisibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.IsMiniMapVisible(false);
     }
 
-    private async void btnOpenFromFile_Click(object sender, RoutedEventArgs e)
+    private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
     {
         FileOpenPicker fileOpenPicker = new()
         {
             ViewMode = PickerViewMode.Thumbnail,
             FileTypeFilter = { "*" },
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary
         };
 
         nint windowHandle = WindowNative.GetWindowHandle(App.Window);
@@ -154,23 +154,23 @@ public sealed partial class MainWindow : Window
             /// the correct coding language to be set for a proper visualization.
             /// In next commits, I will implement also LoadFromStreamAsync method
             /// in order to give multiple option to end user.
-            txtCodingLang.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
+            CodingLanguageTextBlock.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
             LogMessage("Loaded content into editor from " + file.Path);
         }
     }
 
-    private void cbStickyScroll_Checked(object sender, RoutedEventArgs e)
+    private void StickyScrollCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.StickyScroll(true);
     }
 
-    private void cbStickyScroll_Unchecked(object sender, RoutedEventArgs e)
+    private void StickyScrollCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.StickyScroll(false);
     }
 
-    private void txtReadOnlyMessage_TextChanged(object sender, TextChangedEventArgs e)
+    private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
+        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
     }
 }

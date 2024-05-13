@@ -42,30 +42,12 @@ jobs:
             version=$(sed -n 's/.*Version: \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p' source/Monaco/monaco-editor/min/vs/loader.js)
             echo "version=$version" >> $GITHUB_OUTPUT
             
-      # - name: Check if branch exists
-      #   run: |
-      #     git fetch
-      #     git pull --force
-      #     if git checkout MONACO-UPDATE-${{ steps.extract-version.outputs.version }}; then
-      #       echo "Branch exists"
-      #       export BRANCH_EXISTS=true
-      #       git checkout -
-      #     else
-      #       echo "Branch does not exist"
-      #       export BRANCH_EXISTS=false
-      #     fi
-      
       - name: Delete Existing Monaco-Branch
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
           git push origin --delete MONACO-UPDATE-${{ steps.extract-version.outputs.version }}
-
-      # - name: Update version in dotnet.yml
-      #   run: |
-          # version=$(sed -n 's/.*Version: \([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/p' source/Monaco/monaco-editor/min/vs/loader.js | tr -d '0' | tr -d '.')
-          # sed -i "s/VERSION: 1.1\.[0-9]\+/VERSION: 1.1.$version/" .github/workflows/dotnet.yml
 
       - name: Git Commit/Push Changes
         uses: actions-x/commit@v6

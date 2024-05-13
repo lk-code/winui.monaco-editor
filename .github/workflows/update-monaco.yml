@@ -46,7 +46,7 @@ jobs:
         run: |
           git fetch
           git pull --force
-          if git rev-parse --verify MONACO-UPDATE-${{ steps.extract-version.outputs.version }}; then
+          if git rev-parse --verify MONACO-UPDATE-${{ steps.extract-version.outputs.version }} then
             echo "Branch exists"
             export BRANCH_EXISTS=true
           else

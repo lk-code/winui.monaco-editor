@@ -1,108 +1,39 @@
-﻿/***
- * IMPORTANT NOTES FROM MATTEO RISO (MR or ZipGenius on GitHub).
- * 
- * 2024-05-05
- * Added "OnCursorPositionChanged" event to retrieve current cursor position.
- * 
- * 2024-05-04
- * Successfully added "CopyTextToClipboard", "CutTextToClipboard" and "PasteTextFromClipboard" methods.
- * These methods can be called in code directly or attached to a context menu. Monaco's own context menu
- * is somewhat tricky and hard to translate to different languages for an app that is designed for an
- * international audience. I successfully added a native WinUI ContextFlyout to the editor control (see
- * MainWindow.xaml of this TestApp). That's the easiest way to have a native context menu that can be localized
- * as you would do for other controls in your application. The best discover is that the ContextFlyout
- * completely overtakes Monaco's own context menu, so when you right click in editor control, there
- * you will get Copy, Cut and Paste commands.
- * 
- * 2024-04-04
- * StickyScroll, ReadOnly, IsMiniMapVisible, LineNumbers properties were successfully added and they are
- * working as designed. Unfortunately CodeLens, AriaRequire, AriaLabel, AutoIndentStrategy are not working
- * and they must be reviewed.
- * 
- * 
- ***/
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Monaco;
 using System.Linq;
 using System;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
-using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.DataTransfer;
-using System.Runtime.InteropServices.ComTypes;
-using System.Diagnostics;
 
 namespace MonacoTestApp;
 
 public sealed partial class MainWindow : Window
 {
-    #region Internal use: retrieve version number of this test app
-    /// Added 20240504 - MR
-    public static string GetAppVersion()
-    {
-        Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-        string displayableVersion = $"{version}";
-        if (displayableVersion.Length < 15)
-        {
-            int c = 15 - displayableVersion.Length;
-            for (int h = 0; h < c; h++)
-                displayableVersion += " ";
-        }
-        return displayableVersion;
-    }
-    #endregion
-
     private readonly Dictionary<string, EditorThemes> _themes = new()
     {
+        { "Visual Studio Dark", EditorThemes.VisualStudioDark },
         { "Visual Studio Light", EditorThemes.VisualStudioLight },
-        { "Visual Studio Dark", EditorThemes.VisualStudioDark },        
         { "High Contast Dark", EditorThemes.HighContrastDark }
     };
 
     public MainWindow()
     {
         this.InitializeComponent();
-        this.Title = "WinUI.Monaco Test App - version: " + GetAppVersion();
+
         this.Activated += MainWindow_Activated;
-        MonacoEditor.EditorTheme = EditorThemes.VisualStudioLight; // This line allows to set the initial theme without exotic tricks
     }
 
-    private async void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
-    {     
-
+    private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+    {
         // set languages
         // this.EditorLanguageComboBox.ItemsSource = (await MonacoEditor.GetLanguagesAsync()).Select(x => x.Id).ToList();
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
-        Clipboard.Clear(); // ONLY FOR DEBUGGING PURPOSES! Added 20240505 - MR
-    }
-
-    private void MonacoEditor_CursorPositionChanged(object sender, CursorPositionArgs e)
-    {
-        ///Added 20240505 - MR
-        ///Here we show cursor current position through the CursorPositionChanged event.
-        ///Please, have a look at WinUI.Monaco "MonacoEditor.xaml.cs"
-        ///where "OnCursorPositionChanged" has its main logic.
-        Debug.WriteLine("Cursors Position Changed "+e.mLine.ToString()+"-"+e.mColumn.ToString());
-        txtCurLine.Text = e.mLine.ToString();
-        txtCurCol.Text = e.mColumn.ToString();
-    }
-
-    private void MonacoEditor_EditorTextSelected(object sender, TextSelectionArgs e) 
-    {
-        /// added 20240504 - MR
-        /// this code tells when text is selected into editor. 
-        /// Write here any logic that should be attached 
-        /// to text selection.
-        string selText = e.SelectedText;
-        mnuCopy.IsEnabled = (!string.IsNullOrEmpty(selText));
+        
     }
 
     private void LogMessage(string message)
@@ -157,19 +88,16 @@ public sealed partial class MainWindow : Window
     private void SelectAllButton_Click(object sender, RoutedEventArgs e)
     {
         _ = this.MonacoEditor.SelectAllAsync();
-        
     }
 
     private void MonacoEditor_EditorContentChanged(object sender, System.EventArgs e)
     {
-        
+        this.LogMessage("Content in the editor has changed to: \n" + MonacoEditor.EditorContent);
     }
 
     private void MonacoEditor_MonacoEditorLoaded(object sender, EventArgs e)
     {
         this.LogMessage("Monaco Editor loaded");
-        MonacoEditor.CursorPositionChanged += MonacoEditor_CursorPositionChanged; // Added 20240505 - MR
-
     }
 
     private void OpenDevToolsButton_Click(object sender, RoutedEventArgs e)
@@ -177,7 +105,6 @@ public sealed partial class MainWindow : Window
         try
         {
             this.MonacoEditor.OpenDebugWebViewDeveloperTools();
-            LogMessage("DevTools showing.");
         }
         catch (Exception err)
         {
@@ -185,34 +112,34 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void CheckBox_Checked(object sender, RoutedEventArgs e)
+    private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
+        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
         MonacoEditor.ReadOnly(true);
-        LogMessage("Editor set as read only.");
     }
 
-    private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+    private void ContentIsReadOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.ReadOnly(false);
     }
 
-    private void cbMinimapVisible_Checked(object sender, RoutedEventArgs e)
+    private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.MiniMapEnabled(true);
+        MonacoEditor.IsMiniMapVisible(true);
     }
 
-    private void cbMinimapVisible_Unchecked(object sender, RoutedEventArgs e)
+    private void MinimapVisibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.MiniMapEnabled(false);
+        MonacoEditor.IsMiniMapVisible(false);
     }
 
-    private async void btnOpenFromFile_Click(object sender, RoutedEventArgs e)
+    private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
     {
         FileOpenPicker fileOpenPicker = new()
         {
             ViewMode = PickerViewMode.Thumbnail,
             FileTypeFilter = { "*" },
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary
         };
 
         nint windowHandle = WindowNative.GetWindowHandle(App.Window);
@@ -221,305 +148,29 @@ public sealed partial class MainWindow : Window
         StorageFile file = await fileOpenPicker.PickSingleFileAsync();
         if (file != null)
         {
-            MonacoEditor.EditorTextSelected -= MonacoEditor_EditorTextSelected;
             await MonacoEditor.LoadFromFileAsync(file, true);
-           
             /// Remarks: LoadFromFileAsync method relies on LoadContentAsync but it
             /// helps to make easier loading a file and it tries to guess what is
             /// the correct coding language to be set for a proper visualization.
             /// In next commits, I will implement also LoadFromStreamAsync method
             /// in order to give multiple option to end user.
-            txtCodingLang.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
+            CodingLanguageTextBlock.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
             LogMessage("Loaded content into editor from " + file.Path);
-            MonacoEditor.EditorTextSelected += MonacoEditor_EditorTextSelected;
-            nbLineEdit.Maximum = await MonacoEditor.CountLines();
         }
     }
 
-    private void cbStickyScroll_Checked(object sender, RoutedEventArgs e)
+    private void StickyScrollCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        // Added 20240404 - MR
         MonacoEditor.StickyScroll(true);
     }
 
-    private void cbStickyScroll_Unchecked(object sender, RoutedEventArgs e)
+    private void StickyScrollCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        // Added 20240404 - MR
         MonacoEditor.StickyScroll(false);
     }
 
-    private void txtReadOnlyMessage_TextChanged(object sender, TextChangedEventArgs e)
+    private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        string roDefaultMsg = "Can't edit in read only mode!";
-        if (string.IsNullOrEmpty(txtReadOnlyMessage.Text))
-            MonacoEditor.SetReadOnlyMessage(roDefaultMsg);
-        else
-            MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
-        LogMessage("ReadOnly message changed.");
-    }
-
-    #region Code not working
-    //private void cbAriaLabelRequire_Checked(object sender, RoutedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.AriaRequired(true);
-    //    MonacoEditor.AriaLabel(txtAriaLabel.Text);
-    //}
-
-    //private void cbAriaLabelRequire_Unchecked(object sender, RoutedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.AriaRequired(false);
-    //}
-
-    //private void txtAriaLabel_TextChanged(object sender, TextChangedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.AriaLabel(txtAriaLabel.Text);
-    //}
-
-    //private void cbAutoIndentStrategy_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.AutoIndentStrategy(cbAutoIndentStrategy.SelectedItem.ToString());
-    //    Debug.WriteLine(cbAutoIndentStrategy.SelectedItem.ToString());
-    //}
-
-    //private void cbCodeLens_Checked(object sender, RoutedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.CodeLens(true);
-    //}
-
-    //private void cbCodeLens_Unchecked(object sender, RoutedEventArgs e)
-    //{
-    //    // Added 20240404 - MR ## ! ## Not working, as of now.
-    //    MonacoEditor.CodeLens(false);
-    //} 
-    #endregion
-
-    private void cbFolding_Checked(object sender, RoutedEventArgs e)
-    {
-        // Added 20240404 - MR
-        MonacoEditor.Folding(true);
-    }
-
-    private void cbFolding_Unchecked(object sender, RoutedEventArgs e)
-    {
-        // Added 20240404 - MR
-        MonacoEditor.Folding(false);
-    }
-
-    private void cbLineNumbers_Checked(object sender, RoutedEventArgs e)
-    {
-        // Added 20240404 - MR
-        MonacoEditor.LineNumbers(true);
-    }
-
-    private void cbLineNumbers_Unchecked(object sender, RoutedEventArgs e)
-    {
-        // Added 20240404 - MR
-        MonacoEditor.LineNumbers(false);
-    }
-
-    private void cbWordWrapMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        // Added 20240404 - MR ## ! ## Not working, as of now.
-        //switch (cbWordWrapMode.SelectedIndex)
-        //{
-        //    case 0:
-        //        {
-        //            MonacoEditor.WordWrap("on");
-        //            break;
-        //        }
-        //    case 1:
-        //        {
-        //            MonacoEditor.WordWrap("off");
-        //            break;
-        //        }
-        //    case 2:
-        //        {
-        //            MonacoEditor.WordWrap("wordWrapColumn");
-        //            break;
-        //        }
-        //    case 3:
-        //        {
-        //            MonacoEditor.WordWrap("bounded");
-        //            break;
-        //        }
-        //}
-    }
-
-    private void mnuCopy_Click(object sender, RoutedEventArgs e)
-    {
-        // Added 20240504 - MR 
-        MonacoEditor.CopyTextToClipBoard();
-        LogMessage("Text copied to clipboard.");
-    }
-
-    private void mnuCut_Click(object sender, RoutedEventArgs e)
-    {
-        // Added 20240504 - MR
-        MonacoEditor.CutTextToClipBoard();
-        LogMessage("Text cut to clipboard.");
-    }
-
-    private async void mnuSelctAll_Click(object sender, RoutedEventArgs e)
-    {
-        await MonacoEditor.SelectAllAsync();
-    }
-
-    private async void mnuPaste_Click(object sender, RoutedEventArgs e)
-    {
-        DataPackageView dataPackageView = Clipboard.GetContent();
-        if (dataPackageView.Contains(StandardDataFormats.Text) is true)
-        {
-            string cpbText = await dataPackageView.GetTextAsync();
-            MonacoEditor.PasteTextFromClipBoard(cpbText);
-            LogMessage("Text pasted: " + cpbText);
-        }
-    }
-
-    private void ctxMenu_Opening(object sender, object e)
-    {
-        mnuPaste.IsEnabled = ClipboardHasText();
-        mnuSelctAll.IsEnabled = (MonacoEditor.EditorContent != string.Empty);
-    }
-
-    private bool ClipboardHasText()
-    {
-        DataPackageView iData = Clipboard.GetContent();
-        if (iData.Contains(StandardDataFormats.Html) ||
-            iData.Contains(StandardDataFormats.Text) ||
-            iData.Contains(StandardDataFormats.ApplicationLink) ||
-            iData.Contains(StandardDataFormats.WebLink) ||
-            iData.Contains(StandardDataFormats.Uri) ||
-            iData.Contains(StandardDataFormats.Rtf) ||
-            iData.Contains(StandardDataFormats.UserActivityJsonArray))
-            return true;
-        else
-            return false;        
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private async void btnScollToLine_Click(object sender, RoutedEventArgs e)
-    {
-        if (cbCenterInEditor.IsChecked == true) 
-            MonacoEditor.ScrollToLineInCenter(Convert.ToInt32(nbLineEdit.Value));
-        else
-            MonacoEditor.ScrollToLine(Convert.ToInt32(nbLineEdit.Value));
-    }
-
-
-    private void cbLineHighLight_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
-        if (selected != null)
-        {
-            var tag = selected.Tag; // This is the Tag property of the selected ComboBoxItem
-            if (tag != null)
-            {
-                Debug.WriteLine(tag);
-                MonacoEditor.LineHighlight(tag.ToString());
-            }
-        }
-    }
-
-    private void cbMapRenderChars_Checked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapRenderCharacters(true);
-    }
-
-    private void cbMapRenderChars_Unchecked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapRenderCharacters(false);
-    }
-
-    private void cbMapAutoHide_Checked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapAutohide(true);
-    }
-
-    private void cbMapAutoHide_Unchecked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapAutohide(false);
-    }
-
-    private void cbMapSlider_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
-        if (selected != null)
-        {
-            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
-            if (item != null)
-            {
-                MonacoEditor.MiniMapShowSlider(item.ToString());
-            }
-        }
-    }
-
-    private void cbMapSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
-        if (selected != null)
-        {
-            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
-            if (item != null)
-            {
-                MonacoEditor.MiniMapSize(item.ToString());
-            }
-        }
-    }
-
-    private void cbMapSide_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var selected = (sender as ComboBox).SelectedItem as ComboBoxItem;
-        if (selected != null)
-        {
-            var item = selected.Content; // This is the Tag property of the selected ComboBoxItem
-            if (item != null)
-            {
-                MonacoEditor.MiniMapSide(item.ToString());
-            }
-        }
-    }
-
-    private void nbMapScale_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        MonacoEditor.MiniMapScale(Convert.ToInt32(nbMapScale.Value));
-    }
-
-    private void nbMapMaxWidth_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        MonacoEditor.MiniMapMaxColumn(Convert.ToInt32(nbMapMaxWidth.Value));
-    }
-
-    private void nbMapSectionHeaderFontSize_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        MonacoEditor.MiniMapSectionHeaderFontSize(Convert.ToInt32(nbMapSectionHeaderFontSize.Value));
-    }
-
-    private void cbMapShowMarkHeader_Checked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapShowMarkSectionHeaders(true);
-    }
-
-    private void cbMapShowRegionHeader_Checked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapShowRegionSectionHeaders(true);
-    }
-
-    private void cbMapShowMarkHeader_Unchecked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapShowMarkSectionHeaders(false);
-    }
-
-    private void cbMapShowRegionHeader_Unchecked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.MiniMapShowRegionSectionHeaders(false);
+        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
     }
 }

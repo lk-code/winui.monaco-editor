@@ -7,6 +7,7 @@ using System;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace MonacoTestApp;
 
@@ -114,7 +115,7 @@ public sealed partial class MainWindow : Window
 
     private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
+        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
         MonacoEditor.ReadOnly(true);
     }
 
@@ -123,15 +124,7 @@ public sealed partial class MainWindow : Window
         MonacoEditor.ReadOnly(false);
     }
 
-    private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.IsMiniMapVisible(true);
-    }
-
-    private void MinimapVisibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
-    {
-        MonacoEditor.IsMiniMapVisible(false);
-    }
+    
 
     private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
     {
@@ -154,23 +147,166 @@ public sealed partial class MainWindow : Window
             /// the correct coding language to be set for a proper visualization.
             /// In next commits, I will implement also LoadFromStreamAsync method
             /// in order to give multiple option to end user.
-            CodingLanguageTextBlock.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
+            txtCodingLang.Text = "Recognized as: " + MonacoEditor.CurrentCodeLanguage;
             LogMessage("Loaded content into editor from " + file.Path);
         }
     }
 
     private void StickyScrollCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(true);
+        MonacoEditor.EnableStickyScroll();
     }
 
     private void StickyScrollCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(false);
+        MonacoEditor.EnableStickyScroll(false);
     }
 
     private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
+        MonacoEditor.SetReadOnlyMessage(txtReadOnlyMessage.Text);
+    }
+
+    private void mnuCopy_Click(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.CopyTextToClipBoard();
+    }
+
+    private void mnuCut_Click(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.CutTextToClipBoard();
+    }
+
+    private async void mnuPaste_Click(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.PasteTextFromClipBoard(await Clipboard.GetContent().GetTextAsync());
+    }
+
+    private void MonacoEditor_CursorPositionChanged(object sender, CursorPositionArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            txtCurCol.Text = e.mColumn.ToString();
+            txtCurLine.Text = e.mLine.ToString();
+        });
+        
+    }
+
+    private async void mnuSelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        await MonacoEditor.SelectAllAsync();
+    }
+
+    private void cbFolding_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableFolding();
+    }
+
+    private void cbFolding_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableFolding(false);
+    }
+
+    private void LineNumbersCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableLineNumbers();
+    }
+
+    private void LineNumbersCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableLineNumbers(false);
+    }
+
+    private void LineHighLightCheckBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = LineHighLightCheckBox.SelectedItem;
+        MonacoEditor.LineHighlight((selectedItem as ComboBoxItem).Tag.ToString());
+    }
+
+    private void EnableMapCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableMiniMap();
+    }
+
+    private void EnableMapCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableMiniMap(false);
+    }
+
+    private void RenderCharsCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.RenderMapCharacters();
+    }
+
+    private void RenderCharsCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.RenderMapCharacters(false);
+    }
+
+    private void MapSliderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = MapSliderComboBox.SelectedItem;
+        MonacoEditor.ShowMapSlider((selectedItem as ComboBoxItem).Tag.ToString());
+        System.Diagnostics.Debug.WriteLine((selectedItem as ComboBoxItem).Tag.ToString());
+    }
+
+    private void MapSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = MapSizeComboBox.SelectedItem;
+        MonacoEditor.SetMapSize((selectedItem as ComboBoxItem).Tag.ToString());
+        System.Diagnostics.Debug.WriteLine((selectedItem as ComboBoxItem).Tag.ToString());
+    }
+
+    private void MapAutoHideCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableMapAutoHide(true);
+    }
+
+    private void MapAutoHideCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.EnableMapAutoHide(false);
+    }
+
+    private void MapSideComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = MapSideComboBox.SelectedItem;
+        MonacoEditor.SetMapSide((selectedItem as ComboBoxItem).Tag.ToString());
+        System.Diagnostics.Debug.WriteLine((selectedItem as ComboBoxItem).Tag.ToString());
+    }
+
+    private void MapScaleNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        MonacoEditor.SetMapScale(Convert.ToInt32(args.NewValue));
+    }
+
+    private void MapMaxColumnNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        MonacoEditor.SetMapMaxColumn(Convert.ToInt32(args.NewValue));
+    }
+
+    private void MapSectionHeaderFontSizeNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        System.Diagnostics.Debug.WriteLine(Convert.ToInt32(args.NewValue).ToString());
+        MonacoEditor.SetMapSectionHeaderFontSize(Convert.ToInt32(args.NewValue));
+    }
+
+    private void MapShowMarkHeaderComboBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.SetMapShowMarkSectionHeaders();
+    }
+
+    private void MapShowMarkHeaderComboBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.SetMapShowMarkSectionHeaders(false);
+    }
+
+    private void MapShowRegionHeaderComboBox_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.SetMapShowRegionSectionHeaders();
+    }
+
+    private void MapShowRegionHeaderComboBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.SetMapShowRegionSectionHeaders(false);
     }
 }

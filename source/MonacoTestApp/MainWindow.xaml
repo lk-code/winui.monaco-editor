@@ -39,8 +39,10 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Padding="8" Spacing="8" Background="{ThemeResource AppBarBackgroundThemeBrush}" BorderBrush="{ThemeResource AppBarBorderThemeBrush}">
-            <Button x:Name="btnOpenFromFile" Content="Load from file..." Style="{ThemeResource AccentButtonStyle}" Click="btnOpenFromFile_Click" />
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Padding="8" Spacing="8">
+            <Button x:Name="btnOpenFromFile" Content="Load from file..." 
+                    Style="{ThemeResource AccentButtonStyle}" 
+                    Click="OpenFileButton_Click" />
             <ComboBox x:Name="EditorLanguageComboBox" PlaceholderText="Select language..." IsEnabled="False"
                   SelectionChanged="EditorLanguageComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" />
@@ -51,15 +53,24 @@
                              EditorTheme="VisualStudioDark"
                              EditorLanguage="python"
                              EditorContentChanged="MonacoEditor_EditorContentChanged"
-                             MonacoEditorLoaded="MonacoEditor_MonacoEditorLoaded">
+                             MonacoEditorLoaded="MonacoEditor_MonacoEditorLoaded"
+                             CursorPositionChanged="MonacoEditor_CursorPositionChanged"
+                                 >
             <monaco:MonacoEditor.ContextFlyout>
-                <MenuFlyout x:Name="ctxMenu" Opening="ctxMenu_Opening">
+                <MenuFlyout x:Name="ctxMenu" >
                     <MenuFlyout.Items>
-                        <MenuFlyoutItem x:Name="mnuCopy" Icon="Copy" Text="Copy" IsEnabled="False" Click="mnuCopy_Click" />
-                        <MenuFlyoutItem x:Name="mnuCut" Icon="Cut" Text="Cut" IsEnabled="{Binding ElementName=mnuCopy,Path=IsEnabled}" Click="mnuCut_Click" />
-                        <MenuFlyoutItem x:Name="mnuPaste" Icon="Paste" Text="Paste" Click="mnuPaste_Click" />
+                        <MenuFlyoutItem x:Name="mnuCopy" Icon="Copy" Text="Copy" 
+                                        IsEnabled="False"
+                                        Click="mnuCopy_Click"/>
+                        <MenuFlyoutItem x:Name="mnuCut" Icon="Cut" Text="Cut" 
+                                        IsEnabled="{Binding ElementName=mnuCopy,Path=IsEnabled}"
+                                        Click="mnuCut_Click"/>
+                        <MenuFlyoutItem x:Name="mnuPaste" Icon="Paste" Text="Paste"
+                                        IsEnabled="false"
+                                        Click="mnuPaste_Click"/>
                         <MenuFlyoutSeparator />
-                        <MenuFlyoutItem x:Name="mnuSelctAll" Icon="SelectAll" Text="Select all" Click="mnuSelctAll_Click" />
+                        <MenuFlyoutItem x:Name="mnuSelectAll" Icon="SelectAll" Text="Select all"
+                                        Click="mnuSelectAll_Click"/>
                     </MenuFlyout.Items>
                 </MenuFlyout>
             </monaco:MonacoEditor.ContextFlyout>
@@ -77,7 +88,7 @@
         <TabView Grid.Row="3" IsAddTabButtonVisible="False"  VerticalAlignment="Stretch" Margin="4" >
             <TabView.TabItems>
                 <TabViewItem Header="Content" IsClosable="False">
-                    <ScrollViewer Background="#cdcdcd">
+                    <ScrollViewer>
                         <Grid Padding="16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
@@ -95,20 +106,22 @@
                                         <Button Style="{ThemeResource AccentButtonStyle}"
                                             Content="Scroll to line" 
                                             x:Name="btnScollToLine"
-                                                Click="btnScollToLine_Click"/>
-                                        <NumberBox x:Name="nbLineEdit" Minimum="1" Value="1" SpinButtonPlacementMode="Inline"/>
-                                        <CheckBox x:Name="cbCenterInEditor" Content="Center in editor"/>
+                                                />
+                                        <NumberBox x:Name="nbLineEdit" Minimum="1" Value="1" SpinButtonPlacementMode="Hidden"/>
+                                        <CheckBox x:Name="cbCenterInEditor" 
+                                                  Content="Center in editor"/>
                                     </StackPanel>
                                     <Button Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Select All"
-                                         Click="SelectAllButton_Click" />
+                                            Content="Select All"
+                                            Click="SelectAllButton_Click" />
                                     <Button Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Open DevTools (F12)"
-                                         Click="OpenDevToolsButton_Click" />
+                                            Content="Open DevTools (F12)"
+                                            Click="OpenDevToolsButton_Click" />
                                     <Button Style="{ThemeResource AccentButtonStyle}"
-                                         Content="Copy selected text to clipboard"
-                                         x:Name="btnCopyTextToClipboard" IsEnabled="{Binding ElementName=mnuCopy,Path=IsEnabled}"
-                                         Click="mnuCopy_Click"/>
+                                            Content="Copy selected text to clipboard"
+                                            x:Name="btnCopyTextToClipboard" 
+                                            Click="mnuCopy_Click"
+                                            IsEnabled="{Binding ElementName=mnuCopy,Path=IsEnabled}" />
                                 </StackPanel>
                                 
                             </StackPanel>
@@ -137,18 +150,28 @@
                     </ScrollViewer>
                 </TabViewItem>
                 <TabViewItem Header="Options" IsClosable="False">
-                    <ScrollViewer Background="#ececec">
+                    <ScrollViewer>
                         <StackPanel Orientation="Vertical" Spacing="6" Padding="12">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
-                                <CheckBox x:Name="cbReadOnly" Content="Read only" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked" HorizontalAlignment="Stretch"/>
-                                <TextBox IsEnabled="{Binding ElementName=cbReadOnly,Path=IsChecked}" PlaceholderText="ReadOnly Custom Message" x:Name="txtReadOnlyMessage" Width="500" HorizontalAlignment="Stretch" TextChanged="txtReadOnlyMessage_TextChanged"/>
+                                <CheckBox x:Name="cbReadOnly" Content="Read only" HorizontalAlignment="Stretch"/>
+                                <TextBox IsEnabled="{Binding ElementName=cbReadOnly,Path=IsChecked}" PlaceholderText="ReadOnly Custom Message" x:Name="txtReadOnlyMessage" Width="500" HorizontalAlignment="Stretch" />
                             </StackPanel>
-                            <CheckBox Content="Enable Folding" x:Name="cbFolding" Checked="cbFolding_Checked" Unchecked="cbFolding_Unchecked" IsChecked="True"/>
-                            <CheckBox x:Name="cbStickyScroll" Content="Sticky Scroll" IsChecked="True" Checked="cbStickyScroll_Checked" Unchecked="cbStickyScroll_Unchecked"/>
-                            <CheckBox x:Name="cbLineNumbers" Content="Line numbers" IsChecked="True" Checked="cbLineNumbers_Checked" Unchecked="cbLineNumbers_Unchecked"/>
+                            <CheckBox Content="Enable Folding" 
+                                      x:Name="cbFolding" 
+                                      IsChecked="True"
+                                      Checked="cbFolding_Checked"
+                                      Unchecked="cbFolding_Unchecked"/>
+                            <CheckBox x:Name="StickyScrollCheckBox" Content="Sticky Scroll"
+                                      IsChecked="True"
+                                      Checked="StickyScrollCheckBox_Checked"
+                                      Unchecked="StickyScrollCheckBox_Unchecked"/>
+                            <CheckBox x:Name="LineNumbersCheckBox" Content="Line numbers" 
+                                      IsChecked="True"
+                                      Checked="LineNumbersCheckBox_Checked"
+                                      Unchecked="LineNumbersCheckBox_Unchecked"/>
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Text="Line highlight mode" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cbLineHighLight" SelectionChanged="cbLineHighLight_SelectionChanged" SelectedIndex="1">
+                                <ComboBox x:Name="LineHighLightCheckBox" SelectedIndex="1" SelectionChanged="LineHighLightCheckBox_SelectionChanged">
                                     <ComboBox.Items>
                                         <ComboBoxItem Content="all" Tag="all" />
                                         <ComboBoxItem Content="line" Tag="line" />
@@ -157,30 +180,11 @@
                                     </ComboBox.Items>
                                 </ComboBox>
                             </StackPanel>
-                            <!-- Features still not working -->
-                            <ComboBox x:Name="cbWordWrapMode" SelectedIndex="1" Visibility="Collapsed">
-                                <ComboBoxItem Content="on"/>
-                                <ComboBoxItem Content="off"/>
-                                <ComboBoxItem Content="wordWrapColumn" />
-                                <ComboBoxItem Content="bounded" />
-                            </ComboBox>
-                            <CheckBox Content="Enable CodeLens" x:Name="cbCodeLens" Visibility="Collapsed" />
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8" Visibility="Collapsed">
-                                <CheckBox x:Name="cbAriaLabelRequire" Content="AriaLabel Required"  />
-                                <TextBox x:Name="txtAriaLabel" Width="500" PlaceholderText="Aria Label Text" HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-                            <ComboBox x:Name="cbAutoIndentStrategy" Visibility="Collapsed" Header="AutoIndent Strategy" SelectedIndex="0" >
-                                <ComboBoxItem Content="None"/>
-                                <ComboBoxItem Content="Keep"/>
-                                <ComboBoxItem Content="Brackets"/>
-                                <ComboBoxItem Content="Advanced"/>
-                                <ComboBoxItem Content="Full"/>
-                            </ComboBox>
-                            
+
                         </StackPanel>
                     </ScrollViewer>
                 </TabViewItem>
-                <TabViewItem Header="Minimap Option" IsClosable="False" >
+                <TabViewItem Header="Minimap Options" IsClosable="False" >
                     <Grid RowSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
@@ -193,62 +197,77 @@
                             <RowDefinition />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                        <CheckBox x:Name="cbMinimapVisible" Grid.Row="0" Grid.Column="0"
-                                  Content="Minimap Visible" IsChecked="True"
-                                  Checked="cbMinimapVisible_Checked" Unchecked="cbMinimapVisible_Unchecked"/>
+                        <CheckBox x:Name="EnableMapCheckBox" Grid.Row="0" Grid.Column="0"
+                                  Content="Enable Map" IsChecked="True"
+                                  Checked="EnableMapCheckBox_Checked"
+                                  Unchecked="EnableMapCheckBox_Unchecked"
+                                  />
 
-                        <CheckBox x:Name="cbMapAutoHide" Content="Map autohide"
-                                     Grid.Column="1" Grid.Row="0" IsChecked="False"
-                                    Checked="cbMapAutoHide_Checked" Unchecked="cbMapAutoHide_Unchecked"/>
+                        <CheckBox x:Name="MapAutoHideCheckBox"
+                                  Content="Enable autohide"
+                                  Grid.Column="1" Grid.Row="0" IsChecked="False"
+                                  Checked="MapAutoHideCheckBox_Checked"
+                                  Unchecked="MapAutoHideCheckBox_Unchecked"
+                                    />
                         <CheckBox Content="Render characters" IsChecked="True"
-                                    Grid.Row="0" Grid.Column="2"
-                                    x:Name="cbMapRenderChars"
-                                    Checked="cbMapRenderChars_Checked" Unchecked="cbMapRenderChars_Unchecked" />
+                                  Grid.Row="0" Grid.Column="2"
+                                  x:Name="RenderCharsCheckBox"
+                                  Checked="RenderCharsCheckBox_Checked"
+                                  Unchecked="RenderCharsCheckBox_Unchecked"/>
 
-                        <ComboBox Header="Slider visibility" x:Name="cbMapSlider"
-                                  Grid.Row="1" Grid.Column="0" SelectedIndex="0" SelectionChanged="cbMapSlider_SelectionChanged">
+                        <ComboBox Header="Slider visibility" x:Name="MapSliderComboBox"
+                                  Grid.Row="1" Grid.Column="0" SelectedIndex="0" 
+                                  SelectionChanged="MapSliderComboBox_SelectionChanged"
+                                  >
                             <ComboBox.Items>
-                                <ComboBoxItem Content="mouseover"/>
-                                <ComboBoxItem Content="always"/>
+                                <ComboBoxItem Content="On mouse hover" Tag="mouseover"/>
+                                <ComboBoxItem Content="Always" Tag="always"/>
                             </ComboBox.Items>
                         </ComboBox>
-                        <ComboBox Header="Map size" x:Name="cbMapSize" SelectionChanged="cbMapSize_SelectionChanged"
-                                  Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+                        <ComboBox Header="Map size" x:Name="MapSizeComboBox" 
+                                  Grid.Row="1" Grid.Column="1" SelectedIndex="0"
+                                  SelectionChanged="MapSizeComboBox_SelectionChanged">
                             <ComboBox.Items>
-                                <ComboBoxItem Content="fit"/>
-                                <ComboBoxItem Content="fill"/>
-                                <ComboBoxItem Content="proportional"/>
+                                <ComboBoxItem Content="Proportional" Tag="proportional"/>
+                                <ComboBoxItem Content="Fit" Tag="fit"/>
+                                <ComboBoxItem Content="Fill" Tag="fill"/>                                
                             </ComboBox.Items>
                         </ComboBox>
-                        <ComboBox Header="Map side" x:Name="cbMapSide" SelectionChanged="cbMapSide_SelectionChanged"
-                                  Grid.Row="1" Grid.Column="2" SelectedIndex="0">
+                        <ComboBox Header="Map side" x:Name="MapSideComboBox"
+                                  Grid.Row="1" Grid.Column="2" SelectedIndex="0"
+                                  SelectionChanged="MapSideComboBox_SelectionChanged">
                             <ComboBox.Items>
-                                <ComboBoxItem Content="right"/>
-                                <ComboBoxItem Content="left"/>
+                                <ComboBoxItem Content="To the right" Tag="right"/>
+                                <ComboBoxItem Content="To the left" Tag="left"/>
                             </ComboBox.Items>
                         </ComboBox>
-                        <NumberBox x:Name="nbMapScale" Grid.Row="2" Grid.Column="0" 
+                        <NumberBox x:Name="MapScaleNumberBox" Grid.Row="2" Grid.Column="0" 
                                    Value="1" Minimum="1" Maximum="5"
                                    SpinButtonPlacementMode="Inline"
-                                   Header="Map font scale" ValueChanged="nbMapScale_ValueChanged"
+                                   Header="Map font scale"
+                                   ValueChanged="MapScaleNumberBox_ValueChanged"
                                    />
-                        <NumberBox x:Name="nbMapMaxWidth" Grid.Row="2" Grid.Column="1" 
+                        <NumberBox x:Name="MapMaxColumnNumberBox" Grid.Row="2" Grid.Column="1" 
                                    SpinButtonPlacementMode="Inline"
                                    Header="Map max width" Minimum="80"
-                                   Maximum="200" Value="120" ValueChanged="nbMapMaxWidth_ValueChanged"
+                                   Maximum="200" Value="120"
+                                   ValueChanged="MapMaxColumnNumberBox_ValueChanged"
                                    />
-                        <NumberBox x:Name="nbMapSectionHeaderFontSize" Grid.Row="2" Grid.Column="2" 
+                        <NumberBox x:Name="MapSectionHeaderFontSizeNumberBox" Grid.Row="2" Grid.Column="2" 
                                    SpinButtonPlacementMode="Inline"
                                    Header="Map Section Header Font Size" Minimum="4"
-                                   Maximum="20" Value="9" ValueChanged="nbMapSectionHeaderFontSize_ValueChanged"
+                                   Maximum="20" Value="9"                     
+                                   ValueChanged="MapSectionHeaderFontSizeNumberBox_ValueChanged"
                                    />
-                        <CheckBox x:Name="cbMapShowMarkHeader" Grid.Row="3" Grid.Column="0"
+                        <CheckBox x:Name="MapShowMarkHeaderComboBox" Grid.Row="3" Grid.Column="0"
                                   IsChecked="True" Content="Show Mark Section Headers"
-                                  Checked="cbMapShowMarkHeader_Checked" Unchecked="cbMapShowMarkHeader_Unchecked"
+                                  Checked="MapShowMarkHeaderComboBox_Checked"
+                                  Unchecked="MapShowMarkHeaderComboBox_Unchecked"
                                   />
-                        <CheckBox x:Name="cbMapShowRegionHeader" Grid.Row="3" Grid.Column="1"
+                        <CheckBox x:Name="MapShowRegionHeaderComboBox" Grid.Row="3" Grid.Column="1"
                                   IsChecked="True" Content="Show Region Section Headers" 
-                                  Checked="cbMapShowRegionHeader_Checked" Unchecked="cbMapShowRegionHeader_Unchecked"
+                                  Checked="MapShowRegionHeaderComboBox_Checked"
+                                  Unchecked="MapShowRegionHeaderComboBox_Unchecked"
                                   />
                     </Grid>
                 </TabViewItem>

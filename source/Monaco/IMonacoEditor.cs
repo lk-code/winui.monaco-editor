@@ -66,21 +66,21 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"true" enables folding</param>
     /// <returns></returns>
-    void Folding(bool status);
+    void EnableFolding(bool status);
 
     /// <summary>
     /// Enbales or disables the mini map (default is TRUE)
     /// </summary>
     /// <param name="status">"true" shows the mini map, "false" hides the mini map</param>
     /// <returns></returns>
-    void MiniMapEnabled(bool status);
+    void EnableMiniMap(bool status);
 
     /// <summary>
     /// Enables or disable autohide for mini map (default is false)
     /// </summary>
     /// <param name="status">"true" autohides mini map, "false" always shows the mini map</param>
     /// <returns></returns>
-    void MiniMapAutohide(bool status);
+    void EnableMapAutoHide(bool status);
 
     /// <summary>
     /// Control the side of the minimap in editor.
@@ -93,7 +93,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="mode">"right" or "left"</param>
     /// <returns></returns>
-    void MiniMapSide(string mode);
+    void SetMapSide(string mode);
 
     /// <summary>
     /// sets the size of minimap. Allowed values:
@@ -105,7 +105,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="mode">one of the allowed values</param>
     /// <returns></returns>
-    void MiniMapSize(string mode);
+    void SetMapSize(string mode);
 
     /// <summary>
     ///Control the rendering of the minimap slider. Defaults to 'mouseover'.
@@ -117,49 +117,49 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="mode">one of the allowed values</param>
     /// <returns></returns>
-    void MiniMapShowSlider(string mode);
+    void ShowMapSlider(string mode);
 
     /// <summary>
     /// enables or disable caracters rendering in mini map (default is TRUE)
     /// </summary>
     /// <param name="status">"true" makes mini map render text, "false" makes mini map just draw boxes as placeholder for text</param>
     /// <returns></returns>
-    void MiniMapRenderCharacters(bool status);
+    void RenderMapCharacters(bool status);
 
     /// <summary>
     /// Limit the width of the minimap to render at most a certain number of columns. Defaults to 120.
     /// </summary>
     /// <param name="value">the maximum width to render</param>
     /// <returns></returns>
-    void MiniMapMaxColumn(int value);
+    void SetMapMaxColumn(int value);
 
     /// <summary>
     /// relative size of the font in the mini map - Default is 1
     /// </summary>
     /// <param name="value">the size of scale</param>
     /// <returns></returns>
-    void MiniMapScale(int value);
+    void SetMapScale(int value);
 
     /// <summary>
     /// sets the font size of section headers. Default is 9
     /// </summary>
     /// <param name="value">the size of section headers font</param>
     /// <returns></returns>
-    void MiniMapSectionHeaderFontSize(int value);
+    void SetMapSectionHeaderFontSize(int value);
 
     /// <summary>
     /// Whether to show MARK: comments as section headers. Defaults to true.
     /// </summary>
     /// <param name="status">"true" enables this option</param>
     /// <returns></returns>
-    void MiniMapShowMarkSectionHeaders(bool status);
+    void SetMapShowMarkSectionHeaders(bool status);
 
     /// <summary>
     /// Whether to show named regions as section headers. Defaults to true.
     /// </summary>
     /// <param name="status">"true" enables this option</param>
     /// <returns></returns>
-    void MiniMapShowRegionSectionHeaders(bool status);
+    void SetMapShowRegionSectionHeaders(bool status);
 
     /// <summary>
     /// Enables / disables the highlight of selected line in editor.
@@ -174,7 +174,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"TRUE" turns on line numbers</param>
     /// <returns></returns>
-    void LineNumbers(bool status);
+    void EnableLineNumbers(bool status);
 
     /// <summary>
     /// Sets the editor to be read only or not (default is FALSE)
@@ -221,7 +221,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
     /// <returns></returns>
-    void StickyScroll(bool status);
+    void EnableStickyScroll(bool status);
 
     /// <summary>
     /// Sets wordwrapping mode. Accepted values:

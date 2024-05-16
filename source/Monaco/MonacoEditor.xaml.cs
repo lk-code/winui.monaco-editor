@@ -26,7 +26,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private string _content = "";
     private bool _isminimapvisible = true;
-    private bool _minimapautohide = false;
+    private bool _minimapautohide = true;
     private string _minimapside = "right";
     private string _minimapsize = "fit";
     private string _minimapshowslider = "always";
@@ -247,7 +247,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(IsMiniMapVisibleProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapEnabled(value);
+            this.EnableMiniMap(value);
         }
     }
 
@@ -271,7 +271,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapAutohideProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapAutohide(value);
+            this.EnableMapAutoHide(value);
         }
     }
 
@@ -295,7 +295,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapRenderCharactersProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapRenderCharacters(value);
+            this.RenderMapCharacters(value);
         }
     }
 
@@ -319,7 +319,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapShowSliderProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapShowSlider(value);
+            this.ShowMapSlider(value);
         }
     }
 
@@ -343,7 +343,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapSideProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapSide(value);
+            this.SetMapSide(value);
         }
     }
 
@@ -367,7 +367,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapSizeProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapSize(value);
+            this.SetMapSize(value);
         }
     }
 
@@ -391,7 +391,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapScaleProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapScale(value);
+            this.SetMapScale(value);
         }
     }
 
@@ -415,7 +415,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapSectionHeaderFontSizeProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapSectionHeaderFontSize(value);
+            this.SetMapSectionHeaderFontSize(value);
         }
     }
 
@@ -442,7 +442,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapShowMarkSectionHeadersProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapShowMarkSectionHeaders(value);
+            this.SetMapShowMarkSectionHeaders(value);
         }
     }
 
@@ -469,7 +469,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapShowRegionSectionHeadersProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapShowRegionSectionHeaders(value);
+            this.SetMapShowRegionSectionHeaders(value);
         }
     }
 
@@ -493,7 +493,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(MiniMapMaxColumnProperty, value);
             OnPropertyChanged();
 
-            this.MiniMapMaxColumn(value);
+            this.SetMapMaxColumn(value);
         }
     }
 
@@ -629,7 +629,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(FoldingProperty, value);
             OnPropertyChanged();
 
-            this.Folding(value);
+            this.EnableFolding(value);
         }
     }
 
@@ -684,7 +684,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(LineNumbersProperty, value);
             OnPropertyChanged();
 
-            this.LineNumbers(value);
+            this.EnableLineNumbers(value);
         }
     }
 
@@ -819,7 +819,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             SetValue(StickyScrollProperty, value);
             OnPropertyChanged();
 
-            this.StickyScroll(value);
+            this.EnableStickyScroll(value);
         }
     }
 
@@ -957,7 +957,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptCursorMovedEventHandlerWebMessage);
     }
 
-    public void MiniMapEnabled(bool status=true)
+    public void EnableMiniMap(bool status=true)
     {
         string command = "";
         if (status)
@@ -966,7 +966,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
-    public void MiniMapAutohide(bool status = false)
+    public void EnableMapAutoHide(bool status = true)
     {
         string command = "";
         if (status)
@@ -976,7 +976,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapSide(string mode = "right")
+    public void SetMapSide(string mode = "right")
     {
         string command = "";
         if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "right" && mode.ToLower() != "left"))
@@ -985,7 +985,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapSize(string mode = "fit")
+    public void SetMapSize(string mode = "fit")
     {
         string command = "";
         if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "fit" && mode.ToLower() != "fill" && mode.ToLower() != "proportional"))
@@ -994,7 +994,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapShowSlider(string mode = "mouseover")
+    public void ShowMapSlider(string mode = "mouseover")
     {
         string command = "";
         if (string.IsNullOrEmpty(mode) || (mode.ToLower() != "always" && mode.ToLower() != "mouseover"))
@@ -1003,7 +1003,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapRenderCharacters(bool status = true)
+    public void RenderMapCharacters(bool status = true)
     {
         string command = "";
         if (status)
@@ -1013,25 +1013,25 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapScale(int value = 1)
+    public void SetMapScale(int value = 1)
     {
         string command = "";
         if (value < 1 && value > 5)
             value = 1;
-        command = $"editor.updateOptions({{ minimap: {{ scale: {value} }});";
+        command = $"editor.updateOptions({{ minimap: {{ scale: {value} }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapSectionHeaderFontSize(int value = 9)
+    public void SetMapSectionHeaderFontSize(int value = 9)
     {
         string command = "";
         if (value < 5 && value > 18)
             value = 9;
-        command = $"editor.updateOptions({{ minimap: {{ sectionHeaderFontSize: {value} }});";
+        command = $"editor.updateOptions({{ minimap: {{ sectionHeaderFontSize: {value} }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapShowMarkSectionHeaders(bool status = true)
+    public void SetMapShowMarkSectionHeaders(bool status = true)
     {
         string command = "";
         if (status)
@@ -1041,7 +1041,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapShowRegionSectionHeaders(bool status = true)
+    public void SetMapShowRegionSectionHeaders(bool status = true)
     {
         string command = "";
         if (status)
@@ -1051,12 +1051,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void MiniMapMaxColumn(int value = 120)
+    public void SetMapMaxColumn(int value = 120)
     {
         string command = "";
         if (value < 80 && value > 300)
             value = 120;
-        command = $"editor.updateOptions({{ minimap: {{ maxColumn: {value} }});";
+        command = $"editor.updateOptions({{ minimap: {{ maxColumn: {value} }} }});";
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
@@ -1109,7 +1109,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         return lineCount;
     }
 
-    public void Folding(bool status = false)
+    public void EnableFolding(bool status = true)
     {
         string command = "";
         if (status)
@@ -1127,7 +1127,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void LineNumbers(bool status = true)
+    public void EnableLineNumbers(bool status = true)
     {
         string command = "";
         if (status)
@@ -1175,7 +1175,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void StickyScroll(bool status = true)
+    public void EnableStickyScroll(bool status = true)
     {
         string command = "";
         if (status)
@@ -1421,7 +1421,7 @@ public class CursorPositionArgs : EventArgs
 public class MiniMapOptions
 {
     public string showSlider { get; set; } = "always";
-    public bool autoHide { get; set; } = false;
+    public bool autoHide { get; set; } = true;
     public bool enabled { get; set; } = true;
     public string side { get; set; } = "right";
     public string size { get; set; } = "fit";

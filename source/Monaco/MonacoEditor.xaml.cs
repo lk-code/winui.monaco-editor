@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
-using Windows.Storage;
 
 namespace Monaco;
 
@@ -31,6 +30,10 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// 
     /// </summary>
     public bool LoadCompleted { get; set; } = false;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string CurrentCodeLanguage { get; set; } = string.Empty;
 
     /// <summary>
     /// 
@@ -44,14 +47,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// 
     /// </summary>
     private bool _isminimapvisible = true;
-    /// <summary>
-    /// 
-    /// </summary>
-    private bool _readonly = false;
-    /// <summary>
-    /// 
-    /// </summary>
-    private bool _stickyscroll = true;
 
     #region PropertyChanged Event
 
@@ -98,7 +93,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
         string contentAsJsRepresentation = await this.MonacoEditorWebView!.ExecuteScriptAsync(command);
         string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
-        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+        string content = unescapedString[1..^1].ReplaceLineEndings();
 
         return content;
     }
@@ -198,7 +193,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     {
         get
         {
-            return _readonly;
+            object readOnlyProperty = GetValue(ReadOnlyProperty);
+            return readOnlyProperty == null ? false : (bool)readOnlyProperty;
         }
         set
         {
@@ -252,7 +248,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     {
         get
         {
-            return _stickyscroll;
+            object stickyScrollProperty = GetValue(StickyScrollProperty);
+            return stickyScrollProperty == null ? false : (bool)stickyScrollProperty;
         }
         set
         {
@@ -266,8 +263,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
 
     #endregion
-
-    public string CurrentCodeLanguage { get; set; }
 
     #region Theme Property
 
@@ -391,41 +386,45 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
     public void IsMiniMapVisible(bool status = true)
     {
-        string command = "";
         if (status)
-            command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ minimap: {{ enabled: true }} }});");
+        }
         else
-            command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
-        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ minimap: {{ enabled: false }} }});");
+        }
     }
 
     public void SetReadOnly(bool status = false)
     {
-        string command = "";
         if (status)
-            command = $"editor.updateOptions({{readOnly: true}});";
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnly: true}});");
+        }
         else
-            command = $"editor.updateOptions({{readOnly: false}});";
-        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnly: false}});");
+        }
     }
 
     public void SetReadOnlyMessage(string content)
     {
-        string command = "";
         this._content = content;
-        command = $"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});";
 
-        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});");
     }
 
     public void StickyScroll(bool status = true)
     {
-        string command = "";
         if (status)
-            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});";
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});");
+        }
         else
-            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});";
-        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});");
+        }
     }
 
     /// <inheritdoc />
@@ -478,7 +477,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
         string languagesJson = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
-        CodeLanguage[] codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
+        CodeLanguage[]? codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
+
+        if (codeLanguages is null)
+        {
+            return Array.Empty<CodeLanguage>();
+        }
 
         return codeLanguages;
     }

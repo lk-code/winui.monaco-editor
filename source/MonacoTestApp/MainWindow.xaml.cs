@@ -7,6 +7,8 @@ using System;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
+using Monaco.MonacoHandler;
+using System.IO;
 
 namespace MonacoTestApp;
 
@@ -33,7 +35,7 @@ public sealed partial class MainWindow : Window
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
-        
+
     }
 
     private void LogMessage(string message)
@@ -104,7 +106,9 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            this.MonacoEditor.OpenDebugWebViewDeveloperTools();
+            MonacoWebViewDevToolsHandler handler = this.MonacoEditor.GetHandler<MonacoWebViewDevToolsHandler>();
+
+            handler.OpenDebugWebViewDeveloperTools();
         }
         catch (Exception err)
         {
@@ -115,22 +119,22 @@ public sealed partial class MainWindow : Window
     private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
-        MonacoEditor.ReadOnly(true);
+        MonacoEditor.SetEditorReadOnly(true);
     }
 
     private void ContentIsReadOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.ReadOnly(false);
+        MonacoEditor.SetEditorReadOnly(false);
     }
 
     private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(true);
+        MonacoEditor.SetEditorMiniMapVisible(true);
     }
 
     private void MinimapVisibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(false);
+        MonacoEditor.SetEditorMiniMapVisible(false);
     }
 
     private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
@@ -148,7 +152,19 @@ public sealed partial class MainWindow : Window
         StorageFile file = await fileOpenPicker.PickSingleFileAsync();
         if (file != null)
         {
-            await MonacoEditor.LoadFromFileAsync(file, true);
+            bool autodetect = this.AutoCodeTypeDetectionCheckBox.IsChecked ?? false;
+            string fileContent = await FileIO.ReadTextAsync(file);
+
+            if (autodetect)
+            {
+                MonacoFileRecognitionHandler handler = this.MonacoEditor.GetHandler<MonacoFileRecognitionHandler>();
+
+                string fileCodeLanguage = handler.RecognizeLanguageByFileType(Path.GetExtension(file.Path));
+                await this.MonacoEditor.SetLanguageAsync(fileCodeLanguage);
+            }
+
+            await MonacoEditor.LoadContentAsync(fileContent);
+
             /// Remarks: LoadFromFileAsync method relies on LoadContentAsync but it
             /// helps to make easier loading a file and it tries to guess what is
             /// the correct coding language to be set for a proper visualization.
@@ -161,16 +177,21 @@ public sealed partial class MainWindow : Window
 
     private void StickyScrollCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(true);
+        MonacoEditor.SetEditorStickyScroll(true);
     }
 
     private void StickyScrollCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(false);
+        MonacoEditor.SetEditorStickyScroll(false);
     }
 
     private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
+    }
+
+    private void AutoCodeTypeDetection_Checked(object sender, RoutedEventArgs e)
+    {
+
     }
 }

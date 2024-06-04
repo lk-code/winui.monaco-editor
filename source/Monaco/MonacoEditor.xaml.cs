@@ -1,87 +1,48 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
-using Windows.Storage;
 
 namespace Monaco;
 
-public sealed partial class MonacoEditor : UserControl, IMonacoEditor
+public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCore
 {
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
-    private string _content = "";
-    private bool _isminimapvisible = true;
-    private bool _readonly = false;
-    private bool _stickyscroll = true;
-    public bool LoadCompleted { get; set; } = false;
-
+    /// <summary>
+    /// 
+    /// </summary>
+    public static IEnumerable<Type> AdditionalMonacoHandlerTypes = new List<Type>();
+    /// <summary>
+    /// 
+    /// </summary>
     public event EventHandler? MonacoEditorLoaded = null;
-
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool LoadCompleted { get; set; } = false;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string CurrentCodeLanguage { get; set; } = string.Empty;
 
     /// <summary>
-    /// This dictionary helps WinUI.Monaco to guess
-    /// the coding language of a file from its extension.
-    /// This list is not complete as monaco-editor holds
-    /// many more lesser languages and they will be added
-    /// in future commits.
+    /// 
     /// </summary>
-    private Dictionary<string, string> _CodeLangs = new()
-    {
-        { ".txt","plaintext" },
-        { ".bat","bat" },
-        { ".c","c" },
-        { ".h","c" },
-        { ".mligo","cameligo" },
-        { ".cpp","cpp" },
-        { ".cs","csharp" },
-        { ".coffee","coffeescript" },
-        { ".css","css" },
-        { ".clj","clojure" },
-        { ".cql","cypher" },
-        { ".dart","dart" },
-        { ".ecl","ecl" },
-        { ".exs","elixir" },
-        { ".flow","flow9" },
-        { ".go","go" },
-        { ".htm","html" },
-        { ".html","html" },
-        { ".ini","ini" },
-        { ".java","java" },
-        { ".js","javascript" },
-        { ".jl","julia" },
-        { ".kt","kotlin" },
-        { ".kts","kotlin" },
-        { ".ktm","kotlin" },
-        { ".md","markdown" },
-        { ".lua","lua" },
-        { ".pas","pascal" },
-        { ".perl","perl" },
-        { ".php","php" },
-        { ".ps1","powershell" },
-        { ".py","python" },
-        { ".r","r" },
-        { ".rb","ruby" },
-        { ".rs","rust" },
-        { ".sh","shell" },
-        { ".sql","sql" },
-        { ".ts","typescript" },
-        { ".vb","vb" },
-        { ".xml","xml" },
-        { ".axml","xml" },
-        { ".xaml","xml" },
-        { ".json","json" },
-        { ".yml","yaml" },
-        { ".yaml","yaml" }
-    };
-
+    private string _content = "";
+    /// <summary>
+    /// 
+    /// </summary>
+    private List<IMonacoHandler> _registeredHandlers = new();
 
     #region PropertyChanged Event
 
@@ -102,6 +63,35 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         _content = await GetEditorContentAsync();
         EditorContentChanged?.Invoke(this, new EventArgs());
+    }
+
+    /// <inheritdoc />
+    public void TriggerEditorContentChanged()
+    {
+        this.EditorContentChanged?.Invoke(this, new EventArgs());
+    }
+
+    /// <inheritdoc />
+    public async Task LoadContentAsync(string content)
+    {
+        string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
+        this._content = ensuredContent;
+
+        string command = $"editor.setValue('{ensuredContent}');";
+
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetEditorContentAsync()
+    {
+        string command = $"editor.getValue();";
+
+        string contentAsJsRepresentation = await this.MonacoEditorWebView!.ExecuteScriptAsync(command);
+        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+        string content = unescapedString[1..^1].ReplaceLineEndings();
+
+        return content;
     }
 
     #endregion
@@ -168,26 +158,27 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     /// <summary>
     /// Hides/shows the mini code map
     /// </summary>
-    public bool EditorToggleMiniMap
+    public bool IsMiniMapVisible
     {
         get
         {
-            return _isminimapvisible;
+            object isMiniMapVisibleProperty = GetValue(IsMiniMapVisibleProperty);
+            return isMiniMapVisibleProperty == null ? false : (bool)isMiniMapVisibleProperty;
         }
         set
         {
             SetValue(IsMiniMapVisibleProperty, value);
             OnPropertyChanged();
 
-            this.IsMiniMapVisible(value);
+            this.SetEditorMiniMapVisible(value);
         }
     }
 
     #endregion
 
-    #region ReadOnly Property
+    #region EditorReadOnly Property
 
-    public static readonly DependencyProperty ReadOnlyProperty = DependencyProperty.Register("ReadOnly",
+    public static readonly DependencyProperty EditorReadOnlyProperty = DependencyProperty.Register("EditorReadOnly",
         typeof(bool),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -199,22 +190,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            return _readonly;
+            object editorReadOnlyProperty = GetValue(EditorReadOnlyProperty);
+            return editorReadOnlyProperty == null ? false : (bool)editorReadOnlyProperty;
         }
         set
         {
-            SetValue(ReadOnlyProperty, value);
+            SetValue(EditorReadOnlyProperty, value);
             OnPropertyChanged();
 
-            this.ReadOnly(value);
+            this.SetEditorReadOnly(value);
         }
     }
 
     #endregion
 
-    #region SetReadOnlyMessage Property
+    #region EditorReadOnlyMessage Property
 
-    public static readonly DependencyProperty SetReadOnlyMessageProperty = DependencyProperty.Register("SetReadOnlyMessage",
+    public static readonly DependencyProperty EditorReadOnlyMessageProperty = DependencyProperty.Register("EditorReadOnlyMessage",
         typeof(string),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -226,11 +218,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         get
         {
-            return _content;
+            object editorReadOnlyMessageProperty = GetValue(EditorReadOnlyMessageProperty);
+            return editorReadOnlyMessageProperty == null ? string.Empty : (string)editorReadOnlyMessageProperty;
         }
         set
         {
-            SetValue(SetReadOnlyMessageProperty, value);
+            SetValue(EditorReadOnlyMessageProperty, value);
             OnPropertyChanged();
 
             this.SetReadOnlyMessage(value);
@@ -239,9 +232,9 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #endregion
 
-    #region StickyScroll Property
+    #region IsStickyScrollEnabled Property
 
-    public static readonly DependencyProperty StickyScrollProperty = DependencyProperty.Register("StickyScroll",
+    public static readonly DependencyProperty IsStickyScrollEnabledProperty = DependencyProperty.Register("IsStickyScrollEnabled",
         typeof(bool),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -249,26 +242,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     /// <summary>
     /// Set the editor to StickyScroll mode or not.
     /// </summary>
-    public bool EditorStickyScroll
+    public bool IsStickyScrollEnabled
     {
         get
         {
-            return _stickyscroll;
+            object isStickyScrollEnabledProperty = GetValue(IsStickyScrollEnabledProperty);
+            return isStickyScrollEnabledProperty == null ? false : (bool)isStickyScrollEnabledProperty;
         }
         set
         {
-            SetValue(StickyScrollProperty, value);
+            SetValue(IsStickyScrollEnabledProperty, value);
             OnPropertyChanged();
 
-            this.StickyScroll(value);
+            this.SetEditorStickyScroll(value);
         }
     }
 
-    
-
     #endregion
-
-    public string CurrentCodeLanguage { get; set; }
 
     #region Theme Property
 
@@ -295,6 +285,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     #endregion
 
+    #region Editor Core
+
     public MonacoEditor()
     {
         this.InitializeComponent();
@@ -306,7 +298,32 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
     {
+        /*
+        // LOAD ALL FROM WHOLE APP
+        var internalMonacoHandlerTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(s => s.GetTypes());
+        /* */
+
+        // get all monaco handler types
+        var internalMonacoHandlerTypes = Assembly.GetAssembly(typeof(MonacoEditor))!
+            .GetTypes();
+        var additionalMonacoHandlerTypes = MonacoEditor.AdditionalMonacoHandlerTypes;
+        var monacoHandlerTypes = internalMonacoHandlerTypes.Concat(additionalMonacoHandlerTypes)
+            .Where(p => typeof(IMonacoHandler).IsAssignableFrom(p) && !p.IsInterface && !p.IsAbstract);
+
+        this._registeredHandlers = monacoHandlerTypes
+            .Select(x => (Activator.CreateInstance(x) as IMonacoHandler)!)
+            .ToList();
+
+
+
+        // first setup the parent instance (this control)
+        this._registeredHandlers.ForEach(handler => handler.WithParentInstance(this));
+
         await MonacoEditorWebView.EnsureCoreWebView2Async();
+
+        // then setup the webview after the EnsureCoreWebView2Async() call
+        this._registeredHandlers.ForEach(handler => handler.WithWebView(this.MonacoEditorWebView));
 
         MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
@@ -338,8 +355,21 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                 }
                 break;
 
-            // monaco events
+                // monaco events
         }
+    }
+
+    /// <inheritdoc />
+    public T GetHandler<T>() where T : IMonacoHandler
+    {
+        T handler = (T)this._registeredHandlers.First(x => x.GetType() == typeof(T));
+
+        if (handler is null)
+        {
+            throw new ArgumentNullException($"{nameof(handler)} is null. either because the handler was not registered or because the call was made too early.");
+        }
+
+        return handler;
     }
 
     private async void WebView_NavigationCompleted(object sender, object e)
@@ -348,95 +378,18 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
+        await this.RegisterContentChangingEvent();
+    }
+
+    private async Task RegisterContentChangingEvent()
+    {
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
-
     }
 
-    public void IsMiniMapVisible(bool status=true)
-    {
-        string command = "";
-        if (status)
-            command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
-        else
-            command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
+    #endregion
 
-    public void ReadOnly(bool status = false)
-    {
-        string command = "";
-        if (status)
-            command = $"editor.updateOptions({{readOnly: true}});";
-        else
-            command = $"editor.updateOptions({{readOnly: false}});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
-
-    public void SetReadOnlyMessage(string content)
-    {
-        string command = "";
-        this._content = content;
-        command = $"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});";
-        
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
-
-    public void StickyScroll(bool status = true)
-    {
-        string command = "";
-        if (status)
-            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});";
-        else
-            command = $"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
-
-    /// <inheritdoc />
-    public async Task LoadContentAsync(string content)
-    {
-        string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
-
-        this._content = ensuredContent;
-
-        string command = $"editor.setValue('{ensuredContent}');";
-
-        await this.MonacoEditorWebView
-            .ExecuteScriptAsync(command);
-    }
-
-    public async Task LoadFromFileAsync(StorageFile file, bool autodetect=false)
-    {
-        if (file == null) throw new ArgumentNullException("file not specified");
-        string fContent = await FileIO.ReadTextAsync(file);
-        if (autodetect)
-        {
-            string fExt = Path.GetExtension(file.Path).ToLower();
-            if (_CodeLangs.TryGetValue(fExt, out var codeLangs))
-            {
-                await SetLanguageAsync(codeLangs);
-                CurrentCodeLanguage = codeLangs;
-            }
-            else
-            {
-                await SetLanguageAsync("plaintext");
-                CurrentCodeLanguage="plaintext";
-            }
-        }
-        await LoadContentAsync(fContent);
-    }
-
-    /// <inheritdoc />
-    public async Task<string> GetEditorContentAsync()
-    {
-        string command = $"editor.getValue();";
-
-        string contentAsJsRepresentation = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
-        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
-
-        return content;
-    }
+    #region Editor Theme Logic
 
     /// <inheritdoc />
     public async Task SetThemeAsync(EditorThemes theme)
@@ -462,18 +415,20 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
                 break;
         }
 
-        string command = $"editor._themeService.setTheme('{themeValue}');";
-
-        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        await this.SetThemeAsync(themeValue);
     }
 
     /// <inheritdoc />
-    public async Task SelectAllAsync()
+    public async Task SetThemeAsync(string theme)
     {
-        string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
+        string command = $"editor._themeService.setTheme('{theme}');";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
+
+    #endregion
+
+    #region Editor Language
 
     /// <inheritdoc />
     public async Task<CodeLanguage[]> GetLanguagesAsync()
@@ -482,7 +437,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
         string languagesJson = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
-        CodeLanguage[] codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
+        CodeLanguage[]? codeLanguages = JsonSerializer.Deserialize<CodeLanguage[]>(languagesJson);
+
+        if (codeLanguages is null)
+        {
+            return Array.Empty<CodeLanguage>();
+        }
 
         return codeLanguages;
     }
@@ -496,13 +456,57 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
         // Reset the change content event
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+        await this.RegisterContentChangingEvent();
+    }
+
+    #endregion
+
+    public void SetEditorMiniMapVisible(bool status = true)
+    {
+        if (status)
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ minimap: {{ enabled: true }} }});");
+        }
+        else
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ minimap: {{ enabled: false }} }});");
+        }
+    }
+
+    public void SetEditorReadOnly(bool status = false)
+    {
+        if (status)
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnly: true}});");
+        }
+        else
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnly: false}});");
+        }
+    }
+
+    public void SetReadOnlyMessage(string content)
+    {
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});");
+    }
+
+    public void SetEditorStickyScroll(bool status = true)
+    {
+        if (status)
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});");
+        }
+        else
+        {
+            _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});");
+        }
     }
 
     /// <inheritdoc />
-    public void OpenDebugWebViewDeveloperTools()
+    public async Task SelectAllAsync()
     {
-        MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
+        string command = $"editor.setSelection(editor.getModel().getFullModelRange());";
+
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 }

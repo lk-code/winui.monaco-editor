@@ -9,7 +9,7 @@ on:
 env:
   SOLUTION: source/Monaco.sln
   PROJECT_FILE: source/Monaco/Monaco.csproj
-  VERSION: 1.1.48.${{ github.run_number }}
+  VERSION: 1.1.49.${{ github.run_number }}
 
 jobs:
   build-and-publish:

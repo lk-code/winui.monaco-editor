@@ -19,19 +19,18 @@ public interface IMonacoEditor
     Task SetThemeAsync(EditorThemes theme);
 
     /// <summary>
+    /// sets the requested theme to the monaco editor view
+    /// </summary>
+    /// <param name="theme">the requested theme</param>
+    /// <returns></returns>
+    Task SetThemeAsync(string theme);
+
+    /// <summary>
     /// loads the given content to the monaco editor view
     /// </summary>
     /// <param name="content">the new content</param>
     /// <returns></returns>
     Task LoadContentAsync(string content);
-
-    /// <summary>
-    /// loads content from a given StorageFile; you can also make MonacoEditor guess the code language by its file extension
-    /// </summary>
-    /// <param name="file">the StorageFile that will be loaded</param>
-    /// <param name="autodetect">if set to "TRUE", Monaco Editor will try to guess the code language by file extension - default is FALSE</param>
-    /// <returns></returns>
-    Task LoadFromFileAsync(StorageFile file, bool autodetect=false);
 
     /// <summary>
     /// hides or shows the mini code map (default is TRUE)

@@ -53,64 +53,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// </summary>
     private bool _stickyscroll = true;
 
-
-    /// <summary>
-    /// This dictionary helps WinUI.Monaco to guess
-    /// the coding language of a file from its extension.
-    /// This list is not complete as monaco-editor holds
-    /// many more lesser languages and they will be added
-    /// in future commits.
-    /// </summary>
-    private Dictionary<string, string> _CodeLangs = new()
-    {
-        { ".txt","plaintext" },
-        { ".bat","bat" },
-        { ".c","c" },
-        { ".h","c" },
-        { ".mligo","cameligo" },
-        { ".cpp","cpp" },
-        { ".cs","csharp" },
-        { ".coffee","coffeescript" },
-        { ".css","css" },
-        { ".clj","clojure" },
-        { ".cql","cypher" },
-        { ".dart","dart" },
-        { ".ecl","ecl" },
-        { ".exs","elixir" },
-        { ".flow","flow9" },
-        { ".go","go" },
-        { ".htm","html" },
-        { ".html","html" },
-        { ".ini","ini" },
-        { ".java","java" },
-        { ".js","javascript" },
-        { ".jl","julia" },
-        { ".kt","kotlin" },
-        { ".kts","kotlin" },
-        { ".ktm","kotlin" },
-        { ".md","markdown" },
-        { ".lua","lua" },
-        { ".pas","pascal" },
-        { ".perl","perl" },
-        { ".php","php" },
-        { ".ps1","powershell" },
-        { ".py","python" },
-        { ".r","r" },
-        { ".rb","ruby" },
-        { ".rs","rust" },
-        { ".sh","shell" },
-        { ".sql","sql" },
-        { ".ts","typescript" },
-        { ".vb","vb" },
-        { ".xml","xml" },
-        { ".axml","xml" },
-        { ".xaml","xml" },
-        { ".json","json" },
-        { ".yml","yaml" },
-        { ".yaml","yaml" }
-    };
-
-
     #region PropertyChanged Event
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -321,7 +263,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         }
     }
 
-    
+
 
     #endregion
 
@@ -420,7 +362,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
                 }
                 break;
 
-            // monaco events
+                // monaco events
         }
     }
 
@@ -447,14 +389,14 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
     }
 
-    public void IsMiniMapVisible(bool status=true)
+    public void IsMiniMapVisible(bool status = true)
     {
         string command = "";
         if (status)
             command = $"editor.updateOptions({{ minimap: {{ enabled: true }} }});";
         else
             command = $"editor.updateOptions({{ minimap: {{ enabled: false }} }});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
     public void ReadOnly(bool status = false)
@@ -464,7 +406,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
             command = $"editor.updateOptions({{readOnly: true}});";
         else
             command = $"editor.updateOptions({{readOnly: false}});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
     public void SetReadOnlyMessage(string content)
@@ -472,8 +414,8 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         string command = "";
         this._content = content;
         command = $"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});";
-        
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
     public void StickyScroll(bool status = true)
@@ -483,28 +425,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
             command = $"editor.updateOptions({{ stickyScroll: {{ enabled: true }} }});";
         else
             command = $"editor.updateOptions({{ stickyScroll: {{ enabled: false }} }});";
-        this.MonacoEditorWebView.ExecuteScriptAsync(command);
-    }
-
-    public async Task LoadFromFileAsync(StorageFile file, bool autodetect=false)
-    {
-        if (file == null) throw new ArgumentNullException("file not specified");
-        string fContent = await FileIO.ReadTextAsync(file);
-        if (autodetect)
-        {
-            string fExt = Path.GetExtension(file.Path).ToLower();
-            if (_CodeLangs.TryGetValue(fExt, out var codeLangs))
-            {
-                await SetLanguageAsync(codeLangs);
-                CurrentCodeLanguage = codeLangs;
-            }
-            else
-            {
-                await SetLanguageAsync("plaintext");
-                CurrentCodeLanguage="plaintext";
-            }
-        }
-        await LoadContentAsync(fContent);
+        _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
     /// <inheritdoc />
@@ -531,7 +452,13 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
                 break;
         }
 
-        string command = $"editor._themeService.setTheme('{themeValue}');";
+        await this.SetThemeAsync(themeValue);
+    }
+
+    /// <inheritdoc />
+    public async Task SetThemeAsync(string theme)
+    {
+        string command = $"editor._themeService.setTheme('{theme}');";
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }

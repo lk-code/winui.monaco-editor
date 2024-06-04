@@ -8,6 +8,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
 using Monaco.MonacoHandler;
+using System.IO;
 
 namespace MonacoTestApp;
 
@@ -34,7 +35,7 @@ public sealed partial class MainWindow : Window
 
         // set theme
         this.ThemeSelectionComboBox.ItemsSource = _themes.Select(x => x.Key);
-        
+
     }
 
     private void LogMessage(string message)
@@ -151,7 +152,19 @@ public sealed partial class MainWindow : Window
         StorageFile file = await fileOpenPicker.PickSingleFileAsync();
         if (file != null)
         {
-            await MonacoEditor.LoadFromFileAsync(file, true);
+            bool autodetect = this.AutoCodeTypeDetectionCheckBox.IsChecked ?? false;
+            string fileContent = await FileIO.ReadTextAsync(file);
+
+            if (autodetect)
+            {
+                MonacoFileRecognitionHandler handler = this.MonacoEditor.GetHandler<MonacoFileRecognitionHandler>();
+
+                string fileCodeLanguage = handler.RecognizeLanguageByFileType(Path.GetExtension(file.Path));
+                await this.MonacoEditor.SetLanguageAsync(fileCodeLanguage);
+            }
+
+            await MonacoEditor.LoadContentAsync(fileContent);
+
             /// Remarks: LoadFromFileAsync method relies on LoadContentAsync but it
             /// helps to make easier loading a file and it tries to guess what is
             /// the correct coding language to be set for a proper visualization.
@@ -175,5 +188,10 @@ public sealed partial class MainWindow : Window
     private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
+    }
+
+    private void AutoCodeTypeDetection_Checked(object sender, RoutedEventArgs e)
+    {
+
     }
 }

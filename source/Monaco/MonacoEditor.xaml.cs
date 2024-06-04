@@ -1,10 +1,12 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,17 +15,43 @@ using Windows.Storage;
 
 namespace Monaco;
 
-public sealed partial class MonacoEditor : UserControl, IMonacoEditor
+public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCore
 {
     private const string HTML_LAUNCH_FILE = @"monaco-editor\index.html";
 
-    private string _content = "";
-    private bool _isminimapvisible = true;
-    private bool _readonly = false;
-    private bool _stickyscroll = true;
+    /// <summary>
+    /// 
+    /// </summary>
+    public static IEnumerable<Type> AdditionalMonacoHandlerTypes = new List<Type>();
+    /// <summary>
+    /// 
+    /// </summary>
+    public event EventHandler? MonacoEditorLoaded = null;
+    /// <summary>
+    /// 
+    /// </summary>
     public bool LoadCompleted { get; set; } = false;
 
-    public event EventHandler? MonacoEditorLoaded = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    private string _content = "";
+    /// <summary>
+    /// 
+    /// </summary>
+    private List<IMonacoHandler> _registeredHandlers = new();
+    /// <summary>
+    /// 
+    /// </summary>
+    private bool _isminimapvisible = true;
+    /// <summary>
+    /// 
+    /// </summary>
+    private bool _readonly = false;
+    /// <summary>
+    /// 
+    /// </summary>
+    private bool _stickyscroll = true;
 
 
     /// <summary>
@@ -102,6 +130,35 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
     {
         _content = await GetEditorContentAsync();
         EditorContentChanged?.Invoke(this, new EventArgs());
+    }
+
+    /// <inheritdoc />
+    public void TriggerEditorContentChanged()
+    {
+        this.EditorContentChanged?.Invoke(this, new EventArgs());
+    }
+
+    /// <inheritdoc />
+    public async Task LoadContentAsync(string content)
+    {
+        string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
+        this._content = ensuredContent;
+
+        string command = $"editor.setValue('{ensuredContent}');";
+
+        await this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetEditorContentAsync()
+    {
+        string command = $"editor.getValue();";
+
+        string contentAsJsRepresentation = await this.MonacoEditorWebView!.ExecuteScriptAsync(command);
+        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
+        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
+
+        return content;
     }
 
     #endregion
@@ -306,7 +363,32 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
 
     private async void MonacoEditorParentView_Loaded(object sender, RoutedEventArgs e)
     {
+        /*
+        // LOAD ALL FROM WHOLE APP
+        var internalMonacoHandlerTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(s => s.GetTypes());
+        /* */
+
+        // get all monaco handler types
+        var internalMonacoHandlerTypes = Assembly.GetAssembly(typeof(MonacoEditor))!
+            .GetTypes();
+        var additionalMonacoHandlerTypes = MonacoEditor.AdditionalMonacoHandlerTypes;
+        var monacoHandlerTypes = internalMonacoHandlerTypes.Concat(additionalMonacoHandlerTypes)
+            .Where(p => typeof(IMonacoHandler).IsAssignableFrom(p) && !p.IsInterface && !p.IsAbstract);
+
+        this._registeredHandlers = monacoHandlerTypes
+            .Select(x => (Activator.CreateInstance(x) as IMonacoHandler)!)
+            .ToList();
+
+
+
+        // first setup the parent instance (this control)
+        this._registeredHandlers.ForEach(handler => handler.WithParentInstance(this));
+
         await MonacoEditorWebView.EnsureCoreWebView2Async();
+
+        // then setup the webview after the EnsureCoreWebView2Async() call
+        this._registeredHandlers.ForEach(handler => handler.WithWebView(this.MonacoEditorWebView));
 
         MonacoEditorWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
@@ -342,14 +424,26 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         }
     }
 
+    /// <inheritdoc />
+    public T GetHandler<T>() where T : IMonacoHandler
+    {
+        T handler = (T)this._registeredHandlers.First(x => x.GetType() == typeof(T));
+
+        if (handler is null)
+        {
+            throw new ArgumentNullException($"{nameof(handler)} is null. either because the handler was not registered or because the call was made too early.");
+        }
+
+        return handler;
+    }
+
     private async void WebView_NavigationCompleted(object sender, object e)
     {
         LoadCompleted = true;
         _ = this.SetThemeAsync(this.EditorTheme);
         _ = this.SetLanguageAsync(this.EditorLanguage);
 
-        string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
-        _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
+        await this.RegisterContentChangingEvent();
 
     }
 
@@ -392,19 +486,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    /// <inheritdoc />
-    public async Task LoadContentAsync(string content)
-    {
-        string ensuredContent = HttpUtility.JavaScriptStringEncode(content);
-
-        this._content = ensuredContent;
-
-        string command = $"editor.setValue('{ensuredContent}');";
-
-        await this.MonacoEditorWebView
-            .ExecuteScriptAsync(command);
-    }
-
     public async Task LoadFromFileAsync(StorageFile file, bool autodetect=false)
     {
         if (file == null) throw new ArgumentNullException("file not specified");
@@ -424,18 +505,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
             }
         }
         await LoadContentAsync(fContent);
-    }
-
-    /// <inheritdoc />
-    public async Task<string> GetEditorContentAsync()
-    {
-        string command = $"editor.getValue();";
-
-        string contentAsJsRepresentation = await this.MonacoEditorWebView.ExecuteScriptAsync(command);
-        string unescapedString = System.Text.RegularExpressions.Regex.Unescape(contentAsJsRepresentation);
-        string content = unescapedString.Substring(1, unescapedString.Length - 2).ReplaceLineEndings();
-
-        return content;
     }
 
     /// <inheritdoc />
@@ -496,6 +565,11 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
 
         // Reset the change content event
+        await this.RegisterContentChangingEvent();
+    }
+
+    private async Task RegisterContentChangingEvent()
+    {
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }

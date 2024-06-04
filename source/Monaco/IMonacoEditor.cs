@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -33,7 +33,6 @@ public interface IMonacoEditor
     /// <returns></returns>
     Task LoadFromFileAsync(StorageFile file, bool autodetect=false);
 
-
     /// <summary>
     /// hides or shows the mini code map (default is TRUE)
     /// </summary>
@@ -61,7 +60,6 @@ public interface IMonacoEditor
     /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
     /// <returns></returns>
     void StickyScroll(bool status);
-
 
     /// <summary>
     /// Gets the content form the monaco editor view

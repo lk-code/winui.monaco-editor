@@ -7,6 +7,7 @@ using System;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
+using Monaco.MonacoHandler;
 
 namespace MonacoTestApp;
 
@@ -104,7 +105,9 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            this.MonacoEditor.OpenDebugWebViewDeveloperTools();
+            MonacoWebViewDevToolsHandler handler = this.MonacoEditor.GetHandler<MonacoWebViewDevToolsHandler>();
+
+            handler.OpenDebugWebViewDeveloperTools();
         }
         catch (Exception err)
         {

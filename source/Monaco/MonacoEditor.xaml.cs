@@ -573,10 +573,4 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         string javaScriptContentChangedEventHandlerWebMessage = "window.editor.getModel().onDidChangeContent((event) => { handleWebViewMessage(\"EVENT_EDITOR_CONTENT_CHANGED\"); });";
         _ = await MonacoEditorWebView.ExecuteScriptAsync(javaScriptContentChangedEventHandlerWebMessage);
     }
-
-    /// <inheritdoc />
-    public void OpenDebugWebViewDeveloperTools()
-    {
-        MonacoEditorWebView.CoreWebView2.OpenDevToolsWindow();
-    }
 }

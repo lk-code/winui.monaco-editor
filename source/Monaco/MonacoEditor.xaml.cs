@@ -43,10 +43,6 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// 
     /// </summary>
     private List<IMonacoHandler> _registeredHandlers = new();
-    /// <summary>
-    /// 
-    /// </summary>
-    private bool _isminimapvisible = true;
 
     #region PropertyChanged Event
 
@@ -162,26 +158,27 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// <summary>
     /// Hides/shows the mini code map
     /// </summary>
-    public bool EditorToggleMiniMap
+    public bool IsMiniMapVisible
     {
         get
         {
-            return _isminimapvisible;
+            object isMiniMapVisibleProperty = GetValue(IsMiniMapVisibleProperty);
+            return isMiniMapVisibleProperty == null ? false : (bool)isMiniMapVisibleProperty;
         }
         set
         {
             SetValue(IsMiniMapVisibleProperty, value);
             OnPropertyChanged();
 
-            this.IsMiniMapVisible(value);
+            this.SetEditorMiniMapVisible(value);
         }
     }
 
     #endregion
 
-    #region ReadOnly Property
+    #region EditorReadOnly Property
 
-    public static readonly DependencyProperty ReadOnlyProperty = DependencyProperty.Register("ReadOnly",
+    public static readonly DependencyProperty EditorReadOnlyProperty = DependencyProperty.Register("EditorReadOnly",
         typeof(bool),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -193,23 +190,23 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     {
         get
         {
-            object readOnlyProperty = GetValue(ReadOnlyProperty);
-            return readOnlyProperty == null ? false : (bool)readOnlyProperty;
+            object editorReadOnlyProperty = GetValue(EditorReadOnlyProperty);
+            return editorReadOnlyProperty == null ? false : (bool)editorReadOnlyProperty;
         }
         set
         {
-            SetValue(ReadOnlyProperty, value);
+            SetValue(EditorReadOnlyProperty, value);
             OnPropertyChanged();
 
-            this.SetReadOnly(value);
+            this.SetEditorReadOnly(value);
         }
     }
 
     #endregion
 
-    #region SetReadOnlyMessage Property
+    #region EditorReadOnlyMessage Property
 
-    public static readonly DependencyProperty SetReadOnlyMessageProperty = DependencyProperty.Register("SetReadOnlyMessage",
+    public static readonly DependencyProperty EditorReadOnlyMessageProperty = DependencyProperty.Register("EditorReadOnlyMessage",
         typeof(string),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -221,11 +218,12 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     {
         get
         {
-            return _content;
+            object editorReadOnlyMessageProperty = GetValue(EditorReadOnlyMessageProperty);
+            return editorReadOnlyMessageProperty == null ? string.Empty : (string)editorReadOnlyMessageProperty;
         }
         set
         {
-            SetValue(SetReadOnlyMessageProperty, value);
+            SetValue(EditorReadOnlyMessageProperty, value);
             OnPropertyChanged();
 
             this.SetReadOnlyMessage(value);
@@ -234,9 +232,9 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
     #endregion
 
-    #region StickyScroll Property
+    #region IsStickyScrollEnabled Property
 
-    public static readonly DependencyProperty StickyScrollProperty = DependencyProperty.Register("StickyScroll",
+    public static readonly DependencyProperty IsStickyScrollEnabledProperty = DependencyProperty.Register("IsStickyScrollEnabled",
         typeof(bool),
         typeof(MonacoEditor),
         new PropertyMetadata(null));
@@ -244,23 +242,21 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
     /// <summary>
     /// Set the editor to StickyScroll mode or not.
     /// </summary>
-    public bool EditorStickyScroll
+    public bool IsStickyScrollEnabled
     {
         get
         {
-            object stickyScrollProperty = GetValue(StickyScrollProperty);
-            return stickyScrollProperty == null ? false : (bool)stickyScrollProperty;
+            object isStickyScrollEnabledProperty = GetValue(IsStickyScrollEnabledProperty);
+            return isStickyScrollEnabledProperty == null ? false : (bool)isStickyScrollEnabledProperty;
         }
         set
         {
-            SetValue(StickyScrollProperty, value);
+            SetValue(IsStickyScrollEnabledProperty, value);
             OnPropertyChanged();
 
-            this.StickyScroll(value);
+            this.SetEditorStickyScroll(value);
         }
     }
-
-
 
     #endregion
 
@@ -384,7 +380,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
     }
 
-    public void IsMiniMapVisible(bool status = true)
+    public void SetEditorMiniMapVisible(bool status = true)
     {
         if (status)
         {
@@ -396,7 +392,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         }
     }
 
-    public void SetReadOnly(bool status = false)
+    public void SetEditorReadOnly(bool status = false)
     {
         if (status)
         {
@@ -410,12 +406,10 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
     public void SetReadOnlyMessage(string content)
     {
-        this._content = content;
-
         _ = this.MonacoEditorWebView.ExecuteScriptAsync($"editor.updateOptions({{readOnlyMessage: {{value: '{content}'}} }});");
     }
 
-    public void StickyScroll(bool status = true)
+    public void SetEditorStickyScroll(bool status = true)
     {
         if (status)
         {

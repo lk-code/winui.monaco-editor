@@ -119,22 +119,22 @@ public sealed partial class MainWindow : Window
     private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
-        MonacoEditor.SetReadOnly(true);
+        MonacoEditor.SetEditorReadOnly(true);
     }
 
     private void ContentIsReadOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.SetReadOnly(false);
+        MonacoEditor.SetEditorReadOnly(false);
     }
 
     private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(true);
+        MonacoEditor.SetEditorMiniMapVisible(true);
     }
 
     private void MinimapVisibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.IsMiniMapVisible(false);
+        MonacoEditor.SetEditorMiniMapVisible(false);
     }
 
     private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
@@ -177,12 +177,12 @@ public sealed partial class MainWindow : Window
 
     private void StickyScrollCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(true);
+        MonacoEditor.SetEditorStickyScroll(true);
     }
 
     private void StickyScrollCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.StickyScroll(false);
+        MonacoEditor.SetEditorStickyScroll(false);
     }
 
     private void ReadOnlyMessageTextBox_TextChanged(object sender, TextChangedEventArgs e)

@@ -43,14 +43,14 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"true" shows the mini map, "false" hides the mini map</param>
     /// <returns></returns>
-    void IsMiniMapVisible(bool status);
+    void SetEditorMiniMapVisible(bool status);
 
     /// <summary>
     /// sets the editor to be read only or not (default is FALSE)
     /// </summary>
     /// <param name="status">"true" sets the editor as read only</param>
     /// <returns></returns>
-    void SetReadOnly(bool status);
+    void SetEditorReadOnly(bool status);
 
     /// <summary>
     /// set a custom message to tell user that editor is in read only mode.
@@ -64,7 +64,7 @@ public interface IMonacoEditor
     /// </summary>
     /// <param name="status">"true" enables the sticky scroll mode, "false" disables the sticky scroll mode</param>
     /// <returns></returns>
-    void StickyScroll(bool status);
+    void SetEditorStickyScroll(bool status);
 
     /// <summary>
     /// select the whole content in the editor

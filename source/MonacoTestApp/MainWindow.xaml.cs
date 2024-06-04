@@ -119,12 +119,12 @@ public sealed partial class MainWindow : Window
     private void ContentIsReadOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         MonacoEditor.SetReadOnlyMessage(ReadOnlyMessageTextBox.Text);
-        MonacoEditor.ReadOnly(true);
+        MonacoEditor.SetReadOnly(true);
     }
 
     private void ContentIsReadOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        MonacoEditor.ReadOnly(false);
+        MonacoEditor.SetReadOnly(false);
     }
 
     private void MinimapVisibleCheckBox_Checked(object sender, RoutedEventArgs e)

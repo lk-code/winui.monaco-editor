@@ -205,7 +205,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
             SetValue(ReadOnlyProperty, value);
             OnPropertyChanged();
 
-            this.ReadOnly(value);
+            this.SetReadOnly(value);
         }
     }
 
@@ -399,7 +399,7 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         _ = this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
 
-    public void ReadOnly(bool status = false)
+    public void SetReadOnly(bool status = false)
     {
         string command = "";
         if (status)

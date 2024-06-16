@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace Monaco;
 
@@ -92,6 +93,34 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
         string content = unescapedString[1..^1].ReplaceLineEndings();
 
         return content;
+    }
+
+    #endregion
+
+    #region ContextMenuEnabled Property
+
+    public static readonly DependencyProperty EditorContextMenuEnabledProperty = DependencyProperty.Register("ContextMenuEnabled",
+        typeof(bool),
+        typeof(MonacoEditor),
+        new PropertyMetadata(null));
+
+    /// <summary>
+    /// Set the editor to readonly or not.
+    /// </summary>
+    public bool EditorContextMenuEnabled
+    {
+        get
+        {
+            object editorContextMenuEnabled = GetValue(EditorContextMenuEnabledProperty);
+            return EditorContextMenuEnabledProperty == null ? false : (bool)editorContextMenuEnabled;
+        }
+        set
+        {
+            SetValue(EditorContextMenuEnabledProperty, value);
+            OnPropertyChanged();
+
+            this.ContextMenuEnabled(value);
+        }
     }
 
     #endregion
@@ -509,4 +538,106 @@ public sealed partial class MonacoEditor : UserControl, IMonacoEditor, IMonacoCo
 
         await this.MonacoEditorWebView.ExecuteScriptAsync(command);
     }
+
+    /// <summary>
+    /// Copy text to clipboard
+    /// </summary>
+    public async void CopyTextToClipBoard()
+    {
+        string rawText = await MonacoEditorWebView.ExecuteScriptAsync("editor.getModel().getValueInRange(editor.getSelection());");
+        string selectedText = System.Text.RegularExpressions.Regex.Unescape(rawText).TrimStart('"').TrimEnd('"');
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.SetText(selectedText);
+        Clipboard.SetContent(dataPackage);
+    }
+
+    /// <summary>
+    /// Cut text to clipboard
+    /// </summary>
+    public async void CutTextToClipBoard()
+    {
+
+        string rawText = await MonacoEditorWebView.ExecuteScriptAsync("editor.getModel().getValueInRange(editor.getSelection());");
+        string selectedText = System.Text.RegularExpressions.Regex.Unescape(rawText).TrimStart('"').TrimEnd('"');
+
+        string command = "var selection = editor.getSelection();";
+        command += "var id = { major: 1, minor: 1 }; ";
+        command += "var text=''; ";
+        command += "var op= {identifier:id, range: selection, text: text, forceMoveMarkers: true}; ";
+        command += "editor.executeEdits(\"my-source\", [op]);";
+
+        await MonacoEditorWebView.ExecuteScriptAsync(command);
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.SetText(selectedText);
+        Clipboard.SetContent(dataPackage);
+    }
+
+    /// <summary>
+    /// Paste text from clipboard
+    /// </summary>
+    public async void PasteTextFromClipBoard(string cpbText)
+    {
+        if (string.IsNullOrEmpty(cpbText))
+            return;
+        // Let's build the complex string holding
+        // the Javascript code to handle pasting into Monaco.
+        // The code checks if some text is selected in order
+        // to paste and replace text or just paste the new text
+        // in an empty position.
+        string inText = System.Text.RegularExpressions.Regex.Escape(cpbText);
+
+        string command = "var selection = editor.getSelection(); ";
+        command += "var id = { major: 1, minor: 1 }; ";
+        command += "var text='" + inText + "'; ";
+        command += "var op = {identifier: id, range: selection, text: text, forceMoveMarkers: true}; ";
+        command += "editor.executeEdits(\"my-source\", [op]);";
+        await MonacoEditorWebView.ExecuteScriptAsync(command);
+
+    }
+
+    public Task ContextMenuEnabled(bool status=true)
+    {
+        string command = "";
+        if (status)
+            command = $"editor.updateOptions({{ contextmenu: true }});";
+        else
+            command = $"editor.updateOptions({{ contextmenu: false }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+        return null;
+    }
+
+    /// <summary>
+    /// Scroll to specified line number
+    /// </summary>
+    /// <param name="lineNumber">
+    /// int value, specifies the line number to jump to.
+    /// </param>
+    public void ScrollToLine(int lineNumber)
+    {
+        string command = "";
+        command = $"editor.revealLine({lineNumber}); editor.setPosition({{lineNumber: {lineNumber}, column: 0 }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+    
+    /// <summary>
+    /// Scroll to specified line number, the destination line shows in the middle of the editor
+    /// </summary>
+    /// <param name="lineNumber">
+    /// int value, specifies the line number to jump to.
+    /// </param>
+    public void ScrollToLineInCenter(int lineNumber)
+    {
+        string command = "";
+        command = $"editor.revealLineInCenter({lineNumber}); editor.setPosition({{lineNumber: {lineNumber}, column: 0 }});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+    /// <summary>
+    /// Scroll editor to top
+    /// </summary>
+    public void ScrollToTop()
+    {
+        string command = "editor.setScrollPosition({scrollTop: 0});";
+        this.MonacoEditorWebView.ExecuteScriptAsync(command);
+    }
+
 }

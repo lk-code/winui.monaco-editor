@@ -207,7 +207,11 @@
                                       IsChecked="True"
                                       Checked="StickyScrollCheckBox_Checked"
                                       Unchecked="StickyScrollCheckBox_Unchecked"/>
-
+                            <CheckBox x:Name="DisableContextMenu"
+                                      Content="Disable context menu"
+                                      IsChecked="False"
+                                      Checked="DisableContextMenu_Checked"
+                                      Unchecked="DisableContextMenu_Unchecked" />
                         </StackPanel>
 
                     </ScrollViewer>

@@ -12,6 +12,13 @@ public interface IMonacoEditor
     event EventHandler MonacoEditorLoaded;
 
     /// <summary>
+    /// Disable MOnaco Editor's own context menu.
+    /// </summary>
+    /// <param name="status">TRUE/FALSE, default is true</param>
+    /// <returns></returns>
+    Task ContextMenuEnabled(bool status=true);
+
+    /// <summary>
     /// sets the requested theme to the monaco editor view
     /// </summary>
     /// <param name="theme">the requested theme</param>

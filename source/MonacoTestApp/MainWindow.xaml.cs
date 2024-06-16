@@ -192,6 +192,16 @@ public sealed partial class MainWindow : Window
 
     private void AutoCodeTypeDetection_Checked(object sender, RoutedEventArgs e)
     {
+        
+    }
 
+    private void DisableContextMenu_Checked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.ContextMenuEnabled(false);
+    }
+
+    private void DisableContextMenu_Unchecked(object sender, RoutedEventArgs e)
+    {
+        MonacoEditor.ContextMenuEnabled();
     }
 }

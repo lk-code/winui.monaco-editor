@@ -1,9 +1,8 @@
-﻿namespace Monaco
+﻿namespace Monaco;
+
+public enum EditorThemes
 {
-    public enum EditorThemes
-    {
-        VisualStudioLight,
-        VisualStudioDark,
-        HighContrastDark
-    }
+    VisualStudioLight,
+    VisualStudioDark,
+    HighContrastDark
 }

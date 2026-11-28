@@ -1,0 +1,1 @@
+define("vs/html.worker-VIR_LTyv", ["require", "exports"], (function(require, r){"use strict";const e=""+new URL(require.toUrl("./assets/html.worker-rsc3ukne.js"),document.baseURI).href;r.__worker_url_0__=e}));
